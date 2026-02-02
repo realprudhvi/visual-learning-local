@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visually Data Structures - Universal Engine</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- HOME VIEW -->
+    <div id="home-view">
+        <div class="main-title">Visually Learning</div>
+
+        <!-- Linear Structures -->
+        <div class="category-section">
+            <div class="section-title">Linear Structures</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('array')">
+                    <h3>Arrays</h3>
+                </div>
+                <div class="card" onclick="selectStructure('stack')">
+                    <h3>Stacks</h3>
+                </div>
+                <div class="card" onclick="selectStructure('queue')">
+                    <h3>Queue</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Structures -->
+        <div class="category-section">
+            <div class="section-title">Memory & Pointers</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('sll')">
+                    <h3>Singly Linked List</h3>
+                </div>
+                <div class="card" onclick="selectStructure('dll')">
+                    <h3>Doubly Linked List</h3>
+                </div>
+                <div class="card" onclick="selectStructure('cll')">
+                    <h3>Circular Linked List</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hierarchical Structures -->
+        <div class="category-section">
+            <div class="section-title">Hierarchical</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('bt')">
+                    <h3>Binary Tree</h3>
+                </div>
+                <div class="card" onclick="selectStructure('bst')">
+                    <h3>Binary Search Tree</h3>
+                </div>
+                <div class="card" onclick="selectStructure('minheap')">
+                    <h3>Min Heap</h3>
+                </div>
+                <div class="card" onclick="selectStructure('maxheap')">
+                    <h3>Max Heap</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Structures -->
+        <div class="category-section">
+            <div class="section-title">Graphs</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('graph')">
+                    <h3>Graph</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="category-section">
+            <div class="section-title">Settings</div>
+            <div
+                style="padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label for="zoomSensitivity"
+                        style="color: var(--text-sub); font-size: 0.9rem; min-width: 120px;">Zoom Sensitivity:</label>
+                    <input type="range" id="zoomSensitivity" min="0.02" max="0.2" step="0.01" value="0.05"
+                        style="flex: 1; accent-color: #3b82f6;">
+                    <span id="zoomSensitivityValue"
+                        style="color: var(--text); font-family: 'Fira Code', monospace; min-width: 50px;">0.05</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP VIEW (Hidden by default) -->
+    <div id="app-container" class="hidden">
+        <div id="sidebar">
+            <button class="back-btn" onclick="showHome()">← Back (Alt+Left)</button>
+            <h3 style="margin-top:0" id="structure-title">Structure</h3>
+
+            <div class="msg-log" id="chat" style="display:none;"></div>
+
+            <div style="margin-bottom: 10px; color: var(--text-sub); font-size: 0.9rem;">
+                Enter values:
+            </div>
+            <input type="text" id="userInput" placeholder="e.g. 1 2 3" autofocus>
+
+            <!-- Array Controls -->
+            <div id="array-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Operations</h4>
+                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                    <input type="number" id="arrIdx" placeholder="Idx" style="width: 50px;">
+                    <input type="text" id="arrVal" placeholder="Val" style="width: 60px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <button id="btnArrInsert" class="control-btn">Insert</button>
+                    <button id="btnArrUpdate" class="control-btn">Update</button>
+                    <button id="btnArrDelete" class="control-btn">Delete</button>
+                    <button id="btnArrSearch" class="control-btn">Search</button>
+                </div>
+            </div>
+
+            <!-- List Controls -->
+            <div id="list-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Operations</h4>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="listVal" placeholder="Value" style="width: 100px;">
+                </div>
+                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button id="btnListAppend" class="control-btn" style="flex:1;">Append</button>
+                    <button id="btnListPrepend" class="control-btn" style="flex:1;">Prepend</button>
+                </div>
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <button id="btnListRemove" class="control-btn" style="flex:1;">Remove Val</button>
+                    <button id="btnListSearch" class="control-btn" style="flex:1;">Search</button>
+                </div>
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <button id="btnListPopHead" class="control-btn" style="flex:1;">Pop Head</button>
+                    <button id="btnListPopTail" class="control-btn" style="flex:1;">Pop Tail</button>
+                </div>
+            </div>
+
+            <!-- Stack Controls -->
+            <div id="stack-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Operations</h4>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="stackPushInput" placeholder="Value" style="width: 60px;">
+                    <button id="btnPush" class="control-btn">Push</button>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button id="btnPop" class="control-btn">Pop</button>
+                    <button id="btnPeek" class="control-btn">Peek</button>
+                </div>
+            </div>
+
+            <!-- Queue Controls -->
+            <div id="queue-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Operations</h4>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="queueEnqueueInput" placeholder="Value" style="width: 60px;">
+                    <button id="btnEnqueue" class="control-btn">Enqueue</button>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button id="btnDequeue" class="control-btn">Dequeue</button>
+                    <button id="btnPeekQueue" class="control-btn">Peek</button>
+                </div>
+            </div>
+
+            <!-- Heap Controls -->
+            <div id="heap-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Operations</h4>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="heapInput" placeholder="Value" style="width: 60px;">
+                    <button id="btnHeapInsert" class="control-btn">Insert</button>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button id="btnHeapExtract" class="control-btn">Poll</button>
+                    <button id="btnHeapPeek" class="control-btn">Peek</button>
+                </div>
+            </div>
+
+            <!-- Tree Controls -->
+            <div id="tree-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Traversals</h4>
+                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button id="btnBFS" class="control-btn" style="flex:1;">BFS</button>
+                    <button id="btnPreorder" class="control-btn" style="flex:1;">Preorder</button>
+                </div>
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <button id="btnInorder" class="control-btn" style="flex:1;">Inorder</button>
+                    <button id="btnPostorder" class="control-btn" style="flex:1;">Postorder</button>
+                </div>
+                <!-- BST Search -->
+                <div id="bst-search-controls" class="hidden"
+                    style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Search</h4>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="number" id="bstSearchVal" placeholder="Value" style="width: 80px;">
+                        <button id="btnBSTSearch" class="control-btn" style="flex:1;">Search</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Controls -->
+            <div id="graph-controls" class="hidden"
+                style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Builder Tools</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                    <button id="btnAddNode" class="control-btn" title="Click stage to add node">Add Node</button>
+                    <button id="btnResetGraph" class="control-btn cancel-btn">Reset</button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 5px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                        <button id="btnAddEdgeUndir" class="control-btn">Add Edge (Line)</button>
+                        <button id="btnAddEdgeDir" class="control-btn">Add Edge (Arrow)</button>
+                    </div>
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px;">
+                        <button id="btnDelNode" class="control-btn cancel-btn">Delete Node</button>
+                        <button id="btnDelEdge" class="control-btn cancel-btn">Delete Edge</button>
+                    </div>
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px;">
+                        <button id="btnGraphBFS" class="control-btn traversal-btn">Run
+                            BFS</button>
+                        <button id="btnGraphDFS" class="control-btn traversal-btn">Run
+                            DFS</button>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-sub); font-style: italic;"
+                    id="graph-instructions">
+                    Select a tool to begin.
+                </div>
+            </div>
+
+            <div
+                style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: center;">
+                <button class="back-btn" onclick="resetZoom()" style="margin:0; width: auto;">Reset View</button>
+            </div>
+        </div>
+
+        <div id="visual-area">
+            <div id="pan-zoom-container">
+                <svg id="svg-layer">
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"
+                            markerUnits="userSpaceOnUse">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
+                        </marker>
+                    </defs>
+                </svg>
+                <div id="stage"></div>
+            </div>
+            <!-- Step Controls -->
+            <div id="step-controls" class="hidden">
+                <button id="btnPrevStep" class="step-btn" title="Previous Step">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <span id="step-indicator">Step 0 / 0</span>
+                <button id="btnNextStep" class="step-btn" title="Next Step">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- NEW AUX PANEL (Right Side) -->
+        <div id="aux-panel" class="hidden">
+            <h3 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Aux Structure</h3>
+
+            <h4 style="margin: 15px 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Traversal Output</h4>
+            <div id="traversal-output"
+                style="font-family: monospace; font-size: 0.9rem; margin-bottom: 20px; color: #ec4899; min-height: 20px; border: 1px solid var(--border); padding: 10px; border-radius: 6px;">
+            </div>
+
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Visited Array</h4>
+            <div id="visual-visited"
+                style="display: flex; gap: 5px; overflow-x: auto; padding: 10px; min-height: 50px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 20px; background: rgba(0,0,0,0.2);">
+            </div>
+
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Queue</h4>
+            <div id="visual-queue"
+                style="display: flex; gap: 5px; overflow-x: auto; padding: 10px; min-height: 60px; border: 1px dashed var(--border); margin-bottom: 20px; align-items: center; scrollbar-width: none; -ms-overflow-style: none;">
+            </div>
+
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Call Stack</h4>
+            <div id="visual-stack"
+                style="display: flex; flex-direction: column; gap: 5px; height: 400px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; background: rgba(0,0,0,0.2);">
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

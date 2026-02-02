@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground Test Runner</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* === USING YOUR EXACT THEME === */
+        :root {
+            --bg-body: #0f172a;
+            --bg-panel: #1e293b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: #334155;
+            /* Node Colors */
+            --node-bg: #1e293b;
+            --node-border: #64748b;
+            /* Simple Structs - YOUR COLORS */
+            --array-bg: #064e3b;
+            --array-border: #34d399;
+            --stack-bg: #0c4a6e;
+            --stack-border: #38bdf8;
+            --queue-bg: #831843;
+            --queue-border: #f472b6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 30px;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        /* === INPUT === */
+        #input-field {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+            font-family: "Fira Code", monospace;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: border-color 0.2s;
+        }
+
+        #input-field:focus {
+            outline: none;
+            border-color: var(--text-sub);
+            box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.2);
+        }
+
+        /* === YOUR EXACT ARRAY STYLES === */
+        #array-container {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            min-height: 80px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .array-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .array-box {
+            width: 60px;
+            height: 60px;
+            background: var(--array-bg);
+            border: 2px solid var(--array-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .array-idx {
+            font-family: "Fira Code", monospace;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 5px;
+        }
+
+        /* === YOUR EXACT STACK STYLES === */
+        .stack-wrapper {
+            display: flex;
+            justify-content: center;
+            min-height: 250px;
+        }
+
+        .stack-container {
+            border-left: 4px solid var(--text-sub);
+            border-right: 4px solid var(--text-sub);
+            border-bottom: 4px solid var(--text-sub);
+            width: 120px;
+            min-height: 200px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 5px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .stack-item {
+            height: 40px;
+            background: var(--stack-bg);
+            border: 2px solid var(--stack-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            animation: dropIn 0.3s ease;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes dropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === POINTERS === */
+        #ptr-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            min-height: 30px;
+            margin-top: 10px;
+        }
+
+        .ptr-indicator {
+            font-family: "Fira Code", monospace;
+            font-size: 0.9rem;
+            color: #f59e0b;
+            padding: 4px 12px;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 4px;
+        }
+
+        /* === LOG === */
+        #log-container {
+            font-family: "Fira Code", monospace;
+            font-size: 1rem;
+            color: #fbbf24;
+            min-height: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        /* === YOUR EXACT STEP CONTROLS === */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(12px);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-top: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .step-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            font-size: 1.2rem;
+        }
+
+        .step-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .step-btn:disabled {
+            background: rgba(100, 116, 139, 0.3);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        #btn-reset {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        #btn-reset:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: var(--text-sub);
+        }
+
+        #step-indicator {
+            font-family: "Fira Code", monospace;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .layout-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .layout-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎮 Playground Test</h1>
+
+        <div class="panel">
+            <h3>Input</h3>
+            <input type="text" id="input-field" placeholder="Enter input...">
+            <button id="btn-reset" onclick="reset()">▶ Start / Reset</button>
+        </div>
+
+        <div class="layout-row" id="structures-row">
+            <div class="panel" id="array-panel" style="display: none;">
+                <h3>Array</h3>
+                <div id="array-container"></div>
+                <div id="ptr-container"></div>
+            </div>
+
+            <div class="panel" id="stack-panel" style="display: none;">
+                <h3>Stack</h3>
+                <div class="stack-wrapper">
+                    <div class="stack-container" id="stack-container"></div>
+                </div>
+            </div>
+
+            <div class="panel" id="queue-panel" style="display: none;">
+                <h3>Queue</h3>
+                <div class="queue-wrapper">
+                    <div class="queue-container" id="queue-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Log</h3>
+            <div id="log-container">Click "Start" to begin...</div>
+        </div>
+
+        <div class="controls">
+            <button class="step-btn" id="btn-prev" disabled>←</button>
+            <span id="step-indicator">Step 0</span>
+            <button class="step-btn" id="btn-next" disabled>→</button>
+        </div>
+    </div>
+
+    <script>
+        // ============ VISUAL PRIMITIVES (YOUR EXACT STYLES) ============
+
+        const primitives = {
+            array: {
+                data: [],
+                init(vals) {
+                    this.data = [...vals];
+                    this.render();
+                },
+                get(i) { return this.data[i]; },
+                set(i, v) { this.data[i] = v; this.render(); },
+                swap(i, j) {
+                    [this.data[i], this.data[j]] = [this.data[j], this.data[i]];
+                    this.render();
+                },
+                highlight(i, color) {
+                    const boxes = document.querySelectorAll('.array-box');
+                    if (boxes[i]) {
+                        boxes[i].style.backgroundColor = color;
+                        boxes[i].style.borderColor = color;
+                    }
+                },
+                highlightRange(start, end, color) {
+                    for (let i = start; i <= end; i++) this.highlight(i, color);
+                },
+                clearHighlights() {
+                    document.querySelectorAll('.array-box').forEach(b => {
+                        b.style.backgroundColor = '';
+                        b.style.borderColor = '';
+                    });
+                },
+                get length() { return this.data.length; },
+                render() {
+                    const container = document.getElementById('array-container');
+                    container.innerHTML = this.data.map((v, i) =>
+                        `<div class="array-cell">
+                            <div class="array-box">${v}</div>
+                            <div class="array-idx">${i}</div>
+                        </div>`
+                    ).join('');
+                }
+            },
+
+            stack: {
+                data: [],
+                push(v) { this.data.push(v); this.render(); },
+                pop() { const v = this.data.pop(); this.render(); return v; },
+                peek() { return this.data[this.data.length - 1]; },
+                isEmpty() { return this.data.length === 0; },
+                size() { return this.data.length; },
+                highlight(i, color) {
+                    const items = document.querySelectorAll('.stack-item');
+                    if (items[i]) {
+                        items[i].style.backgroundColor = color;
+                        items[i].style.borderColor = color;
+                    }
+                },
+                clear() { this.data = []; this.render(); },
+                render() {
+                    const container = document.getElementById('stack-container');
+                    container.innerHTML = this.data.map(v =>
+                        `<div class="stack-item">${v}</div>`
+                    ).join('');
+                }
+            },
+
+            queue: {
+                data: [],
+                enqueue(v) { this.data.push(v); },
+                dequeue() { return this.data.shift(); },
+                peek() { return this.data[0]; },
+                isEmpty() { return this.data.length === 0; },
+                highlight(i, color) { }
+            },
+
+            ptr: {
+                pointers: {},
+                set(name, idx) {
+                    this.pointers[name] = idx;
+                    this.render();
+                },
+                get(name) { return this.pointers[name]; },
+                remove(name) {
+                    delete this.pointers[name];
+                    this.render();
+                },
+                render() {
+                    const container = document.getElementById('ptr-container');
+                    container.innerHTML = Object.entries(this.pointers)
+                        .map(([name, idx]) => `<div class="ptr-indicator">${name}=${idx}</div>`)
+                        .join('');
+                }
+            }
+        };
+
+        function log(msg) {
+            document.getElementById('log-container').textContent = msg;
+        }
+
+        // ============ STEP CONTROLLER ============
+
+        let resolveStep = null;
+        let stepHistory = [];  // Store state snapshots for prev
+        let currentStepIndex = 0;
+
+        function updateStepIndicator() {
+            document.getElementById('step-indicator').textContent = `Step ${currentStepIndex}`;
+        }
+
+        // Capture current highlight states
+        function captureHighlights() {
+            const arrayHighlights = [];
+            document.querySelectorAll('.array-box').forEach((box, i) => {
+                arrayHighlights.push({
+                    bg: box.style.backgroundColor || '',
+                    border: box.style.borderColor || ''
+                });
+            });
+
+            const stackHighlights = [];
+            document.querySelectorAll('.stack-item').forEach((item, i) => {
+                stackHighlights.push({
+                    bg: item.style.backgroundColor || '',
+                    border: item.style.borderColor || ''
+                });
+            });
+
+            return { arrayHighlights, stackHighlights };
+        }
+
+        // Restore highlight states
+        function restoreHighlights(highlights) {
+            if (highlights.arrayHighlights) {
+                document.querySelectorAll('.array-box').forEach((box, i) => {
+                    if (highlights.arrayHighlights[i]) {
+                        box.style.backgroundColor = highlights.arrayHighlights[i].bg;
+                        box.style.borderColor = highlights.arrayHighlights[i].border;
+                    }
+                });
+            }
+
+            if (highlights.stackHighlights) {
+                document.querySelectorAll('.stack-item').forEach((item, i) => {
+                    if (highlights.stackHighlights[i]) {
+                        item.style.backgroundColor = highlights.stackHighlights[i].bg;
+                        item.style.borderColor = highlights.stackHighlights[i].border;
+                    }
+                });
+            }
+        }
+
+        function awaitStep() {
+            return new Promise(resolve => {
+                // Save current state snapshot INCLUDING highlights
+                const highlights = captureHighlights();
+                stepHistory.push({
+                    arrayData: [...primitives.array.data],
+                    stackData: [...primitives.stack.data],
+                    pointers: { ...primitives.ptr.pointers },
+                    highlights: highlights
+                });
+                currentStepIndex++;
+                updateStepIndicator();
+
+                resolveStep = resolve;
+                document.getElementById('btn-next').disabled = false;
+                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
+            });
+        }
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            document.getElementById('btn-next').disabled = true;
+            if (resolveStep) {
+                resolveStep();
+                resolveStep = null;
+            }
+        });
+
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if (currentStepIndex <= 1 || stepHistory.length < 2) return;
+
+            // Go back one step
+            stepHistory.pop(); // Remove current
+            const prevState = stepHistory[stepHistory.length - 1];
+
+            if (prevState) {
+                // Restore data state
+                primitives.array.data = [...prevState.arrayData];
+                primitives.stack.data = [...prevState.stackData];
+                primitives.ptr.pointers = { ...prevState.pointers };
+
+                primitives.array.render();
+                primitives.stack.render();
+                primitives.ptr.render();
+
+                // Restore highlight state
+                restoreHighlights(prevState.highlights);
+
+                currentStepIndex--;
+                updateStepIndicator();
+                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
+            }
+        });
+
+        // ============ PLAYGROUND EXECUTOR ============
+
+        async function runPlayground(code, input) {
+            // Reset step tracking
+            stepHistory = [];
+            currentStepIndex = 0;
+            updateStepIndicator();
+            document.getElementById('btn-prev').disabled = true;
+            document.getElementById('btn-next').disabled = true;
+
+            // Reset state
+            primitives.array.data = [];
+            primitives.stack.data = [];
+            primitives.ptr.pointers = {};
+            primitives.array.render();
+            primitives.stack.render();
+            primitives.ptr.render();
+
+            // Create Playground class from code string
+            const PlaygroundClass = new Function('return ' + code)();
+            const playground = new PlaygroundClass();
+
+            // Inject primitives
+            playground.array = primitives.array;
+            playground.stack = primitives.stack;
+            playground.queue = primitives.queue;
+            playground.ptr = primitives.ptr;
+            playground.log = log;
+            playground.await = awaitStep;
+
+            // Run!
+            log('Starting...');
+            try {
+                const result = await playground.run(input);
+
+                // Save final state so we can go back
+                stepHistory.push({
+                    arrayData: [...primitives.array.data],
+                    stackData: [...primitives.stack.data],
+                    pointers: { ...primitives.ptr.pointers }
+                });
+                currentStepIndex++;
+                updateStepIndicator();
+
+                // Keep prev button enabled so we can review
+                document.getElementById('btn-prev').disabled = stepHistory.length <= 1;
+                document.getElementById('btn-next').disabled = true;
+
+                log(`✅ Finished! Result: ${result}`);
+            } catch (e) {
+                log(`❌ Error: ${e.message}`);
+                console.error(e);
+            }
+        }
+
+        // ============ LOAD PLACEHOLDER ============
+
+        let playgroundCode = null;
+        let playgroundStructures = [];
+
+        // Show only the panels needed
+        function updateVisiblePanels(structures) {
+            // Hide all panels first
+            document.getElementById('array-panel').style.display = 'none';
+            document.getElementById('stack-panel').style.display = 'none';
+            document.getElementById('queue-panel').style.display = 'none';
+
+            // Show needed panels
+            structures.forEach(s => {
+                const panel = document.getElementById(`${s}-panel`);
+                if (panel) panel.style.display = 'block';
+            });
+
+            // Update grid columns based on visible panels
+            const visibleCount = structures.filter(s =>
+                ['array', 'stack', 'queue'].includes(s)
+            ).length;
+
+            const row = document.getElementById('structures-row');
+            if (visibleCount === 1) {
+                row.style.gridTemplateColumns = '1fr';
+            } else if (visibleCount === 2) {
+                row.style.gridTemplateColumns = '1fr 1fr';
+            } else {
+                row.style.gridTemplateColumns = '1fr 1fr 1fr';
+            }
+        }
+
+        fetch('placeholder.json')
+            .then(r => r.json())
+            .then(data => {
+                playgroundCode = data.code;
+                playgroundStructures = data.structures || [];
+                updateVisiblePanels(playgroundStructures);
+
+                // Set default input from JSON
+                if (data.defaultInput) {
+                    document.getElementById('input-field').value = data.defaultInput;
+                }
+
+                log('✓ Loaded! Click "Start" to begin.');
+            })
+            .catch(e => {
+                log('❌ Failed to load placeholder.json');
+                console.error(e);
+            });
+
+        function reset() {
+            if (!playgroundCode) {
+                log('Still loading...');
+                return;
+            }
+            const input = document.getElementById('input-field').value;
+            runPlayground(playgroundCode, input);
+        }
+    </script>
+</body>
+
+</html>

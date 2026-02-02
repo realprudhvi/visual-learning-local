@@ -1,0 +1,698 @@
+/* --- THEME --- */
+:root {
+    --bg-body: #0f172a;
+    --bg-panel: #1e293b;
+    --text-main: #f1f5f9;
+    --text-sub: #94a3b8;
+    --border: #334155;
+
+    /* Node Colors */
+    --node-bg: #1e293b;
+    --node-border: #64748b;
+    --ptr-bg: #334155;
+    --addr-text: #f87171;
+
+    /* Simple Structs */
+    --array-bg: #064e3b;
+    --array-border: #34d399;
+    --stack-bg: #0c4a6e;
+    --stack-border: #38bdf8;
+    --queue-bg: #831843;
+    --queue-border: #f472b6;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+/* --- LAYOUT --- */
+#sidebar {
+    width: 320px;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    z-index: 20;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+}
+
+#aux-panel {
+    width: 400px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    z-index: 20;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+}
+
+#visual-area {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    /* Hide scrollbars, we pan manually */
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 24px 24px;
+    cursor: grab;
+}
+
+#visual-area:active {
+    cursor: grabbing;
+}
+
+/* SVG Layer */
+#svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 1;
+}
+
+/* Stage */
+#stage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+/* Pan Zoom Container */
+#pan-zoom-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+}
+
+/* --- GENERIC NODE STYLES --- */
+.node-wrapper {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.5s ease;
+}
+
+.mem-addr {
+    font-family: "Fira Code", monospace;
+    font-size: 0.7rem;
+    color: var(--addr-text);
+    margin-bottom: 4px;
+}
+
+/* Linked List Box */
+.ll-box {
+    display: flex;
+    border: 2px solid var(--node-border);
+    background: var(--node-bg);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 5;
+}
+
+.ll-data {
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 1.5rem;
+    min-width: 50px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ll-data:last-child {
+    border-right: none;
+}
+
+/* Pointer Cell */
+.ll-ptr {
+    background: var(--ptr-bg);
+    padding: 8px 12px;
+    font-family: "Fira Code", monospace;
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+    gap: 2px;
+}
+
+.ptr-label {
+    font-size: 0.6rem;
+    font-weight: bold;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Tree/Graph Circle */
+.circle-node {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid var(--node-border);
+    background: var(--node-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    position: relative;
+    z-index: 5;
+}
+
+/* --- SIMPLE STRUCTS (CSS Layouts) --- */
+
+/* Array */
+.array-container {
+    display: flex;
+    gap: 5px;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.array-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.array-box {
+    width: 60px;
+    height: 60px;
+    background: var(--array-bg);
+    border: 2px solid var(--array-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.array-idx {
+    font-family: "Fira Code";
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    margin-top: 5px;
+}
+
+/* Stack */
+.stack-container {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 4px solid var(--text-sub);
+    border-right: 4px solid var(--text-sub);
+    border-bottom: 4px solid var(--text-sub);
+    width: 120px;
+    min-height: 200px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 5px;
+    border-radius: 0 0 10px 10px;
+}
+
+.stack-item {
+    height: 40px;
+    background: var(--stack-bg);
+    border: 2px solid var(--stack-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    /* animation: dropIn 0.3s; <-- Removed per user feedback */
+}
+
+/* Queue */
+.queue-container {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-top: 4px dashed var(--text-sub);
+    border-bottom: 4px dashed var(--text-sub);
+    align-items: center;
+}
+
+.queue-item {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--queue-bg);
+    border: 2px solid var(--queue-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    /* animation: slideLeft 0.3s; <-- Removed per user feedback */
+}
+
+/* Embedded Overrides (for reuse in Sidebar) */
+.embedded {
+    position: static !important;
+    transform: none !important;
+    margin: 0 auto;
+    width: auto;
+    min-height: 0;
+    border: none;
+    background: transparent;
+    padding: 5px;
+}
+
+.embedded .stack-item {
+    width: 100%;
+    height: auto;
+    min-height: 40px;
+    font-size: 0.8rem;
+    padding: 8px;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    line-height: 1.2;
+    box-sizing: border-box;
+    text-align: left;
+    gap: 0;
+}
+
+.embedded .stack-item .st-val {
+    width: 60px;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 800;
+    border-right: 2px solid rgba(255, 255, 255, 0.1);
+    margin-right: 15px;
+    padding-right: 10px;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.embedded .stack-item .st-status {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+.visited-item {
+    width: 35px;
+    height: 35px;
+    border-radius: 4px;
+    background: #10b981;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    animation: dropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.embedded .queue-item {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    padding: 0;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@keyframes dropIn {
+    from {
+        opactiy: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideLeft {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* --- UTILS --- */
+.hidden {
+    display: none !important;
+}
+
+/* --- HOME VIEW (Refined) --- */
+#home-view {
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    box-sizing: border-box;
+    background: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+    overflow-y: auto;
+    color: #f8fafc;
+}
+
+.main-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 60px;
+    background: linear-gradient(135deg, #f8fafc, #94a3b8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px;
+}
+
+.category-section {
+    max-width: 1200px;
+    margin: 0 auto 60px auto;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+}
+
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+}
+
+.card {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 24px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease-out;
+    backdrop-filter: blur(12px);
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    z-index: 2;
+    color: #e2e8f0;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    background: rgba(51, 65, 85, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover h3 {
+    color: #fff;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* --- APP CONTAINER --- */
+#app-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 24px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    border-color: var(--text-sub);
+}
+
+/* --- UI --- */
+.msg-log {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.msg {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--border);
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    background: #1e293b;
+    border: 1px solid var(--border);
+    color: white;
+    border-radius: 8px;
+    font-family: "Fira Code", monospace;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+/* Hide spin buttons */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Active State for Toggle Buttons */
+.control-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: #60a5fa;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+    transform: translateY(-1px);
+}
+
+.cancel-btn {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #f87171;
+    color: white;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.cancel-btn.active {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: #fca5a5;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+}
+
+.traversal-btn {
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid #ec4899;
+    color: #fce7f3;
+    transition: all 0.2s;
+}
+
+.traversal-btn:hover {
+    background: rgba(236, 72, 153, 0.3);
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.4);
+    color: white;
+}
+
+.traversal-btn.active {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    color: white;
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
+}
+
+/* --- STEP CONTROLS --- */
+#step-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    padding: 12px 24px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+}
+
+.step-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.step-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
+
+.step-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.step-btn:disabled {
+    background: rgba(100, 116, 139, 0.3);
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.5;
+}
+
+#step-indicator {
+    font-family: "Fira Code", monospace;
+    font-size: 0.9rem;
+    color: var(--text-sub);
+    min-width: 100px;
+    text-align: center;
+}
+
+/* Hide scrollbar for visual-queue */
+#visual-queue::-webkit-scrollbar {
+    display: none;
+}
