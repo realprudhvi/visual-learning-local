@@ -1036,8 +1036,8 @@
 
                 resolveStep = resolve;
                 document.getElementById('btn-next').disabled = false;
-                // Prev stays disabled during execution - only enabled after algorithm completes
-                document.getElementById('btn-prev').disabled = true;
+                // Enable prev after step 1 - clicking it will cancel algorithm and enter review mode
+                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
 
                 if (isAutoPlaying) {
                     triggerNextStep();
@@ -1067,12 +1067,18 @@
         });
 
         document.getElementById('btn-prev').addEventListener('click', () => {
+            // Stop autoplay if running
             if (isAutoPlaying) toggleAutoPlay();
 
-            // Only allow prev navigation AFTER algorithm completes
+            // If algorithm is still running, CANCEL it and enter review mode
             if (!algorithmComplete) {
-                console.log('[PREV] Cannot go back during algorithm execution');
-                return;
+                console.log('[PREV] Cancelling algorithm, entering review mode');
+                // Abandon the pending promise (don't resolve it)
+                resolveStep = null;
+                // Mark as complete so navigation works
+                algorithmComplete = true;
+                // Update log to show cancelled
+                log('⏹ Algorithm paused. Reviewing recorded steps...');
             }
 
             if (currentStepIndex <= 1) return;
