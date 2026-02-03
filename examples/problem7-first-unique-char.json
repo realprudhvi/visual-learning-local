@@ -7,9 +7,17 @@
         "Two Pass"
     ],
     "description": "<p>Given a string, find the first non-repeating character and return its index.</p><p><strong>Approach:</strong> Two-pass solution. First pass: count frequency of each character using HashMap. Second pass: find first character with count = 1.</p>",
-    "structures": [
-        "array",
-        "hashmap-simple"
+    "slots": [
+        {
+            "id": "array",
+            "type": "array",
+            "label": "Characters"
+        },
+        {
+            "id": "hashmap",
+            "type": "hashmap",
+            "label": "Frequency"
+        }
     ],
     "inputs": [
         {

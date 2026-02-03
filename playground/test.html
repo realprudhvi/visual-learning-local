@@ -217,14 +217,22 @@
             font-style: italic;
         }
 
-        /* === YOUR EXACT ARRAY STYLES === */
-        #array-container {
+        /* === SLOT CONTENT STYLES === */
+        .slot-content {
             display: flex;
             gap: 5px;
             flex-wrap: wrap;
             min-height: 80px;
             justify-content: center;
             align-items: flex-start;
+        }
+
+        .ptr-container-global {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
         }
 
         .array-cell {
@@ -560,33 +568,8 @@
                     <button id="btn-reset" onclick="reset()">▶ Start / Reset</button>
                 </div>
 
-                <div class="layout-row" id="structures-row">
-                    <div class="panel" id="array-panel" style="display: none;">
-                        <h3>Array</h3>
-                        <div id="array-container"></div>
-                        <div id="ptr-container"></div>
-                    </div>
-
-                    <div class="panel" id="stack-panel" style="display: none;">
-                        <h3>Stack</h3>
-                        <div class="stack-wrapper">
-                            <div class="stack-container" id="stack-container"></div>
-                        </div>
-                    </div>
-
-                    <div class="panel" id="queue-panel" style="display: none;">
-                        <h3>Queue</h3>
-                        <div class="queue-wrapper">
-                            <div class="queue-container" id="queue-container"></div>
-                        </div>
-                    </div>
-
-                    <div class="panel" id="hashmap-panel" style="display: none;">
-                        <h3>HashMap</h3>
-                        <div class="hashmap-wrapper">
-                            <div class="hashmap-container" id="hashmap-container"></div>
-                        </div>
-                    </div>
+                <div class="layout-row" id="slots-container">
+                    <!-- Dynamic slots will be created here based on JSON config -->
                 </div>
 
                 <div class="panel">
@@ -616,177 +599,258 @@
     </div>
 
     <script>
-        // ============ VISUAL PRIMITIVES (YOUR EXACT STYLES) ============
+        // ============ SLOT-BASED DYNAMIC PRIMITIVES ============
 
-        const primitives = {
-            array: {
-                data: [],
-                init(vals) {
-                    this.data = [...vals];
-                    this.render();
-                },
-                get(i) { return this.data[i]; },
-                set(i, v) { this.data[i] = v; this.render(); },
-                swap(i, j) {
-                    [this.data[i], this.data[j]] = [this.data[j], this.data[i]];
-                    this.render();
-                },
-                highlight(i, color) {
-                    const boxes = document.querySelectorAll('.array-box');
-                    if (boxes[i]) {
-                        boxes[i].style.backgroundColor = color;
-                        boxes[i].style.borderColor = color;
+        // Active slots registry - stores all slot instances
+        let activeSlots = {};
+
+        // Factory functions to create primitives for a specific slot
+        const createArrayPrimitive = (slotId) => ({
+            slotId,
+            data: [],
+            init(vals) {
+                this.data = [...vals];
+                this.render();
+            },
+            get(i) { return this.data[i]; },
+            set(i, v) { this.data[i] = v; this.render(); },
+            swap(i, j) {
+                [this.data[i], this.data[j]] = [this.data[j], this.data[i]];
+                this.render();
+            },
+            highlight(i, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                const boxes = container.querySelectorAll('.array-box');
+                if (boxes[i]) {
+                    boxes[i].style.backgroundColor = color;
+                    boxes[i].style.borderColor = color;
+                }
+            },
+            highlightRange(start, end, color) {
+                for (let i = start; i <= end; i++) this.highlight(i, color);
+            },
+            clearHighlights() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                container.querySelectorAll('.array-box').forEach(b => {
+                    b.style.backgroundColor = '';
+                    b.style.borderColor = '';
+                });
+            },
+            get length() { return this.data.length; },
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+                container.innerHTML = this.data.map((v, i) =>
+                    `<div class="array-cell">
+                        <div class="array-box">${v}</div>
+                        <div class="array-idx">${i}</div>
+                    </div>`
+                ).join('');
+            },
+            clone() {
+                return { data: [...this.data] };
+            },
+            restore(state) {
+                this.data = [...state.data];
+                this.render();
+            }
+        });
+
+        const createStackPrimitive = (slotId) => ({
+            slotId,
+            data: [],
+            push(v) { this.data.push(v); this.render(); },
+            pop() { const v = this.data.pop(); this.render(); return v; },
+            peek() { return this.data[this.data.length - 1]; },
+            isEmpty() { return this.data.length === 0; },
+            size() { return this.data.length; },
+            highlight(i, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                const items = container.querySelectorAll('.stack-item');
+                if (items[i]) {
+                    items[i].style.backgroundColor = color;
+                    items[i].style.borderColor = color;
+                }
+            },
+            clear() { this.data = []; this.render(); },
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+                container.innerHTML = `<div class="stack-wrapper"><div class="stack-container">` +
+                    this.data.map(v => `<div class="stack-item">${v}</div>`).join('') +
+                    `</div></div>`;
+            },
+            clone() {
+                return { data: [...this.data] };
+            },
+            restore(state) {
+                this.data = [...state.data];
+                this.render();
+            }
+        });
+
+        const createHashmapPrimitive = (slotId) => ({
+            slotId,
+            data: new Map(),
+            put(key, val) {
+                this.data.set(key, val);
+                this.render();
+            },
+            get(key) {
+                return this.data.get(key);
+            },
+            has(key) {
+                return this.data.has(key);
+            },
+            remove(key) {
+                this.data.delete(key);
+                this.render();
+            },
+            clear() {
+                this.data.clear();
+                this.render();
+            },
+            size() {
+                return this.data.size;
+            },
+            highlight(key, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                container.querySelectorAll('.hashmap-row').forEach(row => {
+                    if (row.dataset.key === String(key)) {
+                        row.querySelector('.hashmap-key').style.background = color;
+                        row.querySelector('.hashmap-value').style.background = color;
                     }
-                },
-                highlightRange(start, end, color) {
-                    for (let i = start; i <= end; i++) this.highlight(i, color);
-                },
-                clearHighlights() {
-                    document.querySelectorAll('.array-box').forEach(b => {
-                        b.style.backgroundColor = '';
-                        b.style.borderColor = '';
-                    });
-                },
-                get length() { return this.data.length; },
-                render() {
-                    const container = document.getElementById('array-container');
-                    container.innerHTML = this.data.map((v, i) =>
-                        `<div class="array-cell">
-                            <div class="array-box">${v}</div>
-                            <div class="array-idx">${i}</div>
-                        </div>`
-                    ).join('');
-                }
+                });
             },
-
-            stack: {
-                data: [],
-                push(v) { this.data.push(v); this.render(); },
-                pop() { const v = this.data.pop(); this.render(); return v; },
-                peek() { return this.data[this.data.length - 1]; },
-                isEmpty() { return this.data.length === 0; },
-                size() { return this.data.length; },
-                highlight(i, color) {
-                    const items = document.querySelectorAll('.stack-item');
-                    if (items[i]) {
-                        items[i].style.backgroundColor = color;
-                        items[i].style.borderColor = color;
-                    }
-                },
-                clear() { this.data = []; this.render(); },
-                render() {
-                    const container = document.getElementById('stack-container');
-                    container.innerHTML = this.data.map(v =>
-                        `<div class="stack-item">${v}</div>`
-                    ).join('');
-                }
+            clearHighlights() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                container.querySelectorAll('.hashmap-key').forEach(el => el.style.background = '');
+                container.querySelectorAll('.hashmap-value').forEach(el => el.style.background = '');
             },
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
 
-            queue: {
-                data: [],
-                enqueue(v) { this.data.push(v); },
-                dequeue() { return this.data.shift(); },
-                peek() { return this.data[0]; },
-                isEmpty() { return this.data.length === 0; },
-                highlight(i, color) { }
-            },
-
-            ptr: {
-                pointers: {},
-                set(name, idx) {
-                    this.pointers[name] = idx;
-                    this.render();
-                },
-                get(name) { return this.pointers[name]; },
-                remove(name) {
-                    delete this.pointers[name];
-                    this.render();
-                },
-                render() {
-                    const container = document.getElementById('ptr-container');
-                    container.innerHTML = Object.entries(this.pointers)
-                        .map(([name, idx]) => `<div class="ptr-indicator">${name}=${idx}</div>`)
-                        .join('');
+                if (this.data.size === 0) {
+                    container.innerHTML = '<div class="hashmap-wrapper"><div class="hashmap-container"><div class="hashmap-empty">Empty</div></div></div>';
+                    return;
                 }
+
+                const entries = [...this.data.entries()].sort((a, b) => {
+                    if (typeof a[0] === 'number' && typeof b[0] === 'number') return a[0] - b[0];
+                    return String(a[0]).localeCompare(String(b[0]));
+                });
+
+                let html = `<div class="hashmap-wrapper"><div class="hashmap-container">
+                    <div class="hashmap-header">
+                        <div class="hashmap-header-cell">Key</div>
+                        <div class="hashmap-header-cell">Value</div>
+                    </div>`;
+
+                entries.forEach(([key, val]) => {
+                    html += `<div class="hashmap-row" data-key="${key}">
+                        <div class="hashmap-key">${key}</div>
+                        <div class="hashmap-value">${val}</div>
+                    </div>`;
+                });
+
+                container.innerHTML = html + `</div></div>`;
             },
+            clone() {
+                // Convert Map to array of entries for reliable cloning
+                return { entries: [...this.data.entries()] };
+            },
+            restore(state) {
+                // Restore from array of entries
+                this.data = new Map(state.entries);
+                this.render();
+            }
+        });
 
-            hashmap: {
-                data: new Map(),
-                put(key, val) {
-                    this.data.set(key, val);
-                    this.render();
-                },
-                get(key) {
-                    return this.data.get(key);
-                },
-                has(key) {
-                    return this.data.has(key);
-                },
-                remove(key) {
-                    this.data.delete(key);
-                    this.render();
-                },
-                clear() {
-                    this.data.clear();
-                    this.render();
-                },
-                size() {
-                    return this.data.size;
-                },
-                highlight(key, color) {
-                    const rows = document.querySelectorAll('.hashmap-row');
-                    rows.forEach(row => {
-                        if (row.dataset.key === String(key)) {
-                            row.querySelector('.hashmap-key').style.background = color;
-                            row.querySelector('.hashmap-value').style.background = color;
-                        }
-                    });
-                },
-                clearHighlights() {
-                    document.querySelectorAll('.hashmap-key').forEach(el => {
-                        el.style.background = '';
-                    });
-                    document.querySelectorAll('.hashmap-value').forEach(el => {
-                        el.style.background = '';
-                    });
-                },
-                render() {
-                    const container = document.getElementById('hashmap-container');
-                    if (!container) return;
-
-                    if (this.data.size === 0) {
-                        container.innerHTML = '<div class="hashmap-empty">Empty HashMap</div>';
-                        return;
-                    }
-
-                    let html = `
-                        <div class="hashmap-header">
-                            <div class="hashmap-header-cell">Key</div>
-                            <div class="hashmap-header-cell">Value</div>
-                        </div>
-                    `;
-
-                    // Sort entries for consistent display
-                    const entries = [...this.data.entries()].sort((a, b) => {
-                        if (typeof a[0] === 'number' && typeof b[0] === 'number') {
-                            return a[0] - b[0];
-                        }
-                        return String(a[0]).localeCompare(String(b[0]));
-                    });
-
-                    entries.forEach(([key, val]) => {
-                        html += `
-                            <div class="hashmap-row" data-key="${key}">
-                                <div class="hashmap-key">${key}</div>
-                                <div class="hashmap-value">${val}</div>
-                            </div>
-                        `;
-                    });
-
-                    container.innerHTML = html;
-                }
+        // Pointer primitive (shared across all slots)
+        const ptrPrimitive = {
+            pointers: {},
+            set(name, idx) {
+                this.pointers[name] = idx;
+                this.render();
+            },
+            get(name) { return this.pointers[name]; },
+            remove(name) {
+                delete this.pointers[name];
+                this.render();
+            },
+            clear() {
+                this.pointers = {};
+                this.render();
+            },
+            render() {
+                const container = document.getElementById('ptr-container');
+                if (!container) return;
+                container.innerHTML = Object.entries(this.pointers)
+                    .map(([name, idx]) => `<div class="ptr-indicator">${name}=${idx}</div>`)
+                    .join('');
+            },
+            clone() {
+                return { pointers: { ...this.pointers } };
+            },
+            restore(state) {
+                this.pointers = { ...state.pointers };
+                this.render();
             }
         };
+
+        // Build slots from JSON config
+        function buildSlots(slots) {
+            const slotsContainer = document.getElementById('slots-container');
+            slotsContainer.innerHTML = '';
+            activeSlots = {};
+
+            if (!slots || slots.length === 0) return;
+
+            // Set grid columns based on slot count
+            slotsContainer.style.gridTemplateColumns = `repeat(${Math.min(slots.length, 3)}, 1fr)`;
+
+            slots.forEach((slot, idx) => {
+                const slotId = slot.id || `slot${idx}`;
+                const slotType = slot.type || 'array';
+                const slotLabel = slot.label || slotType.charAt(0).toUpperCase() + slotType.slice(1);
+
+                // Create panel HTML
+                const panel = document.createElement('div');
+                panel.className = 'panel';
+                panel.id = `slot-${slotId}-panel`;
+                panel.innerHTML = `
+                    <h3>${slotLabel}</h3>
+                    <div id="slot-${slotId}-content" class="slot-content"></div>
+                `;
+                slotsContainer.appendChild(panel);
+
+                // Create primitive instance based on type
+                let primitive;
+                switch (slotType) {
+                    case 'array':
+                        primitive = createArrayPrimitive(slotId);
+                        break;
+                    case 'stack':
+                        primitive = createStackPrimitive(slotId);
+                        break;
+                    case 'hashmap':
+                    case 'hashmap-simple':
+                        primitive = createHashmapPrimitive(slotId);
+                        break;
+                    default:
+                        primitive = createArrayPrimitive(slotId);
+                }
+
+                activeSlots[slotId] = primitive;
+            });
+
+            // Add pointer container after all slots
+            const ptrPanel = document.createElement('div');
+            ptrPanel.id = 'ptr-container';
+            ptrPanel.className = 'ptr-container-global';
+            slotsContainer.parentElement.insertBefore(ptrPanel, slotsContainer.nextSibling);
+        }
 
         function log(msg) {
             document.getElementById('log-container').textContent = msg;
@@ -795,95 +859,148 @@
         // ============ STEP CONTROLLER ============
 
         let resolveStep = null;
-        let stepHistory = [];  // Store state snapshots for prev
+        let stepSnapshots = [];  // Indexed array: stepSnapshots[stepIndex] = complete state
         let currentStepIndex = 0;
+        let maxStepReached = 0;
         let isAutoPlaying = false;
         let autoPlayTimer = null;
-        let autoPlayDelay = 800; // Default slow speed
+        let autoPlayDelay = 800;
+        let algorithmComplete = false;
 
         function updateStepIndicator() {
             document.getElementById('step-indicator').textContent = `Step ${currentStepIndex}`;
         }
 
-        // Capture current highlight states
-        function captureHighlights() {
-            const arrayHighlights = [];
-            document.querySelectorAll('.array-box').forEach((box, i) => {
-                arrayHighlights.push({
+        // Capture highlights from a specific slot container
+        function captureSlotHighlights(slotId) {
+            const container = document.getElementById(`slot-${slotId}-content`);
+            if (!container) return [];
+
+            const highlights = [];
+
+            container.querySelectorAll('.array-box').forEach((box, i) => {
+                highlights.push({
+                    type: 'array-box',
+                    index: i,
                     bg: box.style.backgroundColor || '',
                     border: box.style.borderColor || ''
                 });
             });
 
-            const stackHighlights = [];
-            document.querySelectorAll('.stack-item').forEach((item, i) => {
-                stackHighlights.push({
+            container.querySelectorAll('.stack-item').forEach((item, i) => {
+                highlights.push({
+                    type: 'stack-item',
+                    index: i,
                     bg: item.style.backgroundColor || '',
                     border: item.style.borderColor || ''
                 });
             });
 
-            const hashmapHighlights = [];
-            document.querySelectorAll('.hashmap-row').forEach((row) => {
+            container.querySelectorAll('.hashmap-row').forEach((row) => {
                 const keyEl = row.querySelector('.hashmap-key');
                 const valEl = row.querySelector('.hashmap-value');
-                hashmapHighlights.push({
+                highlights.push({
+                    type: 'hashmap-row',
                     key: row.dataset.key,
                     keyBg: keyEl ? keyEl.style.background : '',
                     valBg: valEl ? valEl.style.background : ''
                 });
             });
 
-            return { arrayHighlights, stackHighlights, hashmapHighlights };
+            return highlights;
         }
 
-        // Restore highlight states
-        function restoreHighlights(highlights) {
-            if (highlights.arrayHighlights) {
-                document.querySelectorAll('.array-box').forEach((box, i) => {
-                    if (highlights.arrayHighlights[i]) {
-                        box.style.backgroundColor = highlights.arrayHighlights[i].bg;
-                        box.style.borderColor = highlights.arrayHighlights[i].border;
+        // Restore highlights to a specific slot container
+        function restoreSlotHighlights(slotId, highlights) {
+            const container = document.getElementById(`slot-${slotId}-content`);
+            if (!container || !highlights) return;
+
+            highlights.forEach(h => {
+                if (h.type === 'array-box') {
+                    const boxes = container.querySelectorAll('.array-box');
+                    if (boxes[h.index]) {
+                        boxes[h.index].style.backgroundColor = h.bg;
+                        boxes[h.index].style.borderColor = h.border;
                     }
-                });
+                } else if (h.type === 'stack-item') {
+                    const items = container.querySelectorAll('.stack-item');
+                    if (items[h.index]) {
+                        items[h.index].style.backgroundColor = h.bg;
+                        items[h.index].style.borderColor = h.border;
+                    }
+                } else if (h.type === 'hashmap-row') {
+                    container.querySelectorAll('.hashmap-row').forEach(row => {
+                        if (row.dataset.key === h.key) {
+                            const keyEl = row.querySelector('.hashmap-key');
+                            const valEl = row.querySelector('.hashmap-value');
+                            if (keyEl) keyEl.style.background = h.keyBg;
+                            if (valEl) valEl.style.background = h.valBg;
+                        }
+                    });
+                }
+            });
+        }
+
+        // Capture complete snapshot of ALL state
+        function captureSnapshot() {
+            const snapshot = {
+                slots: {},
+                highlights: {},
+                pointers: { ...ptrPrimitive.pointers },
+                log: document.getElementById('log-container').textContent
+            };
+
+            for (const [id, slot] of Object.entries(activeSlots)) {
+                const cloned = slot.clone();
+                console.log(`[CAPTURE] Slot "${id}":`, cloned);
+                snapshot.slots[id] = cloned;
+                snapshot.highlights[id] = captureSlotHighlights(id);
             }
 
-            if (highlights.stackHighlights) {
-                document.querySelectorAll('.stack-item').forEach((item, i) => {
-                    if (highlights.stackHighlights[i]) {
-                        item.style.backgroundColor = highlights.stackHighlights[i].bg;
-                        item.style.borderColor = highlights.stackHighlights[i].border;
-                    }
-                });
+            console.log(`[CAPTURE] Full snapshot at step ${currentStepIndex}:`, JSON.stringify(snapshot.slots));
+            return snapshot;
+        }
+
+        // Restore complete state from snapshot
+        function restoreSnapshot(snapshot) {
+            if (!snapshot) {
+                console.error('[RESTORE] Snapshot is null/undefined!');
+                return;
             }
 
-            if (highlights.hashmapHighlights) {
-                document.querySelectorAll('.hashmap-row').forEach((row) => {
-                    const match = highlights.hashmapHighlights.find(h => h.key === row.dataset.key);
-                    if (match) {
-                        const keyEl = row.querySelector('.hashmap-key');
-                        const valEl = row.querySelector('.hashmap-value');
-                        if (keyEl) keyEl.style.background = match.keyBg;
-                        if (valEl) valEl.style.background = match.valBg;
-                    }
-                });
+            console.log(`[RESTORE] Restoring to step ${currentStepIndex}:`, JSON.stringify(snapshot.slots));
+
+            // Restore slot data (which re-renders)
+            for (const [id, state] of Object.entries(snapshot.slots)) {
+                if (activeSlots[id]) {
+                    console.log(`[RESTORE] Restoring slot "${id}" with:`, state);
+                    activeSlots[id].restore(state);
+                } else {
+                    console.error(`[RESTORE] Slot "${id}" not found in activeSlots!`);
+                }
             }
+
+            // Restore highlights after render completed
+            for (const [id, highlights] of Object.entries(snapshot.highlights)) {
+                restoreSlotHighlights(id, highlights);
+            }
+
+            // Restore pointers
+            ptrPrimitive.pointers = { ...snapshot.pointers };
+            ptrPrimitive.render();
+
+            // Restore log
+            document.getElementById('log-container').textContent = snapshot.log;
         }
 
         function toggleAutoPlay() {
-            console.trace("toggleAutoPlay called. Current state:", isAutoPlaying);
             isAutoPlaying = !isAutoPlaying;
-            console.log("AutoPlay toggled:", isAutoPlaying);
             const btn = document.getElementById('btn-play');
 
             if (isAutoPlaying) {
                 btn.textContent = '⏸';
-                // If we are currently waiting for a step, trigger it immediately (delayed)
                 if (resolveStep) {
-                    console.log("Triggering next step from toggle");
                     triggerNextStep();
-                } else {
-                    console.log("Not currently waiting for step, autoplay active for next await");
                 }
             } else {
                 btn.textContent = '▶';
@@ -897,10 +1014,8 @@
         function triggerNextStep() {
             if (autoPlayTimer) clearTimeout(autoPlayTimer);
             const delay = autoPlayDelay || 800;
-            console.log("Scheduling next step in", delay, "ms");
 
             autoPlayTimer = setTimeout(() => {
-                console.log("AutoPlay timer fired. Playing?", isAutoPlaying, "Has resolve?", !!resolveStep);
                 if (isAutoPlaying && resolveStep) {
                     document.getElementById('btn-next').disabled = true;
                     resolveStep();
@@ -911,30 +1026,39 @@
 
         function awaitStep() {
             return new Promise(resolve => {
-                // Save current state snapshot INCLUDING highlights
-                const highlights = captureHighlights();
-                stepHistory.push({
-                    arrayData: [...primitives.array.data],
-                    stackData: [...primitives.stack.data],
-                    hashmapData: new Map(primitives.hashmap.data),
-                    pointers: { ...primitives.ptr.pointers },
-                    highlights: highlights
-                });
+                // Increment FIRST, then store at the new step index
                 currentStepIndex++;
+                maxStepReached = currentStepIndex;
+
+                // Store snapshot AT the step that's now being displayed
+                stepSnapshots[currentStepIndex] = captureSnapshot();
                 updateStepIndicator();
 
                 resolveStep = resolve;
                 document.getElementById('btn-next').disabled = false;
-                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
+                // Prev stays disabled during execution - only enabled after algorithm completes
+                document.getElementById('btn-prev').disabled = true;
 
                 if (isAutoPlaying) {
-                    console.log("AutoPlay active at awaitStep, triggering next...");
                     triggerNextStep();
                 }
             });
         }
 
         document.getElementById('btn-next').addEventListener('click', () => {
+            // If algorithm is complete, navigate through recorded history
+            if (algorithmComplete) {
+                if (currentStepIndex < maxStepReached) {
+                    currentStepIndex++;
+                    restoreSnapshot(stepSnapshots[currentStepIndex]);
+                    updateStepIndicator();
+                    document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
+                    document.getElementById('btn-next').disabled = currentStepIndex >= maxStepReached;
+                }
+                return;
+            }
+
+            // During execution: continue algorithm
             document.getElementById('btn-next').disabled = true;
             if (resolveStep) {
                 resolveStep();
@@ -943,36 +1067,23 @@
         });
 
         document.getElementById('btn-prev').addEventListener('click', () => {
-            // Pause if playing
-            if (isAutoPlaying) {
-                toggleAutoPlay();
+            if (isAutoPlaying) toggleAutoPlay();
+
+            // Only allow prev navigation AFTER algorithm completes
+            if (!algorithmComplete) {
+                console.log('[PREV] Cannot go back during algorithm execution');
+                return;
             }
 
-            if (currentStepIndex <= 1 || stepHistory.length < 2) return;
+            if (currentStepIndex <= 1) return;
 
-            // Go back one step
-            stepHistory.pop(); // Remove current
-            const prevState = stepHistory[stepHistory.length - 1];
+            // Navigate backwards through recorded history
+            currentStepIndex--;
+            restoreSnapshot(stepSnapshots[currentStepIndex]);
+            updateStepIndicator();
 
-            if (prevState) {
-                // Restore data state
-                primitives.array.data = [...prevState.arrayData];
-                primitives.stack.data = [...prevState.stackData];
-                primitives.hashmap.data = new Map(prevState.hashmapData);
-                primitives.ptr.pointers = { ...prevState.pointers };
-
-                primitives.array.render();
-                primitives.stack.render();
-                primitives.hashmap.render();
-                primitives.ptr.render();
-
-                // Restore highlight state
-                restoreHighlights(prevState.highlights);
-
-                currentStepIndex--;
-                updateStepIndicator();
-                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
-            }
+            document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
+            document.getElementById('btn-next').disabled = currentStepIndex >= maxStepReached;
         });
 
         // Auto-play controls
@@ -993,10 +1104,14 @@
 
         // ============ PLAYGROUND EXECUTOR ============
 
+        let playgroundSlots = []; // Store slot config from JSON
+
         async function runPlayground(code, input) {
             // Reset step tracking
-            stepHistory = [];
+            stepSnapshots = [];
             currentStepIndex = 0;
+            maxStepReached = 0;
+            algorithmComplete = false;
             updateStepIndicator();
             document.getElementById('btn-prev').disabled = true;
             document.getElementById('btn-next').disabled = true;
@@ -1006,26 +1121,23 @@
             document.getElementById('btn-play').textContent = '▶';
             if (autoPlayTimer) clearTimeout(autoPlayTimer);
 
-            // Reset state
-            primitives.array.data = [];
-            primitives.stack.data = [];
-            primitives.hashmap.data.clear();
-            primitives.ptr.pointers = {};
-            primitives.array.render();
-            primitives.stack.render();
-            primitives.hashmap.render();
-            primitives.ptr.render();
+            // Build slots from JSON config
+            buildSlots(playgroundSlots);
+
+            // Clear pointers
+            ptrPrimitive.clear();
 
             // Create Playground class from code string
             const PlaygroundClass = new Function('return ' + code)();
             const playground = new PlaygroundClass();
 
-            // Inject primitives
-            playground.array = primitives.array;
-            playground.stack = primitives.stack;
-            playground.queue = primitives.queue;
-            playground.hashmap = primitives.hashmap;
-            playground.ptr = primitives.ptr;
+            // Inject slot primitives dynamically
+            for (const [id, slot] of Object.entries(activeSlots)) {
+                playground[id] = slot;
+            }
+
+            // Always inject ptr and log
+            playground.ptr = ptrPrimitive;
             playground.log = log;
             playground.await = awaitStep;
 
@@ -1034,64 +1146,30 @@
             try {
                 const result = await playground.run(input);
 
-                // Save final state so we can go back
-                stepHistory.push({
-                    arrayData: [...primitives.array.data],
-                    stackData: [...primitives.stack.data],
-                    pointers: { ...primitives.ptr.pointers }
-                });
+                // Save final state snapshot (increment first to match awaitStep pattern)
                 currentStepIndex++;
+                maxStepReached = currentStepIndex;
+                stepSnapshots[currentStepIndex] = captureSnapshot();
                 updateStepIndicator();
 
+                // Mark algorithm as complete for navigation
+                algorithmComplete = true;
+
                 // Keep prev button enabled so we can review
-                document.getElementById('btn-prev').disabled = stepHistory.length <= 1;
+                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
                 document.getElementById('btn-next').disabled = true;
 
-                log(`✅ Finished! Result: ${result}`);
+                log(`✅ Finished! Result: ${JSON.stringify(result)}`);
             } catch (e) {
                 log(`❌ Error: ${e.message}`);
                 console.error(e);
+                algorithmComplete = true;  // Still allow navigation even on error
             }
         }
 
         // ============ LOAD PLACEHOLDER ============
 
         let playgroundCode = null;
-        let playgroundStructures = [];
-
-        // Show only the panels needed
-        function updateVisiblePanels(structures) {
-            // Hide all panels first
-            document.getElementById('array-panel').style.display = 'none';
-            document.getElementById('stack-panel').style.display = 'none';
-            document.getElementById('queue-panel').style.display = 'none';
-            document.getElementById('hashmap-panel').style.display = 'none';
-
-            // Normalize structure names (hashmap-simple -> hashmap)
-            const normalizedStructures = structures.map(s =>
-                s === 'hashmap-simple' ? 'hashmap' : s
-            );
-
-            // Show needed panels
-            normalizedStructures.forEach(s => {
-                const panel = document.getElementById(`${s}-panel`);
-                if (panel) panel.style.display = 'block';
-            });
-
-            // Update grid columns based on visible panels
-            const visibleCount = normalizedStructures.filter(s =>
-                ['array', 'stack', 'queue', 'hashmap'].includes(s)
-            ).length;
-
-            const row = document.getElementById('structures-row');
-            if (visibleCount === 1) {
-                row.style.gridTemplateColumns = '1fr';
-            } else if (visibleCount === 2) {
-                row.style.gridTemplateColumns = '1fr 1fr';
-            } else {
-                row.style.gridTemplateColumns = '1fr 1fr 1fr';
-            }
-        }
 
         let playgroundInputs = [];
 
@@ -1099,9 +1177,8 @@
             .then(r => r.json())
             .then(data => {
                 playgroundCode = data.code;
-                playgroundStructures = data.structures || [];
+                playgroundSlots = data.slots || [];
                 playgroundInputs = data.inputs || [];
-                updateVisiblePanels(playgroundStructures);
 
                 // Build input fields from JSON config
                 buildInputFields(playgroundInputs);

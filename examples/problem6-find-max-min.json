@@ -6,8 +6,12 @@
         "Linear Scan"
     ],
     "description": "<p>Find the maximum and minimum values in an array using a single pass.</p><p><strong>Approach:</strong> Initialize max and min with the first element. Iterate through the array, updating max when we find a larger value, and min when we find a smaller value.</p>",
-    "structures": [
-        "array"
+    "slots": [
+        {
+            "id": "array",
+            "type": "array",
+            "label": "Array"
+        }
     ],
     "inputs": [
         {

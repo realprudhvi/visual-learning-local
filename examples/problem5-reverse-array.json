@@ -6,8 +6,12 @@
         "Array"
     ],
     "description": "<p>Reverse an array in-place using the two-pointer technique.</p><p><strong>Approach:</strong> Use two pointers, one at the start and one at the end. Swap the elements at these positions, then move the pointers toward each other until they meet.</p>",
-    "structures": [
-        "array"
+    "slots": [
+        {
+            "id": "array",
+            "type": "array",
+            "label": "Array"
+        }
     ],
     "inputs": [
         {

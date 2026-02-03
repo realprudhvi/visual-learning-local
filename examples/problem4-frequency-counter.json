@@ -6,9 +6,17 @@
         "Array"
     ],
     "description": "<p>Given an array of integers, count the frequency of each element and find the most frequent one.</p><p><strong>Approach:</strong> Use a HashMap to store each number as a key and its count as the value. Iterate through the array once to build the frequency map.</p>",
-    "structures": [
-        "array",
-        "hashmap-simple"
+    "slots": [
+        {
+            "id": "array",
+            "type": "array",
+            "label": "Array"
+        },
+        {
+            "id": "hashmap",
+            "type": "hashmap",
+            "label": "Frequency Count"
+        }
     ],
     "inputs": [
         {

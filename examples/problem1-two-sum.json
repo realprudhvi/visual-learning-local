@@ -6,9 +6,17 @@
         "Array"
     ],
     "description": "<p>Given an array of integers and a target sum, find two numbers that add up to the target.</p><p><strong>Approach:</strong> For each number, calculate its complement (target - num). Use a HashMap to check if the complement was seen before. If yes, we found our pair!</p>",
-    "structures": [
-        "array",
-        "hashmap-simple"
+    "slots": [
+        {
+            "id": "array",
+            "type": "array",
+            "label": "Array"
+        },
+        {
+            "id": "hashmap",
+            "type": "hashmap",
+            "label": "HashMap"
+        }
     ],
     "inputs": [
         {
