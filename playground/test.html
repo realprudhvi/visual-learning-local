@@ -40,6 +40,8 @@
             color: var(--text-main);
             min-height: 100vh;
             padding: 30px;
+            padding-bottom: 100px;
+            /* Space for fixed controls */
             background-image: radial-gradient(var(--border) 1px, transparent 1px);
             background-size: 24px 24px;
         }
@@ -52,7 +54,7 @@
         /* Main two-column layout */
         .main-layout {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 300px 1fr;
             gap: 20px;
             align-items: start;
         }
@@ -63,14 +65,21 @@
             }
         }
 
+        /* Left column - stacks problem + input */
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: sticky;
+            top: 30px;
+        }
+
         /* Problem description panel */
         .problem-panel {
             background: var(--bg-panel);
             border-radius: 12px;
             padding: 24px;
             border: 1px solid var(--border);
-            position: sticky;
-            top: 30px;
         }
 
         .problem-panel h2 {
@@ -349,10 +358,12 @@
             border-radius: 50px;
             border: 1px solid var(--border);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            margin-top: 20px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
+            /* Fixed at bottom */
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
         }
 
         .step-btn {
@@ -549,30 +560,36 @@
         <h1>🎮 Playground Test</h1>
 
         <div class="main-layout">
-            <!-- Left: Problem Description -->
-            <div class="problem-panel">
-                <h2><span class="icon">📖</span> <span id="problem-title">Problem</span></h2>
-                <div class="problem-description" id="problem-description">
-                    <p>Loading problem description...</p>
+            <!-- Left: Problem Description + Input -->
+            <div class="left-column">
+                <div class="problem-panel">
+                    <h2><span class="icon">📖</span> <span id="problem-title">Problem</span></h2>
+                    <div class="problem-description" id="problem-description">
+                        <p>Loading problem description...</p>
+                    </div>
+                    <div class="problem-tags" id="problem-tags"></div>
                 </div>
-                <div class="problem-tags" id="problem-tags"></div>
-            </div>
 
-            <!-- Right: Input + Visualizations -->
-            <div class="right-content">
-                <div class="panel">
+                <div class="panel" id="input-panel">
                     <h3>Input</h3>
                     <div id="inputs-container">
                         <!-- Dynamic inputs will be added here -->
                     </div>
                     <button id="btn-reset" onclick="reset()">▶ Start / Reset</button>
                 </div>
+            </div>
 
+            <!-- Right: Data Structures + Pointer + Log -->
+            <div class="right-content">
+                <!-- Data structure slots -->
                 <div class="layout-row" id="slots-container">
                     <!-- Dynamic slots will be created here based on JSON config -->
                 </div>
 
-                <div class="panel">
+                <!-- Pointer indicators -->
+                <div id="ptr-container" class="ptr-container-global"></div>
+
+                <div class="panel log-panel">
                     <h3>Log</h3>
                     <div id="log-container">Click "Start" to begin...</div>
                 </div>
@@ -802,13 +819,26 @@
         // Build slots from JSON config
         function buildSlots(slots) {
             const slotsContainer = document.getElementById('slots-container');
+            // Keep the input panel where it is (in left column)
+            const inputPanel = document.getElementById('input-panel');
+            const leftColumn = document.querySelector('.left-column');
+
+            // Safety check: if input panel was previously moved to slots container (by buggy code), move it back
+            if (inputPanel && inputPanel.parentElement !== leftColumn) {
+                leftColumn.appendChild(inputPanel);
+            }
+
             slotsContainer.innerHTML = '';
             activeSlots = {};
 
-            if (!slots || slots.length === 0) return;
+            if (!slots || slots.length === 0) {
+                slotsContainer.style.gridTemplateColumns = '1fr';
+                return;
+            }
 
-            // Set grid columns based on slot count
-            slotsContainer.style.gridTemplateColumns = `repeat(${Math.min(slots.length, 3)}, 1fr)`;
+            // Set grid columns: input panel + data slots
+            const totalCols = Math.min(slots.length + 1, 3);
+            slotsContainer.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
 
             slots.forEach((slot, idx) => {
                 const slotId = slot.id || `slot${idx}`;
@@ -845,11 +875,22 @@
                 activeSlots[slotId] = primitive;
             });
 
+            // Cleanup existing pointer container if it exists
+            const existingPtr = document.getElementById('ptr-container');
+            if (existingPtr) {
+                existingPtr.remove();
+            }
+
             // Add pointer container after all slots
             const ptrPanel = document.createElement('div');
             ptrPanel.id = 'ptr-container';
             ptrPanel.className = 'ptr-container-global';
-            slotsContainer.parentElement.insertBefore(ptrPanel, slotsContainer.nextSibling);
+            // Insert after the slots container
+            if (slotsContainer.nextSibling) {
+                slotsContainer.parentElement.insertBefore(ptrPanel, slotsContainer.nextSibling);
+            } else {
+                slotsContainer.parentElement.appendChild(ptrPanel);
+            }
         }
 
         function log(msg) {
@@ -1016,15 +1057,32 @@
             const delay = autoPlayDelay || 800;
 
             autoPlayTimer = setTimeout(() => {
-                if (isAutoPlaying && resolveStep) {
-                    document.getElementById('btn-next').disabled = true;
-                    resolveStep();
-                    resolveStep = null;
+                if (isAutoPlaying) {
+                    // If we are reviewing history, simulate a next click
+                    if (currentStepIndex < maxStepReached) {
+                        document.getElementById('btn-next').click();
+                        triggerNextStep(); // Schedule next
+                    } else if (resolveStep) {
+                        // We are at the frontier, let the algorithm proceed
+                        document.getElementById('btn-next').disabled = true;
+                        resolveStep();
+                        resolveStep = null;
+                        // updateButtons and next trigger will happen in awaitStep
+                    } else {
+                        // Finished
+                        isAutoPlaying = false;
+                        document.getElementById('btn-play').textContent = '▶';
+                    }
                 }
             }, delay);
         }
 
-        function awaitStep() {
+        function awaitStep(runId) {
+            if (runId !== undefined && runId !== executionId) {
+                // If this step comes from an old/cancelled run, return a promise that never resolves
+                // This effectively kills the old async execution
+                return new Promise(() => { });
+            }
             return new Promise(resolve => {
                 // Increment FIRST, then store at the new step index
                 currentStepIndex++;
@@ -1035,9 +1093,11 @@
                 updateStepIndicator();
 
                 resolveStep = resolve;
-                document.getElementById('btn-next').disabled = false;
-                // Enable prev after step 1 - clicking it will cancel algorithm and enter review mode
-                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
+                updateButtons();
+
+                if (isAutoPlaying) {
+                    triggerNextStep();
+                }
 
                 if (isAutoPlaying) {
                     triggerNextStep();
@@ -1045,51 +1105,45 @@
             });
         }
 
+        function updateButtons() {
+            // Prev enabled if we are past step 0
+            document.getElementById('btn-prev').disabled = currentStepIndex <= 0;
+
+            // Next enabled if:
+            // 1. We have history ahead (current < max)
+            // 2. OR we are at frontier and algorithm is running (!complete)
+            const canGoNext = (currentStepIndex < maxStepReached) || (!algorithmComplete);
+            document.getElementById('btn-next').disabled = !canGoNext;
+        }
+
         document.getElementById('btn-next').addEventListener('click', () => {
-            // If algorithm is complete, navigate through recorded history
-            if (algorithmComplete) {
-                if (currentStepIndex < maxStepReached) {
-                    currentStepIndex++;
-                    restoreSnapshot(stepSnapshots[currentStepIndex]);
-                    updateStepIndicator();
-                    document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
-                    document.getElementById('btn-next').disabled = currentStepIndex >= maxStepReached;
-                }
+            // Case 1: Navigate forward in history
+            if (currentStepIndex < maxStepReached) {
+                currentStepIndex++;
+                restoreSnapshot(stepSnapshots[currentStepIndex]);
+                updateStepIndicator();
+                updateButtons();
                 return;
             }
 
-            // During execution: continue algorithm
-            document.getElementById('btn-next').disabled = true;
-            if (resolveStep) {
+            // Case 2: Resume algorithm execution
+            if (!algorithmComplete && resolveStep) {
+                document.getElementById('btn-next').disabled = true;
                 resolveStep();
                 resolveStep = null;
             }
         });
 
         document.getElementById('btn-prev').addEventListener('click', () => {
-            // Stop autoplay if running
+            // Pause if playing
             if (isAutoPlaying) toggleAutoPlay();
 
-            // If algorithm is still running, CANCEL it and enter review mode
-            if (!algorithmComplete) {
-                console.log('[PREV] Cancelling algorithm, entering review mode');
-                // Abandon the pending promise (don't resolve it)
-                resolveStep = null;
-                // Mark as complete so navigation works
-                algorithmComplete = true;
-                // Update log to show cancelled
-                log('⏹ Algorithm paused. Reviewing recorded steps...');
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                restoreSnapshot(stepSnapshots[currentStepIndex]);
+                updateStepIndicator();
+                updateButtons();
             }
-
-            if (currentStepIndex <= 1) return;
-
-            // Navigate backwards through recorded history
-            currentStepIndex--;
-            restoreSnapshot(stepSnapshots[currentStepIndex]);
-            updateStepIndicator();
-
-            document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
-            document.getElementById('btn-next').disabled = currentStepIndex >= maxStepReached;
         });
 
         // Auto-play controls
@@ -1112,15 +1166,20 @@
 
         let playgroundSlots = []; // Store slot config from JSON
 
+        let executionId = 0;
+
         async function runPlayground(code, input) {
+            // Increment execution ID to invalidate any previous runs
+            executionId++;
+            const currentRunId = executionId;
+
             // Reset step tracking
             stepSnapshots = [];
             currentStepIndex = 0;
             maxStepReached = 0;
             algorithmComplete = false;
             updateStepIndicator();
-            document.getElementById('btn-prev').disabled = true;
-            document.getElementById('btn-next').disabled = true;
+            updateButtons();
 
             // Stop any existing autoplay
             isAutoPlaying = false;
@@ -1145,7 +1204,10 @@
             // Always inject ptr and log
             playground.ptr = ptrPrimitive;
             playground.log = log;
-            playground.await = awaitStep;
+            playground.await = () => awaitStep(currentRunId);
+
+            // Capture Step 0 (Initial State)
+            stepSnapshots[0] = captureSnapshot();
 
             // Run!
             log('Starting...');
@@ -1160,10 +1222,7 @@
 
                 // Mark algorithm as complete for navigation
                 algorithmComplete = true;
-
-                // Keep prev button enabled so we can review
-                document.getElementById('btn-prev').disabled = currentStepIndex <= 1;
-                document.getElementById('btn-next').disabled = true;
+                updateButtons();
 
                 log(`✅ Finished! Result: ${JSON.stringify(result)}`);
             } catch (e) {
