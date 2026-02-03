@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'array': 'Array', 'stack': 'Stack', 'queue': 'Queue',
             'sll': 'Singly Linked List', 'dll': 'Doubly Linked List', 'cll': 'Circular Linked List',
             'bt': 'Binary Tree', 'bst': 'Binary Search Tree', 'graph': 'Graph',
-            'hashmap': 'HashMap', 'hashset': 'HashSet', 'treemap': 'TreeMap', 'linkedhashmap': 'LinkedHashMap'
+            'hashmap': 'HashMap', 'hashmap-simple': 'HashMap (Simple)', 'hashset': 'HashSet', 'treemap': 'TreeMap', 'linkedhashmap': 'LinkedHashMap'
         };
         state.dom.structureTitle.innerText = titles[type] || type.toUpperCase();
 
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Hash Controls
-        if (['hashmap', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
+        if (['hashmap', 'hashmap-simple', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
             state.dom.hashControls.classList.remove('hidden');
 
             // Initialize the hash structure immediately
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Toggle Main Input (Enter Values)
         // Hidden for Graph and Hash structures as per user request
-        if (['graph', 'hashmap', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
+        if (['graph', 'hashmap', 'hashmap-simple', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
             if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.add('hidden');
         } else {
             if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.remove('hidden');
@@ -561,6 +561,7 @@ function renderStructure(inputStr) {
             break;
 
         case 'hashmap':
+        case 'hashmap-simple':
         case 'hashset':
         case 'treemap':
         case 'linkedhashmap':

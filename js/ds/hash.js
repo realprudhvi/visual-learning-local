@@ -203,6 +203,12 @@ function renderHash() {
     const stage = state.dom.stage;
     stage.innerHTML = ''; // Start clean
 
+    // Use simple render for hashmap-simple mode
+    if (state.currentMode === 'hashmap-simple') {
+        renderHashSimple();
+        return;
+    }
+
     // Layout Constants
     const startX = 100;
     const startY = 100;
@@ -293,6 +299,143 @@ function renderHash() {
             }
         }
     }, 50);
+}
+
+// Simple HashMap Rendering - Clean Key-Value Table
+function renderHashSimple() {
+    const { buckets } = hashTable;
+    const stage = state.dom.stage;
+    stage.innerHTML = '';
+
+    // Collect all key-value pairs
+    const allItems = [];
+    buckets.forEach(bucket => {
+        bucket.forEach(item => {
+            allItems.push(item);
+        });
+    });
+
+    if (allItems.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-sub);
+            font-size: 1rem;
+            font-style: italic;
+        `;
+        emptyMsg.innerText = 'HashMap is empty. Use Put to add entries.';
+        stage.appendChild(emptyMsg);
+        return;
+    }
+
+    // Create a clean table-like display
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: absolute;
+        top: 80px;
+        left: 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-family: 'Fira Code', monospace;
+    `;
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        display: grid;
+        grid-template-columns: 120px 150px;
+        gap: 2px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--border);
+    `;
+
+    const keyHeader = document.createElement('div');
+    keyHeader.innerText = 'Key';
+    keyHeader.style.cssText = `
+        color: #94a3b8;
+        font-weight: bold;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 8px 12px;
+    `;
+
+    const valueHeader = document.createElement('div');
+    valueHeader.innerText = 'Value';
+    valueHeader.style.cssText = `
+        color: #94a3b8;
+        font-weight: bold;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 8px 12px;
+    `;
+
+    header.appendChild(keyHeader);
+    header.appendChild(valueHeader);
+    container.appendChild(header);
+
+    // Sort by key for a cleaner display
+    allItems.sort((a, b) => {
+        if (typeof a.key === 'number' && typeof b.key === 'number') {
+            return a.key - b.key;
+        }
+        return String(a.key).localeCompare(String(b.key));
+    });
+
+    // Render each entry
+    allItems.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.id = item.id;
+        row.style.cssText = `
+            display: grid;
+            grid-template-columns: 120px 150px;
+            gap: 2px;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        `;
+        row.addEventListener('mouseenter', () => {
+            row.style.transform = 'scale(1.02)';
+            row.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
+        });
+        row.addEventListener('mouseleave', () => {
+            row.style.transform = 'scale(1)';
+            row.style.boxShadow = 'none';
+        });
+
+        const keyCell = document.createElement('div');
+        keyCell.innerText = item.key;
+        keyCell.style.cssText = `
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        `;
+
+        const valueCell = document.createElement('div');
+        valueCell.innerText = item.value;
+        valueCell.style.cssText = `
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+        `;
+
+        row.appendChild(keyCell);
+        row.appendChild(valueCell);
+        container.appendChild(row);
+    });
+
+    stage.appendChild(container);
 }
 
 function renderTreeMap() {
