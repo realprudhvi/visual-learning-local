@@ -103,6 +103,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Toggle Hash Controls
         if (['hashmap', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
             state.dom.hashControls.classList.remove('hidden');
+
+            // Initialize the hash structure immediately
+            initHash([], type);
+
+            // Customize UI for HashSet vs Maps
+            const keyInput = state.dom.hashKey;
+            const valInput = state.dom.hashValue;
+
+            if (type === 'hashset') {
+                keyInput.placeholder = "Value";
+                valInput.classList.add('hidden');
+                valInput.value = ''; // Clear value
+            } else {
+                keyInput.placeholder = "Key";
+                valInput.classList.remove('hidden');
+                valInput.placeholder = "Value";
+            }
+
         } else {
             state.dom.hashControls.classList.add('hidden');
         }
@@ -438,14 +456,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const getHashInputs = () => {
         const keyRaw = state.dom.hashKey.value.trim();
         const valRaw = state.dom.hashValue.value.trim();
-        const key = keyRaw !== '' ? Number(keyRaw) : NaN;
-        return { key, val: valRaw || keyRaw };
+
+        // For HashSet, the "key input" acts as the value. 
+        // We use the string directly for hashing if it's a string, or parse if number.
+        // Actually, let's keep it simple: Try to parse as number, if NaN, keep as string.
+
+        let key = keyRaw;
+        // Try parsing only if it looks like a number
+        if (!isNaN(parseFloat(keyRaw)) && isFinite(keyRaw)) {
+            key = parseFloat(keyRaw);
+        }
+
+        // For HashSet, value is same as key
+        let val = valRaw;
+        if (state.currentMode === 'hashset') {
+            val = key;
+        }
+
+        return { key, val };
     };
 
     if (state.dom.btnHashPut) {
         state.dom.btnHashPut.addEventListener('click', () => {
             const { key, val } = getHashInputs();
-            if (!isNaN(key)) {
+            if (key !== '' && key !== undefined && key !== null) {
                 putHash(key, val);
                 state.dom.hashKey.value = '';
                 state.dom.hashValue.value = '';
@@ -457,14 +491,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.dom.btnHashGet) {
         state.dom.btnHashGet.addEventListener('click', () => {
             const { key } = getHashInputs();
-            if (!isNaN(key)) getHash(key);
+            if (key !== '' && key !== undefined && key !== null) getHash(key);
         });
     }
 
     if (state.dom.btnHashRemove) {
         state.dom.btnHashRemove.addEventListener('click', () => {
             const { key } = getHashInputs();
-            if (!isNaN(key)) removeHash(key);
+            if (key !== '' && key !== undefined && key !== null) removeHash(key);
         });
     }
 

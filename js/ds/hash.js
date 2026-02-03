@@ -185,7 +185,13 @@ function deleteNode(root, key) {
 // --- Rendering ---
 
 function hash(key, capacity) {
-    return Math.abs(key) % capacity;
+    let strKey = String(key);
+    let hashVal = 0;
+    for (let i = 0; i < strKey.length; i++) {
+        hashVal = (hashVal << 5) - hashVal + strKey.charCodeAt(i);
+        hashVal |= 0; // Convert to 32bit integer
+    }
+    return Math.abs(hashVal) % capacity;
 }
 
 function renderHash() {
