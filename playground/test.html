@@ -229,19 +229,19 @@
         /* === SLOT CONTENT STYLES === */
         .slot-content {
             display: flex;
-            gap: 5px;
+            gap: 12px;
             flex-wrap: wrap;
-            min-height: 80px;
+            min-height: 100px;
             justify-content: center;
             align-items: flex-start;
         }
 
         .ptr-container-global {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 16px;
         }
 
         .array-cell {
@@ -251,23 +251,24 @@
         }
 
         .array-box {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             background: var(--array-bg);
             border: 2px solid var(--array-border);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             transition: all 0.3s ease;
+            border-radius: 8px;
         }
 
         .array-idx {
             font-family: "Fira Code", monospace;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: var(--text-sub);
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
         /* === YOUR EXACT STACK STYLES === */
@@ -281,26 +282,27 @@
             border-left: 4px solid var(--text-sub);
             border-right: 4px solid var(--text-sub);
             border-bottom: 4px solid var(--text-sub);
-            width: 120px;
-            min-height: 200px;
-            padding: 10px;
+            width: 140px;
+            min-height: 240px;
+            padding: 12px;
             display: flex;
             flex-direction: column-reverse;
-            gap: 5px;
-            border-radius: 0 0 10px 10px;
+            gap: 8px;
+            border-radius: 0 0 12px 12px;
         }
 
         .stack-item {
-            height: 40px;
+            height: 56px;
             background: var(--stack-bg);
             border: 2px solid var(--stack-border);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1.4rem;
             animation: dropIn 0.3s ease;
             transition: all 0.3s ease;
+            border-radius: 6px;
         }
 
         @keyframes dropIn {
@@ -493,33 +495,33 @@
         .hashmap-container {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            min-width: 280px;
+            gap: 8px;
+            min-width: 320px;
         }
 
         .hashmap-header {
             display: grid;
-            grid-template-columns: 100px 140px;
-            gap: 2px;
-            padding-bottom: 8px;
+            grid-template-columns: 120px 180px;
+            gap: 4px;
+            padding-bottom: 10px;
             border-bottom: 2px solid var(--border);
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .hashmap-header-cell {
             font-family: "Fira Code", monospace;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             color: var(--text-sub);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 6px 10px;
+            padding: 8px 12px;
         }
 
         .hashmap-row {
             display: grid;
-            grid-template-columns: 100px 140px;
-            gap: 2px;
-            border-radius: 6px;
+            grid-template-columns: 120px 180px;
+            gap: 4px;
+            border-radius: 8px;
             overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -532,18 +534,18 @@
         .hashmap-key {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
-            padding: 10px 12px;
+            padding: 12px 14px;
             font-weight: 600;
             font-family: "Fira Code", monospace;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
         }
 
         .hashmap-value {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            padding: 10px 12px;
+            padding: 12px 14px;
             font-family: "Fira Code", monospace;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
         }
 
         .hashmap-empty {
