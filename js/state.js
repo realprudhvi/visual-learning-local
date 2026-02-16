@@ -21,6 +21,10 @@ export const state = {
     graphSelectedNode: null, // ID of first node for edge creation
     graphCounter: 1, // Auto-increment for node values
 
+    // Monotonic mode: null = off, 'inc' = increasing, 'dec' = decreasing
+    stackMonotonic: null,
+    queueMonotonic: null,
+
     // Step Control State
     stepController: {
         steps: [],      // Array of step functions or state snapshots
@@ -50,6 +54,10 @@ export const state = {
         btnEnqueue: null,
         btnDequeue: null,
         btnPeekQueue: null,
+        btnStackMonotonic: null,
+        btnQueueMonotonic: null,
+        queueWindowK: null,
+        queueLog: null,
         heapControls: null,
         heapInput: null,
         btnHeapInsert: null,
@@ -128,6 +136,10 @@ export const initGlobals = () => {
     state.dom.btnEnqueue = document.getElementById('btnEnqueue');
     state.dom.btnDequeue = document.getElementById('btnDequeue');
     state.dom.btnPeekQueue = document.getElementById('btnPeekQueue');
+    state.dom.btnStackMonotonic = document.getElementById('btnStackMonotonic');
+    state.dom.btnQueueMonotonic = document.getElementById('btnQueueMonotonic');
+    state.dom.queueWindowK = document.getElementById('queueWindowK');
+    state.dom.queueLog = document.getElementById('queueLog');
 
     state.dom.heapControls = document.getElementById('heap-controls');
     state.dom.heapInput = document.getElementById('heapInput');

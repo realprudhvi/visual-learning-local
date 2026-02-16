@@ -11,8 +11,8 @@ Given a coding problem (by name, description, or LeetCode-style prompt), generat
   "description": "string — HTML description with <p>, <code>, <strong> tags. Explain the problem and the approach.",
   "slots": [
     {
-      "id": "string — identifier used in code as this.<id> (e.g. 'array', 'grid', 'visited', 'hashmap', 'stack')",
-      "type": "array | stack | hashmap | grid",
+      "id": "string — identifier used in code as this.<id> (e.g. 'array', 'grid', 'visited', 'hashmap', 'stack', 'queue')",
+      "type": "array | stack | queue | hashmap | hashmap-simple | grid",
       "label": "string — display label for this slot"
     }
   ],
@@ -44,7 +44,7 @@ Given a coding problem (by name, description, or LeetCode-style prompt), generat
    - this.<id>.peek()                 — View top without removing
    - this.<id>.isEmpty()              — Check if empty
    - this.<id>.size()                 — Get size
-   - this.<id>.highlight(i, color)    — Highlight position
+   - this.<id>.highlight(i, color)    — Highlight position (0 is bottom)
    - this.<id>.clear()                — Clear the stack
 
 3. QUEUE (type: "queue")
@@ -54,7 +54,7 @@ Given a coding problem (by name, description, or LeetCode-style prompt), generat
    - this.<id>.isEmpty()              — Check if empty
    - this.<id>.size()                 — Get size
    - this.<id>.init(arr)              — Initialize with values array
-   - this.<id>.highlight(i, color)    — Highlight position
+   - this.<id>.highlight(i, color)    — Highlight position (0 is front)
    - this.<id>.clearHighlights()      — Clear all highlights
    - this.<id>.clear()                — Clear the queue
 
@@ -63,61 +63,76 @@ Given a coding problem (by name, description, or LeetCode-style prompt), generat
    - this.<id>.get(key)               — Get value by key
    - this.<id>.has(key)               — Check if key exists
    - this.<id>.remove(key)            — Remove entry
-   - this.<id>.highlight(key, color)  — Highlight entry
+   - this.<id>.highlight(key, color)  — Highlight entry (key and value)
    - this.<id>.clearHighlights()      — Clear all highlights
    - this.<id>.size()                 — Get count
    - this.<id>.clear()                — Clear all entries
+   - this.<id>.init(entries)          — Initialize with array of [key, val] pairs (e.g. [['A', 1], ['B', 2]])
 
 5. GRID (type: "grid")
-   - this.<id>.init(matrix)           — Initialize with 2D array
+   - this.<id>.init(matrix)           — Initialize with 2D array (rows of values)
    - this.<id>.getCell(r, c)          — Get cell value
    - this.<id>.setCell(r, c, val)     — Set cell value (re-renders)
-   - this.<id>.highlight(r, c, color) — Highlight cell
+   - this.<id>.highlight(r, c, color) — Highlight cell with background color
    - this.<id>.clearHighlights()      — Clear all highlights
-   - this.<id>.rows                   — Number of rows
-   - this.<id>.cols                   — Number of columns
+   - this.<id>.rows                   — Number of rows (property)
+   - this.<id>.cols                   — Number of columns (property)
 
-   Special: For boolean grids (visited matrices), cells with `true` render GREEN, cells with `false` render RED. Use this for visited/seen tracking!
+   Special Note: For boolean grids (visited matrices), cells with `true` render with a checkmark, `false` with an X. Use numbers (0/1) for standard binary grids.
 
 === UTILITY APIs ===
 
-- this.log('message')                 — Log message to output
-- this.ptr.set('name', index)         — Set named pointer at index
-- this.ptr.remove('name')             — Remove named pointer
+- this.log('message')                 — Log message to output (supports emojis)
+- this.ptr.set('name', index)         — Set global pointer indicator at index (mainly for arrays)
+- this.ptr.remove('name')             — Remove global pointer
 - await this.await()                  — PAUSE for visualization step (REQUIRED between visual changes)
 
 === COLORS (use these for highlights) ===
 
 - '#3b82f6' — Blue (scanning/current)
-- '#10b981' — Green (success/visited)
-- '#ec4899' — Pink (processing)
-- '#f59e0b' — Orange/Amber (found/neighbor)
-- '#ef4444' — Red (error/not found)
-- '#8b5cf6' — Purple (special)
+- '#10b981' — Green (success/visited/found)
+- '#ec4899' — Pink (processing/active)
+- '#f59e0b' — Orange/Amber (neighbor/tentative)
+- '#ef4444' — Red (error/invalid)
+- '#8b5cf6' — Purple (auxiliary/special)
 
 === RULES ===
 
 1. The code MUST be a single class named `Playground` with `async run(inputs)` method
 2. `inputs` is an array of strings from each input field
-3. Parse inputs at the start (e.g., split by comma for arrays, by semicolon for grid rows)
+3. Parse inputs at the start:
+   - Arrays: `inputs[0].split(',').map(Number)`
+   - Grids: `inputs[0].split(';').map(r => r.trim().split(',').map(Number))`
 4. Call `await this.await()` after EVERY visual change to create a step
-5. Maximum 2 slots allowed
-6. Use descriptive `this.log()` messages with emojis for key moments
-7. The `code` field must be a single escaped string (newlines as \n)
-8. Grid inputs: rows separated by semicolons, values by commas (e.g., "1,1,0; 0,1,0; 0,0,1")
-9. For visited/tracking matrices, use a second grid slot with boolean values
-10. Return a meaningful result from run()
+5. Use descriptive `this.log()` messages. EXPLAIN the "Why", not just the "What".
+   - Bad: "Checking index 5"
+   - Good: "Checking index 5: Value 10 is greater than max 8, updating max."
+6. The `code` field must be a single escaped string (newlines as \n)
+7. Maximum 4 slots allowed (e.g. Grid + Visited + Queue + Stats)
+8. Use `stats` (hashmap-simple) for tracking variables like "Max Area", "Sum", "Count".
+9. Return a meaningful result from run() to be displayed at the end.
 
 === EXAMPLE PROBLEM ===
 
-Problem: "Two Sum"
-Slots: array + hashmap
-Logic: For each element, check if complement exists in hashmap, else store current value.
-
 Problem: "Number of Islands"
-Slots: grid (land/water) + grid (visited matrix with true/false)
-Logic: BFS/DFS from each unvisited land cell, marking connected cells as visited.
+Slots: 
+  - grid (label: "Grid State")
+  - visited (label: "Visited", type: "grid")
+  - queue (label: "BFS Queue", type: "queue")
+Logic: BFS from each unvisited land cell.
+Code Snippet:
+```javascript
+  // inside run()
+  const rows = inputs[0].split(';').map(r => r.trim().split(',').map(v => parseInt(v.trim())));
+  this.grid.init(rows);
+  this.visited.init(Array.from({length: rows.length}, () => Array(rows[0].length).fill(0)));
+  
+  // ... inside loop
+  this.queue.enqueue(\`[\${r},\${c}]\`);
+  this.log(\`Starting BFS from (\${r},\${c})\`);
+  await this.await();
+```
 
 === YOUR TASK ===
 
-Generate the complete JSON for the given problem. Make the visualization educational — show each decision point, highlight what's being examined, and explain the algorithm's reasoning through log messages.
+Generate the complete JSON for the given problem. Make the visualization educational!

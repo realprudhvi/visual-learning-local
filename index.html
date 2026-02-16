@@ -194,9 +194,13 @@
                     <input type="text" id="stackPushInput" placeholder="Value" style="width: 60px;">
                     <button id="btnPush" class="control-btn">Push</button>
                 </div>
-                <div style="display: flex; gap: 5px;">
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                     <button id="btnPop" class="control-btn">Pop</button>
                     <button id="btnPeek" class="control-btn">Peek</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.8rem; color: var(--text); opacity: 0.7;">Monotonic:</span>
+                    <button id="btnStackMonotonic" class="control-btn" style="flex: 1; font-size: 0.75rem;">Off</button>
                 </div>
             </div>
 
@@ -208,9 +212,19 @@
                     <input type="text" id="queueEnqueueInput" placeholder="Value" style="width: 60px;">
                     <button id="btnEnqueue" class="control-btn">Enqueue</button>
                 </div>
-                <div style="display: flex; gap: 5px;">
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                     <button id="btnDequeue" class="control-btn">Dequeue</button>
                     <button id="btnPeekQueue" class="control-btn">Peek</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.8rem; color: var(--text); opacity: 0.7;">Monotonic:</span>
+                    <button id="btnQueueMonotonic" class="control-btn" style="flex: 1; font-size: 0.75rem;">Off</button>
+                    <input type="number" id="queueWindowK" placeholder="k" class="hidden"
+                        style="width: 40px; font-size: 0.8rem;" min="1" title="Window Size">
+                </div>
+                <!-- Queue Log -->
+                <div id="queueLog"
+                    style="margin-top: 10px; height: 80px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 5px; font-family: monospace; font-size: 0.75rem; color: #cbd5e1;">
                 </div>
             </div>
 

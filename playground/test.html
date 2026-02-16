@@ -1191,6 +1191,10 @@
                 this.data.set(key, val);
                 this.render();
             },
+            init(entries) {
+                this.data = new Map(entries);
+                this.render();
+            },
             get(key) {
                 return this.data.get(key);
             },

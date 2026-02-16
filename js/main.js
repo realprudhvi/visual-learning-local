@@ -10,7 +10,9 @@ import { initGrid, renderGrid, runGridBFS, runGridDFS, nextGridStep, prevGridSte
 
 document.addEventListener('DOMContentLoaded', () => {
     initGlobals();
+    initGlobals();
     initCanvas();
+    setupStepControls(); // Wire up step navigation
 
     // Zoom sensitivity slider
     const zoomSlider = document.getElementById('zoomSensitivity');
@@ -43,6 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Toggle Stack Controls
         if (type === 'stack') {
             state.dom.stackControls.classList.remove('hidden');
+            state.stackMonotonic = null;
+            state.dom.btnStackMonotonic.textContent = 'Off';
         } else {
             state.dom.stackControls.classList.add('hidden');
         }
@@ -50,6 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Toggle Queue Controls
         if (type === 'queue') {
             state.dom.queueControls.classList.remove('hidden');
+            state.queueMonotonic = null;
+            state.dom.btnQueueMonotonic.textContent = 'Off';
+            state.dom.queueWindowK.classList.add('hidden');
+            state.dom.queueWindowK.value = '';
         } else {
             state.dom.queueControls.classList.add('hidden');
         }
@@ -199,6 +207,19 @@ document.addEventListener('DOMContentLoaded', () => {
         peekStack();
     });
 
+    // Stack Monotonic Toggle: Off → Increasing → Decreasing → Off
+    state.dom.btnStackMonotonic.addEventListener('click', () => {
+        const modes = [null, 'inc', 'dec'];
+        const labels = ['Off', 'Increasing ↑', 'Decreasing ↓'];
+        const current = modes.indexOf(state.stackMonotonic);
+        const next = (current + 1) % 3;
+        state.stackMonotonic = modes[next];
+        state.dom.btnStackMonotonic.textContent = labels[next];
+        // Clear stack and re-render when mode changes
+        state.dsData = [];
+        renderStack(state.dsData);
+    });
+
     // Queue Operations
     state.dom.btnEnqueue.addEventListener('click', () => {
         const raw = state.dom.queueEnqueueInput.value.trim();
@@ -216,6 +237,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.dom.btnPeekQueue.addEventListener('click', () => {
         peekQueue();
+    });
+
+    // Queue Monotonic Toggle: Off → Increasing → Decreasing → Off
+    state.dom.btnQueueMonotonic.addEventListener('click', () => {
+        const modes = [null, 'inc', 'dec'];
+        const labels = ['Off', 'Increasing ↑', 'Decreasing ↓'];
+        const current = modes.indexOf(state.queueMonotonic);
+        const next = (current + 1) % 3;
+        state.queueMonotonic = modes[next];
+        state.dom.btnQueueMonotonic.textContent = labels[next];
+
+        // Toggle Window Size Input
+        if (state.queueMonotonic) {
+            state.dom.queueWindowK.classList.remove('hidden');
+            state.dom.queueWindowK.focus();
+        } else {
+            state.dom.queueWindowK.classList.add('hidden');
+        }
+
+        // Clear queue and re-render when mode changes
+        state.dsData = [];
+        renderQueue(state.dsData);
     });
 
     // Heap Operations
@@ -622,5 +665,95 @@ function renderStructure(inputStr) {
         case 'grid':
             // Grid uses its own build flow via Build button
             break;
+    }
+}
+
+// --- STEP CONTROLLER WIRING ---
+function setupStepControls() {
+    console.log("Setting up step controls...");
+    const btnNext = state.dom.btnNextStep;
+    const btnPrev = state.dom.btnPrevStep;
+    const btnPlay = document.getElementById('btnPlay');
+    const speedSlider = document.getElementById('speedSlider');
+
+    // Queue Log Visibility Helper
+    if (state.dom.queueLog) {
+        state.dom.queueLog.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+    }
+
+    if (!btnNext || !btnPrev) {
+        console.error("Step buttons not found in DOM");
+        return;
+    }
+
+    const triggerNext = () => {
+        const mode = state.currentMode;
+        if (!mode) return;
+
+        if (['array', 'stack', 'queue', 'list', 'sll', 'dll', 'cll'].includes(mode)) {
+            nextStep();
+        } else if (['bst', 'bt'].includes(mode)) {
+            nextTreeStep();
+        } else if (mode === 'graph') {
+            nextGraphStep();
+        } else if (mode === 'grid') {
+            nextGridStep();
+        } else if (['heap', 'minheap', 'maxheap'].includes(mode)) {
+            // Heap steps if implemented
+        }
+    };
+
+    const triggerPrev = () => {
+        const mode = state.currentMode;
+        if (!mode) return;
+
+        if (['array', 'stack', 'queue', 'list', 'sll', 'dll', 'cll'].includes(mode)) {
+            prevStep();
+        } else if (['bst', 'bt'].includes(mode)) {
+            prevTreeStep();
+        } else if (mode === 'graph') {
+            prevGraphStep();
+        } else if (mode === 'grid') {
+            prevGridStep();
+        }
+    };
+
+    btnNext.addEventListener('click', () => {
+        triggerNext();
+    });
+
+    btnPrev.addEventListener('click', () => {
+        triggerPrev();
+    });
+
+    // Auto-Play Logic
+    let playTimer = null;
+    if (btnPlay) {
+        btnPlay.addEventListener('click', () => {
+            if (playTimer) {
+                clearInterval(playTimer);
+                playTimer = null;
+                btnPlay.innerHTML = '▶';
+                btnPlay.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+            } else {
+                btnPlay.innerHTML = '⏸';
+                btnPlay.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; // Red for stop
+
+                let delay = 800;
+                if (speedSlider) delay = 2100 - parseInt(speedSlider.value);
+
+                playTimer = setInterval(triggerNext, delay);
+            }
+        });
+    }
+
+    if (speedSlider && btnPlay) {
+        speedSlider.addEventListener('input', () => {
+            if (playTimer) {
+                clearInterval(playTimer);
+                let delay = 2100 - parseInt(speedSlider.value); // Higher value = faster speed = lower delay
+                playTimer = setInterval(triggerNext, delay);
+            }
+        });
     }
 }
