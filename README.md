@@ -10,6 +10,8 @@ The project is categorized into several domains of data structures, each with sp
 *   **Arrays**: Visualize index-based access, insertion, deletion, and updates.
 *   **Stacks**: Demonstrate LIFO (Last-In-First-Out) operations (`push`, `pop`, `peek`).
 *   **Queues**: Demonstrate FIFO (First-In-First-Out) operations (`enqueue`, `dequeue`, `peek`).
+*   **Monotonic Queue**: Visualizes a queue that maintains elements in either increasing or decreasing order.
+*   **Grid**: 2D array visualization for matrix-based algorithms (e.g., Number of Islands).
 
 ### 2. Memory & Pointers (Linked Lists)
 *   **Singly Linked List (SLL)**: Visualizes nodes with a single pointer to the next node.
@@ -31,6 +33,7 @@ A robust interactive Graph Builder and visualizer:
 *   **Graph Builder**:
     *   Add/Delete Nodes.
     *   Add Directed/Undirected Edges.
+    *   **Interactive Tweaks**: Drag nodes to reposition, with improved zoom and pan controls.
 *   **Algorithms**:
     *   **BFS (Breadth-First Search)**: Visualizes layer-by-layer traversal.
     *   **DFS (Depth-First Search)**: Visualizes depth-based traversal.
@@ -40,9 +43,9 @@ A robust interactive Graph Builder and visualizer:
 Comprehensive support for hashing concepts:
 *   **HashMap**: Visualizes key-value pairs with collision handling (chaining/probing visualization implied).
 *   **HashMap (Simple)**: Simplified view for educational purposes.
-*   **HashSet**: Visualizes unique element storage.
-*   **TreeMap**: Visualizes key-value pairs sorted by keys (often backed by Red-Black trees or similar).
-*   **LinkedHashMap**: Maintains insertion order alongside hashing.
+*   **HashSet**: Visualizes unique element storage using hash-based lookups.
+*   **TreeMap**: Visualizes key-value pairs sorted by keys (Red-Black Tree backend).
+*   **LinkedHashMap**: Maintains insertion order alongside hashing, combining properties of a HashMap and Linked List.
 *   **Operations**: `Put`, `Get`, `Remove`, `Clear`.
 
 ## Core Features
@@ -59,8 +62,14 @@ Comprehensive support for hashing concepts:
     *   **Queue/Stack Visuals**: Shows the internal state of auxiliary data structures during algorithm execution.
     *   **Call Stack**: Visualizes recursion depth and function calls.
 
+*   **Enhanced Visuals**:
+    *   **Resized Slots**: Optimized visual dimensions for stack and array slots.
+    *   **Reduced Clutter**: Improved spacing and layout for clearer visualization.
+
 *   **Playground**:
-    *   A sandbox environment (`playground/test.html`) for testing new features, experimental prompts, and custom JSON-based problem definitions.
+    *   A sandbox environment (`playground/test.html`) for testing new features.
+    *   **Enhanced Prompt**: Supports natural language queries that map to complex data structure operations.
+    *   **API Support**: Extended support for generating problems involving Grids, Queues, and HashMaps.
     *   Supports loading problems from `examples/*.json`.
 
 ## Technical Architecture
