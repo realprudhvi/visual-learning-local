@@ -16,6 +16,23 @@ export const state = {
     dsData: [],
     gridData: [], // 2D array for grid
 
+    // Graph
+    graphNodes: [],
+    graphEdges: [],
+    graphType: 'directed', // directed, undirected
+
+    // Tree
+    treeRoot: null,
+
+    // Trie
+    trieRoot: null,
+
+    // Union Find
+    ufData: [], // Array of { val, parent, ... }
+
+    // Grid
+    gridMatrix: [],
+
     // Graph Interaction
     graphMode: null, // 'node', 'edge-dir', 'edge-undir'
     graphSelectedNode: null, // ID of first node for edge creation
@@ -111,7 +128,23 @@ export const state = {
         gridStartRow: null,
         gridStartCol: null,
         btnGridBFS: null,
-        btnGridDFS: null
+        btnGridDFS: null,
+
+        // Trie
+        controlsTrie: null,
+        trieInput: null,
+        btnTrieInsert: null,
+        btnTrieSearch: null,
+        btnTrieStartsWith: null,
+
+        // Union Find
+        controlsUF: null,
+        ufSize: null,
+        ufP: null,
+        ufQ: null,
+        btnUfInit: null,
+        btnUfUnion: null,
+        btnUfFind: null
     }
 };
 
@@ -217,6 +250,22 @@ export const initGlobals = () => {
     state.dom.gridStartCol = document.getElementById('gridStartCol');
     state.dom.btnGridBFS = document.getElementById('btnGridBFS');
     state.dom.btnGridDFS = document.getElementById('btnGridDFS');
+
+    // Trie
+    state.dom.controlsTrie = document.getElementById('trie-controls');
+    state.dom.trieInput = document.getElementById('trieInput');
+    state.dom.btnTrieInsert = document.getElementById('btnTrieInsert');
+    state.dom.btnTrieSearch = document.getElementById('btnTrieSearch');
+    state.dom.btnTrieStartsWith = document.getElementById('btnTrieStartsWith');
+
+    // Union Find
+    state.dom.controlsUF = document.getElementById('union-find-controls');
+    state.dom.ufSize = document.getElementById('ufSize');
+    state.dom.ufP = document.getElementById('ufP');
+    state.dom.ufQ = document.getElementById('ufQ');
+    state.dom.btnUfInit = document.getElementById('btnUfInit');
+    state.dom.btnUfUnion = document.getElementById('btnUfUnion');
+    state.dom.btnUfFind = document.getElementById('btnUfFind');
 
     // Step Controls
     state.dom.stepControls = document.getElementById('step-controls');

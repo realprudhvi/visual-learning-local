@@ -696,3 +696,26 @@ input[type=number]::-webkit-outer-spin-button {
 #visual-queue::-webkit-scrollbar {
     display: none;
 }
+
+/* Tree Node (Trie/Union Find) */
+.tree-node {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--node-bg);
+    border: 2px solid var(--node-border);
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: var(--text-main);
+    z-index: 5;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tree-node text {
+    font-family: inherit;
+    font-size: 0.9rem;
+}

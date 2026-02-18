@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'array': 'Array', 'stack': 'Stack', 'queue': 'Queue',
             'sll': 'Singly Linked List', 'dll': 'Doubly Linked List', 'cll': 'Circular Linked List',
             'bt': 'Binary Tree', 'bst': 'Binary Search Tree', 'graph': 'Graph', 'grid': 'Grid',
-            'hashmap': 'HashMap', 'hashmap-simple': 'HashMap (Simple)', 'hashset': 'HashSet', 'treemap': 'TreeMap', 'linkedhashmap': 'LinkedHashMap'
+            'hashmap': 'HashMap', 'hashmap-simple': 'HashMap (Simple)', 'hashset': 'HashSet', 'treemap': 'TreeMap', 'linkedhashmap': 'LinkedHashMap',
+            'trie': 'Trie (Prefix Tree)', 'union_find': 'Union Find (DSU)'
         };
         state.dom.structureTitle.innerText = titles[type] || type.toUpperCase();
 
@@ -146,9 +147,31 @@ document.addEventListener('DOMContentLoaded', () => {
             state.dom.hashControls.classList.add('hidden');
         }
 
+        // Toggle Trie Controls
+        if (type === 'trie') {
+            state.dom.controlsTrie.classList.remove('hidden');
+            import('./ds/trie.js').then(module => {
+                if (!state.trieRoot) module.initTrie();
+                module.renderTrie();
+            });
+        } else if (state.dom.controlsTrie) { // Safety check
+            state.dom.controlsTrie.classList.add('hidden');
+        }
+
+        // Toggle Union Find Controls
+        if (type === 'union_find') {
+            state.dom.controlsUF.classList.remove('hidden');
+            import('./ds/union_find.js').then(module => {
+                if (state.ufData.length === 0) module.initUF(10);
+                module.renderUF();
+            });
+        } else if (state.dom.controlsUF) {
+            state.dom.controlsUF.classList.add('hidden');
+        }
+
         // Toggle Main Input (Enter Values)
         // Hidden for Graph and Hash structures as per user request
-        if (['graph', 'grid', 'hashmap', 'hashmap-simple', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
+        if (['graph', 'grid', 'hashmap', 'hashmap-simple', 'hashset', 'treemap', 'linkedhashmap', 'trie', 'union_find'].includes(type)) {
             if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.add('hidden');
         } else {
             if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.remove('hidden');
@@ -571,6 +594,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- TRIE CONTROLS ---
+    if (state.dom.btnTrieInsert) {
+        state.dom.btnTrieInsert.addEventListener('click', () => {
+            const word = state.dom.trieInput.value.trim();
+            if (word) {
+                import('./ds/trie.js').then(module => {
+                    module.insertTrie(word);
+                    state.dom.trieInput.value = '';
+                    state.dom.trieInput.focus();
+                });
+            }
+        });
+    }
+    if (state.dom.btnTrieSearch) {
+        state.dom.btnTrieSearch.addEventListener('click', () => {
+            const word = state.dom.trieInput.value.trim();
+            if (word) {
+                import('./ds/trie.js').then(module => module.searchTrie(word));
+            }
+        });
+    }
+    if (state.dom.btnTrieStartsWith) {
+        state.dom.btnTrieStartsWith.addEventListener('click', () => {
+            const word = state.dom.trieInput.value.trim();
+            if (word) {
+                import('./ds/trie.js').then(module => module.startsWithTrie(word));
+            }
+        });
+    }
+    // Enter key on trie input triggers insert
+    if (state.dom.trieInput) {
+        state.dom.trieInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                state.dom.btnTrieInsert.click();
+            }
+        });
+    }
+
+    // --- UNION FIND CONTROLS ---
+    if (state.dom.btnUfInit) {
+        state.dom.btnUfInit.addEventListener('click', () => {
+            const size = parseInt(state.dom.ufSize.value) || 10;
+            import('./ds/union_find.js').then(module => module.initUF(size));
+        });
+    }
+    if (state.dom.btnUfUnion) {
+        state.dom.btnUfUnion.addEventListener('click', () => {
+            const p = parseInt(state.dom.ufP.value);
+            const q = parseInt(state.dom.ufQ.value);
+            if (!isNaN(p) && !isNaN(q)) {
+                import('./ds/union_find.js').then(module => module.unionUF(p, q));
+            }
+        });
+    }
+    if (state.dom.btnUfFind) {
+        state.dom.btnUfFind.addEventListener('click', () => {
+            const p = parseInt(state.dom.ufP.value);
+            if (!isNaN(p)) {
+                import('./ds/union_find.js').then(module => module.findUF(p));
+            }
+        });
+    }
+
     // --- GRID CONTROLS ---
     if (state.dom.btnBuildGrid) {
         state.dom.btnBuildGrid.addEventListener('click', () => {
@@ -643,6 +729,13 @@ function renderStructure(inputStr) {
 
         case 'bt': initBT(vals); break;
         case 'bst': initBST(vals); break;
+
+        case 'trie':
+            import('./ds/trie.js').then(module => module.renderTrie());
+            break;
+        case 'union_find':
+            import('./ds/union_find.js').then(module => module.renderUF());
+            break;
 
         case 'minheap':
         case 'maxheap':
