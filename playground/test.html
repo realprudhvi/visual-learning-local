@@ -1085,6 +1085,36 @@
                     <div class="problem-tags" id="problem-tags"></div>
                 </div>
 
+                <div class="panel" id="ai-generator-panel"
+                    style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(88, 28, 135, 0.3)); border-color: #8b5cf6;">
+                    <h3 style="color: #c4b5fd;">✨ Generate Visualization</h3>
+                    <div class="input-group">
+                        <label class="input-label" for="ai-api-key">Gemini API Key</label>
+                        <input type="password" class="input-field" id="ai-api-key" placeholder="Enter your API key"
+                            onblur="fetchModels()">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="ai-model">Model Selection</label>
+                        <select class="input-field" id="ai-model"
+                            style="background: var(--bg-body); color: white; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif;">
+                            <option value="">Enter API Key to load models...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" for="ai-problem-desc">Problem Description</label>
+                        <textarea class="input-field" id="ai-problem-desc" rows="3"
+                            placeholder="Describe the problem, e.g., 'Initialize an empty array of size 5'"
+                            style="resize: vertical; font-family: inherit;"></textarea>
+                    </div>
+                    <button id="btn-generate-ai" onclick="generateWithAI()"
+                        style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; padding: 12px; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 8px; transition: opacity 0.2s;">
+                        Generate with AI
+                    </button>
+                    <div id="ai-status"
+                        style="margin-top: 10px; font-size: 0.85rem; color: #fbbf24; text-align: center; display: none;">
+                        Generating...</div>
+                </div>
+
                 <div class="panel" id="input-panel">
                     <h3>Input</h3>
                     <div id="inputs-container">
@@ -2496,12 +2526,17 @@
                     x: n.x,
                     y: n.y
                 }));
-                this.edges = edges.map(e => ({
-                    source: String(e.source),
-                    target: String(e.target),
-                    isDirected: !!e.isDirected,
-                    weight: e.weight
-                }));
+                this.edges = edges.map(e => {
+                    const src = e.source !== undefined ? e.source : (e.u !== undefined ? e.u : e.from);
+                    const tgt = e.target !== undefined ? e.target : (e.v !== undefined ? e.v : e.to);
+                    const isDir = e.isDirected !== undefined ? !!e.isDirected : !!e.directed;
+                    return {
+                        source: String(src),
+                        target: String(tgt),
+                        isDirected: isDir,
+                        weight: e.weight
+                    };
+                });
                 this.applyCircularLayoutIfMissing();
                 this.render();
             },
@@ -2512,7 +2547,15 @@
             },
 
             addEdge(u, v, isDirected = false, weight = null) {
-                this.edges.push({ source: String(u), target: String(v), isDirected, weight });
+                // handle either an object or positional args
+                if (typeof u === 'object') {
+                    const src = u.source !== undefined ? u.source : (u.u !== undefined ? u.u : u.from);
+                    const tgt = u.target !== undefined ? u.target : (u.v !== undefined ? u.v : u.to);
+                    const isDir = u.isDirected !== undefined ? !!u.isDirected : !!u.directed;
+                    this.edges.push({ source: String(src), target: String(tgt), isDirected: isDir, weight: u.weight });
+                } else {
+                    this.edges.push({ source: String(u), target: String(v), isDirected: !!isDirected, weight });
+                }
                 this.render();
             },
 
@@ -4268,6 +4311,147 @@
             });
 
             runPlayground(playgroundCode, inputValues);
+        }
+
+        // ============ AI GENERATOR ============
+
+        // Load API key from localStorage on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('geminiApiKey');
+            if (savedKey) {
+                document.getElementById('ai-api-key').value = savedKey;
+                fetchModels();
+            }
+        });
+
+        async function fetchModels() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const modelSelect = document.getElementById('ai-model');
+            const statusEl = document.getElementById('ai-status');
+
+            if (!apiKey) {
+                modelSelect.innerHTML = '<option value="">Enter API Key to load models...</option>';
+                return;
+            }
+
+            modelSelect.innerHTML = '<option value="">Loading models...</option>';
+            modelSelect.disabled = true;
+
+            try {
+                const apiUrl = window.location.protocol === 'http:' && window.location.hostname === 'localhost' && window.location.port === '3000'
+                    ? '/api/models'
+                    : 'http://localhost:3000/api/models';
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey: apiKey })
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response. Is the backend running?');
+                }
+
+                if (response.ok) {
+                    modelSelect.innerHTML = '';
+                    if (data.models && data.models.length > 0) {
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            // Extract just the model name part if it has "models/" prefix
+                            const modelId = model.name.replace('models/', '');
+                            option.value = modelId;
+                            option.textContent = model.displayName || modelId;
+
+                            // Select gemini-2.5-pro or gemini-2.5-flash as default if available
+                            if (modelId === 'gemini-2.5-pro' || modelId === 'gemini-2.5-flash') {
+                                option.selected = true;
+                            }
+
+                            modelSelect.appendChild(option);
+                        });
+                        modelSelect.disabled = false;
+                    } else {
+                        modelSelect.innerHTML = '<option value="">No generating models found</option>';
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to fetch models');
+                }
+            } catch (error) {
+                console.error(error);
+                modelSelect.innerHTML = '<option value="">Error loading models</option>';
+                alert("Model Unavailable : " + error.message);
+            }
+        }
+
+        async function generateWithAI() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const selectedModel = document.getElementById('ai-model').value;
+            const problemDesc = document.getElementById('ai-problem-desc').value.trim();
+            const statusEl = document.getElementById('ai-status');
+
+            if (!apiKey) {
+                alert('Please enter a Gemini API Key.');
+                return;
+            }
+            if (!problemDesc) {
+                alert('Please enter a problem description.');
+                return;
+            }
+
+            // Save key to localStorage
+            localStorage.setItem('geminiApiKey', apiKey);
+
+            statusEl.style.display = 'block';
+            statusEl.textContent = 'Generating... (this may take a few seconds)';
+            statusEl.style.color = '#fbbf24';
+            document.getElementById('btn-generate-ai').disabled = true;
+            document.getElementById('btn-generate-ai').style.opacity = '0.5';
+
+            try {
+                // Use absolute URL to the localhost backend just in case
+                const apiUrl = window.location.protocol === 'http:' && window.location.hostname === 'localhost' && window.location.port === '3000'
+                    ? '/api/generate'
+                    : 'http://localhost:3000/api/generate';
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        apiKey: apiKey,
+                        model: selectedModel,
+                        problemDescription: problemDesc
+                    })
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response. Is the backend running?');
+                }
+
+                if (response.ok) {
+                    statusEl.textContent = 'Success! Reloading...';
+                    statusEl.style.color = '#34d399';
+
+                    // Reload the page with the placeholder.json config
+                    setTimeout(() => {
+                        window.location.search = '?config=placeholder.json';
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Failed to generate content');
+                }
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = 'Error: ' + error.message;
+                statusEl.style.color = '#f87171';
+            } finally {
+                document.getElementById('btn-generate-ai').disabled = false;
+                document.getElementById('btn-generate-ai').style.opacity = '1';
+            }
         }
     </script>
 </body>

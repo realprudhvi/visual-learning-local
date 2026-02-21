@@ -1,35 +1,48 @@
 {
-    "id": "linked-list-cycle-detection",
-    "name": "Linked List Cycle Detection",
-    "difficulty": "Easy",
-    "description": "<p>Given <code>head</code>, the head of a linked list, determine if the linked list has a cycle in it.</p><p>This visualization uses <b>Floyd's Cycle-Finding Algorithm</b> (Tortoise and Hare):</p><ul><li>The <code>slow</code> pointer moves one step at a time.</li><li>The <code>fast</code> pointer moves two steps at a time.</li><li>If there is a cycle, the <code>fast</code> pointer will eventually meet the <code>slow</code> pointer.</li><li>If the <code>fast</code> pointer reaches the end of the list (null), there is no cycle.</li></ul>",
+    "id": "graph-dijkstras-algorithm",
+    "name": "Dijkstra's Shortest Path",
+    "difficulty": "Medium",
+    "description": "<h3>Dijkstra's Algorithm</h3><p>Dijkstra's algorithm finds the shortest path from a starting node to all other reachable nodes in a <b>weighted</b> graph with non-negative edge weights.</p><ul><li><b>Priority Queue (Min-Heap):</b> Always explores the node with the lowest cumulative distance from the start node first.</li><li><b>Relaxation:</b> It updates the shortest known distance to a neighbor if passing through the current node yields a shorter path.</li><li><b>Visited Set:</b> Once a node is popped from the priority queue, its shortest path is guaranteed and it is marked visited.</li></ul>",
     "tags": [
-        "Linked List",
-        "Two Pointers"
+        "Graph",
+        "Shortest Path",
+        "Heap",
+        "Priority Queue",
+        "Dijkstra"
     ],
     "slots": [
         {
-            "id": "mainList",
-            "type": "sll",
-            "label": "Linked List"
+            "id": "graph_ds",
+            "type": "graph",
+            "label": "Graph Topology (Weighted)"
         },
         {
-            "id": "stateMap",
+            "id": "pq_ds",
+            "type": "heap",
+            "label": "Priority Queue (Min Heap)"
+        },
+        {
+            "id": "visited_ds",
+            "type": "hashset",
+            "label": "Settled Nodes"
+        },
+        {
+            "id": "dist_ds",
             "type": "hashmap",
-            "label": "Variables"
+            "label": "Distances from Source"
         }
     ],
     "inputs": [
         {
-            "label": "Nodes (comma separated)",
-            "default": "3, 2, 0, -4",
-            "placeholder": "3, 2, 0, -4"
+            "label": "Start Node",
+            "default": "A",
+            "placeholder": "A"
         },
         {
-            "label": "Cycle Pos (index)",
-            "default": "1",
-            "placeholder": "-1 for no cycle"
+            "label": "Weighted Edges (u-v:weight)",
+            "default": "A-B:4, A-C:2, C-B:1, B-D:2, C-D:5, D-E:3",
+            "placeholder": "A-B:4, B-C:1"
         }
     ],
-    "code": "class Playground {\n    async run(inputs) {\n        const vals = inputs[0].split(',').map(s => s.trim()).filter(s => s !== \"\");\n        const pos = parseInt(inputs[1]);\n\n        if (vals.length === 0) return false;\n\n        // 1. Initialize structures\n        await this.mainList.init(vals);\n        await this.stateMap.init([\n            [\"Slow Pointer\", \"null\"],\n            [\"Fast Pointer\", \"null\"],\n            [\"Cycle Detected\", \"false\"]\n        ]);\n\n        // 2. Setup Cycle for visualization if pos >= 0\n        let headId = this.mainList.getHeadId();\n        let tailId = headId;\n        let cycleTargetId = null;\n        let nodes = [];\n\n        // Traverse to find node IDs for cycle creation\n        let current = headId;\n        let index = 0;\n        while (current !== null) {\n            nodes.push(current);\n            if (index === pos) cycleTargetId = current;\n            tailId = current;\n            current = this.mainList.getNextId(current);\n            index++;\n        }\n\n        if (pos >= 0 && cycleTargetId) {\n            this.log(`Creating a cycle from the last node to node at index ${pos}`);\n            await this.mainList.link(tailId, cycleTargetId, \"next\");\n            await this.await();\n        }\n\n        // 3. Algorithm: Tortoise and Hare\n        let slow = headId;\n        let fast = headId;\n\n        this.mainList.createPointer(\"slow\", slow, \"#3b82f6\");\n        this.mainList.createPointer(\"fast\", fast, \"#ef4444\");\n        this.log(\"Initializing Slow and Fast pointers at head.\");\n        await this.await();\n\n        while (fast !== null) {\n            // Move slow\n            slow = this.mainList.getNextId(slow);\n            this.mainList.movePointer(\"slow\", slow);\n            this.stateMap.put(\"Slow Pointer\", slow || \"null\");\n            \n            // Move fast once\n            fast = this.mainList.getNextId(fast);\n            if (fast !== null) {\n                this.mainList.movePointer(\"fast\", fast);\n                this.stateMap.put(\"Fast Pointer\", fast);\n                this.log(\"Moving slow 1 step, fast 1 step...\");\n                await this.await();\n                \n                // Move fast twice\n                fast = this.mainList.getNextId(fast);\n                if (fast !== null) {\n                    this.mainList.movePointer(\"fast\", fast);\n                    this.stateMap.put(\"Fast Pointer\", fast);\n                }\n            }\n            \n            this.log(\"Moving fast the second step...\");\n            await this.await();\n\n            if (fast === null) {\n                this.log(\"Fast pointer reached null. No cycle detected.\");\n                return false;\n            }\n\n            if (slow === fast) {\n                this.log(\"Slow and Fast pointers met! Cycle detected.\");\n                this.stateMap.put(\"Cycle Detected\", \"TRUE\");\n                this.mainList.highlightNode(slow, \"#22c55e\");\n                await this.await();\n                return true;\n            }\n        }\n\n        this.log(\"End of list reached.\");\n        return false;\n    }\n}"
+    "code": "class Playground {\n    async run(inputs) {\n        const startNodeId = inputs[0].trim();\n        const edgeStrings = inputs[1].split(',').map(s => s.trim());\n\n        // 1. Parse Graph\n        const nodesSet = new Set();\n        const edges = [];\n        edgeStrings.forEach(str => {\n            const parts = str.split(':');\n            const uv = parts[0].split('-');\n            const u = uv[0];\n            const v = uv[1];\n            const weight = parts[1] ? parseInt(parts[1]) : 1;\n            \n            if (u && v) {\n                nodesSet.add(u);\n                nodesSet.add(v);\n                edges.push({ u, v, directed: false, weight });\n            }\n        });\n\n        const nodes = Array.from(nodesSet).map(id => ({ id, val: id }));\n        \n        // 2. Initialize slots\n        this.graph_ds.init(nodes, edges);\n        this.pq_ds.init([], 'min');\n        this.visited_ds.init([]);\n        this.dist_ds.init([]);\n\n        if (!nodesSet.has(startNodeId)) {\n            this.log(`Error: Start node ${startNodeId} not found in graph.`);\n            return \"Node not found\";\n        }\n\n        this.log(`Starting Dijkstra's Algorithm from node: ${startNodeId}`);\n        \n        // 3. Initialize distances\n        const distances = {};\n        nodes.forEach(n => {\n            distances[n.id] = Infinity;\n            this.dist_ds.put(n.id, \"∞\");\n        });\n        \n        distances[startNodeId] = 0;\n        this.dist_ds.put(startNodeId, 0);\n        \n        // PQ stores strings format: \"dist-node\" so lexical sort acts like a basic heap for single digits, but we just use val for visual.\n        // We will maintain a real JS array heap internally for exactness\n        const pq = [{ dist: 0, node: startNodeId }];\n        this.pq_ds.push(`0-${startNodeId}`);\n        \n        this.graph_ds.highlightNode(startNodeId, \"#3b82f6\"); // Initial blue\n        await this.await();\n\n        while (pq.length > 0) {\n            // JS doesn't have a native heap, so we sort to simulate extract-min\n            pq.sort((a, b) => a.dist - b.dist);\n            const current = pq.shift();\n            const u = current.node;\n            const d = current.dist;\n            \n            this.pq_ds.pop();\n            \n            // Skip if we've already found a better path\n            if (this.visited_ds.has(u)) continue;\n\n            this.log(`Extracted min: ${u} with distance ${d}. Marking as settled.`);\n            this.graph_ds.highlightNode(u, \"#eab308\"); // Processing yellow\n            this.visited_ds.add(u);\n            await this.await();\n\n            const neighbors = this.graph_ds.getNeighbors(u);\n            for (const neighborObj of neighbors) {\n                const v = neighborObj.node;\n                const weight = neighborObj.weight;\n                \n                if (this.visited_ds.has(v)) continue;\n                \n                this.graph_ds.highlightEdge(u, v, \"#eab308\"); // Highlight edge under consideration\n                this.log(`Evaluating edge ${u}-${v} (weight: ${weight}). Current best dist to ${v} is ${distances[v] === Infinity ? '∞' : distances[v]}.`);\n                await this.await();\n                \n                const newDist = d + weight;\n                if (newDist < distances[v]) {\n                    this.log(`Relaxation successful: ${newDist} < ${distances[v] === Infinity ? '∞' : distances[v]}. Updating path to ${v}.`);\n                    distances[v] = newDist;\n                    this.dist_ds.put(v, newDist);\n                    \n                    pq.push({ dist: newDist, node: v });\n                    this.pq_ds.push(`${newDist}-${v}`);\n                    this.graph_ds.highlightNode(v, \"#3b82f6\"); // Blue to indicate updated\n                } else {\n                     this.log(`Path through ${u} is not shorter (${newDist} >= ${distances[v]}). Skipping.`);\n                }\n                \n                // Reset edge highlight\n                this.graph_ds.highlightEdge(u, v, \"#64748b\");\n                await this.await();\n            }\n\n            this.graph_ds.highlightNode(u, \"#10b981\"); // Completed green\n            this.log(`Finished processing neighbors of ${u}`);\n            await this.await();\n        }\n\n        this.log(\"Dijkstra's Algorithm completed. Shortest paths found.\");\n        return distances;\n    }\n}"
 }

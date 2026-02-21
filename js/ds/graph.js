@@ -115,14 +115,19 @@ window.onGraphNodeClick = (e, id) => {
             if (state.graphMode === 'del-edge') {
                 deleteEdge(state.graphSelectedNode, id);
             } else {
-                addEdge(state.graphSelectedNode, id, state.graphMode === 'edge-dir');
+                let weight = null;
+                const weightStr = prompt("Enter edge weight (leave empty for unweighted):");
+                if (weightStr !== null && weightStr.trim() !== '') {
+                    weight = weightStr.trim();
+                }
+                addEdge(state.graphSelectedNode, id, state.graphMode === 'edge-dir', weight);
             }
             resetSelection();
         }
     }
 };
 
-function addEdge(sourceId, targetId, isDirected) {
+function addEdge(sourceId, targetId, isDirected, weight = null) {
     // Check if exists
     const exists = state.dsData.edges.some(e =>
         (e.source === sourceId && e.target === targetId) ||
@@ -130,9 +135,9 @@ function addEdge(sourceId, targetId, isDirected) {
     );
     if (exists) return;
 
-    const edge = { source: sourceId, target: targetId, isDirected };
+    const edge = { source: sourceId, target: targetId, isDirected, weight };
     state.dsData.edges.push(edge);
-    drawLine(sourceId, targetId, isDirected);
+    drawLine(sourceId, targetId, isDirected, "#94a3b8", "2", false, weight);
 }
 
 function deleteNode(id) {
@@ -166,7 +171,7 @@ function reDrawEdges() {
     </defs>`;
 
     state.dsData.edges.forEach(e => {
-        drawLine(e.source, e.target, e.isDirected);
+        drawLine(e.source, e.target, e.isDirected, "#94a3b8", "2", false, e.weight);
     });
 }
 

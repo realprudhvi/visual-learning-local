@@ -73,9 +73,9 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
    - `highlightNode(id, color)`, `highlightEdge(from, to, color, dir)`.
 
 9. **Graph**:
-   - `init(nodes, edges)`.
-   - `addNode(id, val)`, `addEdge(u, v, directed)`.
-   - `getNeighbors(u)`: returns `[{node, edge}]`.
+   - `init(nodes, edges)`: `nodes` is `[{id, val}]`. `edges` MUST be `[{u, v, directed, weight?}]`. The visualization natively displays `weight` if provided.
+   - `addNode(id, val)`, `addEdge(u, v, directed, weight?)`.
+   - `getNeighbors(u)`: returns `[{node, weight}]`.
    - `highlightNode(id, color)`, `highlightEdge(u, v, color)`.
 
 10. **Binary Tree**:
@@ -106,6 +106,7 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
 - **Method Names**: STRICTLY follow the method names in the API reference above (e.g., `put` for HashMap, NOT `set`).
 - **Explicit Returns**: Always return a meaningful result at the end of the `run` method. If no solution is found, return a technical "not found" value (e.g., `[-1, -1]` for index-based problems, `null` or `false` for others) rather than returning nothing.
 - **Advanced Visualization**: 
+    - **Priority Queue Note**: When a problem requires a Priority Queue (like Dijkstra's), you SHOULD use a `Heap` with `init([], 'min')`.
     - **Mandatory Variable Tracking**: You MUST create a `HashMap` slot labeled "Variables" or "State" to track important algorithm variables (e.g., `count`, `maxProgress`, `currentSum`). Use `put(varName, value)` to keep these updated on the screen during the `run` method.
     - **Mandatory Visited States**: For Grid and Graph problems, you MUST create a second slot (Grid or Array/HashSet) specifically to track "Visited" nodes. DO NOT modify the input structure to mark nodes as visited. This allows the user to see both the original problem and the traversal state side-by-side.
     - **Mandatory Traversal Frontier**: For DFS or BFS problems, you MUST create a `Stack` (for DFS) or `Queue` (for BFS) slot to visualize the frontier of nodes waiting to be processed. Synchronize this slot with your code's internal data structures.

@@ -1,0 +1,30 @@
+{
+  "name": "project_new",
+  "version": "1.0.0",
+  "description": "**Visually Learning** is a universal engine designed to visualize data structures and algorithms in an interactive and educational manner. It provides a rich set of tools to explore linear, hierarchical, graph, and hash-based data structures, allowing users to understand their inner workings through dynamic animations and step-by-step execution.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/realprudhvi/visual-learning.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/realprudhvi/visual-learning/issues"
+  },
+  "homepage": "https://github.com/realprudhvi/visual-learning#readme",
+  "dependencies": {
+    "@google/genai": "^1.42.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  }
+}
