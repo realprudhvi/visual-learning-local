@@ -209,6 +209,13 @@ function renderHash() {
         return;
     }
 
+    // Use simple render for hashset-simple mode
+    if (state.currentMode === 'hashset-simple') {
+        console.log('Rendering HashSet Simple with buckets:', hashTable.buckets);
+        renderHashSetSimple();
+        return;
+    }
+
     // Layout Constants
     const startX = 100;
     const startY = 100;
@@ -433,6 +440,95 @@ function renderHashSimple() {
         row.appendChild(keyCell);
         row.appendChild(valueCell);
         container.appendChild(row);
+    });
+
+    stage.appendChild(container);
+}
+
+// Simple HashSet Rendering - Clean List of Tags
+function renderHashSetSimple() {
+    const { buckets } = hashTable;
+    const stage = state.dom.stage;
+    stage.innerHTML = '';
+
+    // Collect all items (unique values)
+    const allItems = [];
+    buckets.forEach(bucket => {
+        bucket.forEach(item => {
+            allItems.push(item);
+        });
+    });
+
+    if (allItems.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-sub);
+            font-size: 1rem;
+            font-style: italic;
+        `;
+        emptyMsg.innerText = 'HashSet is empty. Use Put (Value) to add elements.';
+        stage.appendChild(emptyMsg);
+        return;
+    }
+
+    // Container for tags
+    const container = document.createElement('div');
+    container.style.cssText = `
+        position: absolute;
+        top: 100px;
+        left: 0;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        max-width: 100%;
+        padding: 20px;
+        z-index: 10;
+        pointer-events: none; /* Let clicks pass through if needed, but tags have pointer events */
+    `;
+
+    // Sort items for cleaner display (optional but nice)
+    allItems.sort((a, b) => {
+        if (typeof a.key === 'number' && typeof b.key === 'number') {
+            return a.key - b.key;
+        }
+        return String(a.key).localeCompare(String(b.key));
+    });
+
+    // Render each item as a tag
+    allItems.forEach(item => {
+        const tag = document.createElement('div');
+        tag.id = item.id;
+        tag.innerText = item.key;
+        tag.style.cssText = `
+            background: rgb(12, 71, 97);
+            border: 2px solid rgb(56, 180, 218);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-family: 'Fira Code', monospace;
+            box-shadow: 0 4px 12px rgba(56, 180, 218, 0.3);
+            transition: all 0.2s ease;
+            cursor: default;
+            pointer-events: auto; /* Enable interaction */
+        `;
+
+        tag.addEventListener('mouseenter', () => {
+            tag.style.transform = 'translateY(-2px) scale(1.05)';
+            tag.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.5)';
+        });
+        tag.addEventListener('mouseleave', () => {
+            tag.style.transform = 'none';
+            tag.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
+        });
+
+        container.appendChild(tag);
     });
 
     stage.appendChild(container);

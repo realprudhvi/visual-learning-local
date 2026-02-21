@@ -98,6 +98,9 @@
                 <div class="card" onclick="selectStructure('hashset')">
                     <h3>HashSet</h3>
                 </div>
+                <div class="card" onclick="selectStructure('hashset-simple')">
+                    <h3>HashSet (Simple)</h3>
+                </div>
                 <div class="card" onclick="selectStructure('treemap')">
                     <h3>TreeMap</h3>
                 </div>
@@ -402,31 +405,23 @@
             <!-- Step Controls -->
             <div id="step-controls" class="hidden">
                 <button id="btnPrevStep" class="step-btn" title="Previous Step">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                 </button>
                 <span id="step-indicator">Step 0 / 0</span>
                 <button id="btnNextStep" class="step-btn" title="Next Step">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>
-
-                <div class="separator"
-                    style="width: 1px; height: 30px; background: rgba(255,255,255,0.2); margin: 0 10px;"></div>
-
-                <div class="autoplay-controls" style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btnPlay" class="step-btn" title="Play/Pause"
-                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); width: 40px; height: 40px;">
-                        ▶
-                    </button>
-                    <div class="speed-control"
-                        style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                        <input type="range" id="speedSlider" min="100" max="2000" value="800" step="100"
-                            style="width: 60px; height: 4px; accent-color: #f59e0b;">
-                        <span style="font-size: 0.7rem; color: #94a3b8; font-family: monospace;">Speed</span>
-                    </div>
+                <div class="step-separator"></div>
+                <button id="btnPlay" class="step-btn" title="Play/Pause">▶</button>
+                <div class="speed-control">
+                    <input type="range" id="speedSlider" min="100" max="2000" value="800" step="100">
+                    <span class="speed-label">Speed</span>
                 </div>
             </div>
         </div>

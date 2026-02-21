@@ -36,13 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
             'array': 'Array', 'stack': 'Stack', 'queue': 'Queue',
             'sll': 'Singly Linked List', 'dll': 'Doubly Linked List', 'cll': 'Circular Linked List',
             'bt': 'Binary Tree', 'bst': 'Binary Search Tree', 'graph': 'Graph', 'grid': 'Grid',
-            'hashmap': 'HashMap', 'hashmap-simple': 'HashMap (Simple)', 'hashset': 'HashSet', 'treemap': 'TreeMap', 'linkedhashmap': 'LinkedHashMap',
+            'hashmap': 'HashMap', 'hashmap-simple': 'HashMap (Simple)', 'hashset': 'HashSet', 'hashset-simple': 'HashSet (Simple)', 'treemap': 'TreeMap', 'linkedhashmap': 'LinkedHashMap',
             'trie': 'Trie (Prefix Tree)', 'union_find': 'Union Find (DSU)'
         };
         state.dom.structureTitle.innerText = titles[type] || type.toUpperCase();
 
         state.dom.homeView.classList.add('hidden');
         state.dom.appContainer.classList.remove('hidden');
+
+        // Hide Main Input by default for specific structures (cleaner state)
+        if (['graph', 'grid', 'hashmap', 'hashmap-simple', 'hashset', 'hashset-simple', 'treemap', 'linkedhashmap', 'trie', 'union_find'].includes(type)) {
+            if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.add('hidden');
+        } else {
+            if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.remove('hidden');
+        }
 
         // Toggle Stack Controls
         if (type === 'stack') {
@@ -124,24 +131,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Hash Controls
-        if (['hashmap', 'hashmap-simple', 'hashset', 'treemap', 'linkedhashmap'].includes(type)) {
+        if (['hashmap', 'hashmap-simple', 'hashset', 'hashset-simple', 'treemap', 'linkedhashmap'].includes(type)) {
             state.dom.hashControls.classList.remove('hidden');
 
-            // Initialize the hash structure immediately
-            initHash([], type);
+            try {
+                // Initialize the hash structure immediately
+                initHash([], type);
+            } catch (err) {
+                console.error("Failed to init hash:", err);
+            }
 
             // Customize UI for HashSet vs Maps
             const keyInput = state.dom.hashKey;
             const valInput = state.dom.hashValue;
+            const btnGet = state.dom.btnHashGet;
 
-            if (type === 'hashset') {
+            if (type === 'hashset' || type === 'hashset-simple') {
                 keyInput.placeholder = "Value";
                 valInput.classList.add('hidden');
                 valInput.value = ''; // Clear value
+                if (btnGet) btnGet.textContent = "Has";
             } else {
                 keyInput.placeholder = "Key";
                 valInput.classList.remove('hidden');
                 valInput.placeholder = "Value";
+                if (btnGet) btnGet.textContent = "Get";
             }
 
         } else {
@@ -172,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Toggle Main Input (Enter Values)
         // Hidden for Graph and Hash structures as per user request
-        if (['graph', 'grid', 'hashmap', 'hashmap-simple', 'hashset', 'treemap', 'linkedhashmap', 'trie', 'union_find'].includes(type)) {
+        if (['graph', 'grid', 'hashmap', 'hashmap-simple', 'hashset', 'hashset-simple', 'treemap', 'linkedhashmap', 'trie', 'union_find'].includes(type)) {
             if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.add('hidden');
         } else {
             if (state.dom.mainInputContainer) state.dom.mainInputContainer.classList.remove('hidden');
@@ -389,62 +403,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnPlay = document.getElementById('btnPlay');
     const speedSlider = document.getElementById('speedSlider');
 
-    function toggleAutoPlay() {
-        state.isAutoPlaying = !state.isAutoPlaying;
-
-        if (state.isAutoPlaying) {
-            btnPlay.textContent = '⏸';
-            // Start loop
-            triggerNextStep();
-        } else {
-            btnPlay.textContent = '▶';
-            if (autoPlayTimer) {
-                clearTimeout(autoPlayTimer);
-                autoPlayTimer = null;
-            }
+    function checkIsAtEnd() {
+        if (state.stepController && state.stepController.isActive) {
+            const { steps, currentStep } = state.stepController;
+            return currentStep >= steps.length - 1;
+        } else if (state.treeStepController && state.treeStepController.isActive) {
+            const { steps, currentStep } = state.treeStepController;
+            return currentStep >= steps.length - 1;
+        } else if (state.graphStepController && state.graphStepController.isActive) {
+            const { steps, currentStep } = state.graphStepController;
+            return currentStep >= steps.length - 1;
+        } else if (state.gridStepController && state.gridStepController.isActive) {
+            const { steps, currentStep } = state.gridStepController;
+            return currentStep >= steps.length - 1;
         }
+        return true; // not active = at end
     }
 
-    function triggerNextStep() {
-        if (autoPlayTimer) clearTimeout(autoPlayTimer);
+    function stopAutoPlay() {
+        if (autoPlayTimer) {
+            clearInterval(autoPlayTimer);
+            autoPlayTimer = null;
+        }
+        state.isAutoPlaying = false;
+        if (btnPlay) btnPlay.textContent = '▶';
+    }
 
-        autoPlayTimer = setTimeout(() => {
-            if (!state.isAutoPlaying) return;
+    function startAutoPlay() {
+        stopAutoPlay(); // clear any existing timer first
+        state.isAutoPlaying = true;
+        if (btnPlay) btnPlay.textContent = '⏸';
 
-            // Check if we can proceed (are we at end?)
-            let isAtEnd = false;
-            if (state.stepController && state.stepController.isActive) {
-                const { steps, currentStep } = state.stepController;
-                if (currentStep >= steps.length - 1) isAtEnd = true;
-            } else if (state.treeStepController && state.treeStepController.isActive) {
-                const { steps, currentStep } = state.treeStepController;
-                if (currentStep >= steps.length - 1) isAtEnd = true;
-            } else if (state.graphStepController && state.graphStepController.isActive) {
-                const { steps, currentStep } = state.graphStepController;
-                if (currentStep >= steps.length - 1) isAtEnd = true;
-            } else if (state.gridStepController && state.gridStepController.isActive) {
-                const { steps, currentStep } = state.gridStepController;
-                if (currentStep >= steps.length - 1) isAtEnd = true;
-            } else {
-                // Not active? Stop.
-                isAtEnd = true;
-            }
-
-            if (isAtEnd) {
-                // Stop auto-play
-                toggleAutoPlay();
+        autoPlayTimer = setInterval(() => {
+            if (!state.isAutoPlaying || checkIsAtEnd()) {
+                stopAutoPlay();
                 return;
             }
-
-            // Execute Step
             manualNextStep();
-
-            // Schedule next if still playing
-            if (state.isAutoPlaying) {
-                triggerNextStep();
+            // Check again after step — might have just reached the end
+            if (checkIsAtEnd()) {
+                stopAutoPlay();
             }
-
         }, state.autoPlayDelay);
+    }
+
+    function toggleAutoPlay() {
+        if (state.isAutoPlaying) {
+            stopAutoPlay();
+        } else {
+            startAutoPlay();
+        }
     }
 
     // Auto-step UI Listeners
@@ -454,17 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (speedSlider) {
         speedSlider.addEventListener('input', (e) => {
-            // Slider: 100 (Fast) to 2000 (Slow)
-            // Just use value directly as delay
-            // But usually "Higher Slider" = "Faster Speed". 
-            // In test.html we did: delay = 2100 - val.
-            // Let's do the same for consistency if slider is "Speed".
-            // If slider is "Delay", then direct mapping.
-            // Label says "Speed". So Right = Fast?
-            // HTML Slider: min="100" max="2000" val="800".
-            // Let's assume Right (2000) is Fast (Low delay) -> Delay = 2100 - val.
             const val = parseInt(e.target.value);
             state.autoPlayDelay = 2100 - val;
+            // If currently playing, restart interval with new speed
+            if (state.isAutoPlaying) {
+                startAutoPlay();
+            }
         });
     }
 
@@ -752,6 +755,7 @@ function renderStructure(inputStr) {
         case 'hashmap':
         case 'hashmap-simple':
         case 'hashset':
+        case 'hashset-simple':
         case 'treemap':
         case 'linkedhashmap':
             initHash(vals, state.currentMode);

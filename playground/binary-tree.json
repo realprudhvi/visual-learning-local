@@ -1,0 +1,44 @@
+{
+    "id": "binary-tree-demo",
+    "name": "Binary Tree Traversals",
+    "title": "Binary Tree: BFS & DFS",
+    "difficulty": "Medium",
+    "description": "Visualize Binary Tree traversals using Stack and Queue.",
+    "tags": [
+        "Binary Tree",
+        "BFS",
+        "DFS",
+        "Stack",
+        "Queue"
+    ],
+    "slots": [
+        {
+            "id": "tree",
+            "type": "binary-tree",
+            "label": "Binary Tree"
+        },
+        {
+            "id": "queue",
+            "type": "queue",
+            "label": "BFS Queue"
+        },
+        {
+            "id": "stack",
+            "type": "stack",
+            "label": "DFS Stack"
+        },
+        {
+            "id": "output",
+            "type": "array",
+            "label": "Traversal Output"
+        }
+    ],
+    "inputs": [
+        {
+            "label": "Tree Values (Level Order, null for empty)",
+            "placeholder": "1, 2, 3, null, null, 4, 5",
+            "default": "1, 2, 3, null, null, 4, 5"
+        }
+    ],
+    "code": "class Playground {\n    async run(inputs) {\n        const inputStr = inputs[0] || '1, 2, 3, null, null, 4, 5';\n        const vals = inputStr.split(',').map(v => {\n            v = v.trim();\n            return (v === 'null' || v === '') ? null : parseInt(v);\n        });\n\n        this.log('Initializing Tree...');\n        this.tree.init(vals);\n        await this.await();\n\n        // BFS\n        this.log('Starting BFS Traversal...');\n        this.output.init([]);\n        this.queue.init([]);\n        \n        const root = this.tree.getRoot();\n        if (!root) return;\n\n        this.queue.enqueue(root.val);\n        // We need to track actual nodes for children, so we'll use a local queue of nodes\n        // but visualization queue will show values.\n        const q = [root];\n        \n        this.tree.highlight(root.id, '#ec4899'); // Pink start\n        await this.await();\n\n        while (q.length > 0) {\n            const curr = q.shift();\n            this.queue.dequeue();\n            \n            this.log(`Visiting ${curr.val}`);\n            this.tree.highlight(curr.id, '#10b981'); // Green visited\n            this.output.push(curr.val);\n            await this.await();\n\n            if (curr.left) {\n                this.log(`Found left child ${curr.left.val}`);\n                this.tree.highlight(curr.left.id, '#f59e0b'); // Orange pending\n                this.queue.enqueue(curr.left.val);\n                q.push(curr.left);\n                await this.await();\n            }\n            if (curr.right) {\n                this.log(`Found right child ${curr.right.val}`);\n                this.tree.highlight(curr.right.id, '#f59e0b'); // Orange pending\n                this.queue.enqueue(curr.right.val);\n                q.push(curr.right);\n                await this.await();\n            }\n        }\n        this.log('BFS Complete.');\n        await this.await();\n        \n        // DFS (Preorder)\n        this.log('Starting DFS (Preorder) using Stack...');\n        this.tree.clearHighlights();\n        this.output.init([]);\n        this.stack.init([]);\n        \n        const s = [root];\n        this.stack.push(root.val);\n        this.tree.highlight(root.id, '#ec4899');\n        await this.await();\n\n        while (s.length > 0) {\n            const curr = s.pop();\n            this.stack.pop();\n            \n            this.log(`Visiting ${curr.val}`);\n            this.tree.highlight(curr.id, '#10b981');\n            this.output.push(curr.val);\n            await this.await();\n\n            // Push right first so left is processed first\n            if (curr.right) {\n                 this.log(`Pushing right child ${curr.right.val}`);\n                 this.tree.highlight(curr.right.id, '#f59e0b');\n                 this.stack.push(curr.right.val);\n                 s.push(curr.right);\n                 await this.await();\n            }\n            if (curr.left) {\n                 this.log(`Pushing left child ${curr.left.val}`);\n                 this.tree.highlight(curr.left.id, '#f59e0b');\n                 this.stack.push(curr.left.val);\n                 s.push(curr.left);\n                 await this.await();\n            }\n        }\n\n        this.log('DFS Complete.');\n    }\n}"
+}

@@ -314,6 +314,12 @@
             justify-content: center;
             align-items: center;
             padding: 24px 20px;
+            /* RESIZABLE */
+            resize: both;
+            overflow: auto;
+            border: 1px dashed rgba(100, 116, 139, 0.3);
+            border-radius: 8px;
+            position: relative;
         }
 
         .ptr-container-global {
@@ -1113,6 +1119,15 @@
                 [this.data[i], this.data[j]] = [this.data[j], this.data[i]];
                 this.render();
             },
+            push(v) {
+                this.data.push(v);
+                this.render();
+            },
+            pop() {
+                const v = this.data.pop();
+                this.render();
+                return v;
+            },
             highlight(i, color) {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
                 const boxes = container.querySelectorAll('.array-box');
@@ -1154,6 +1169,10 @@
         const createStackPrimitive = (slotId) => ({
             slotId,
             data: [],
+            init(arr) {
+                this.data = [...arr];
+                this.render();
+            },
             push(v) { this.data.push(v); this.render(); },
             pop() { const v = this.data.pop(); this.render(); return v; },
             peek() { return this.data[this.data.length - 1]; },
@@ -1492,6 +1511,27 @@
                     case 'queue':
                         primitive = createQueuePrimitive(slotId);
                         break;
+                    case 'hashset':
+                    case 'hashset-simple':
+                        primitive = createHashSetPrimitive(slotId);
+                        break;
+                    case 'trie':
+                        primitive = createTriePrimitive(slotId);
+                        break;
+                    case 'sll':
+                        primitive = createSLLPrimitive(slotId);
+                    case 'sll':
+                        primitive = createSLLPrimitive(slotId);
+                        break;
+                    case 'union-find':
+                        primitive = createUnionFindPrimitive(slotId);
+                        break;
+                    case 'binary-tree':
+                        primitive = createBinaryTreePrimitive(slotId);
+                        break;
+                    case 'heap':
+                        primitive = createHeapPrimitive(slotId);
+                        break;
                     default:
                         primitive = createArrayPrimitive(slotId);
                 }
@@ -1516,6 +1556,1331 @@
                 slotsContainer.parentElement.appendChild(ptrPanel);
             }
         }
+
+        const createHashSetPrimitive = (slotId) => ({
+            slotId,
+            data: new Set(),
+            add(val) {
+                this.data.add(val);
+                this.render();
+            },
+            has(val) {
+                return this.data.has(val);
+            },
+            delete(val) {
+                // Alias for remove
+                this.remove(val);
+            },
+            remove(val) {
+                this.data.delete(val);
+                this.render();
+            },
+            clear() {
+                this.data.clear();
+                this.render();
+            },
+            size() {
+                return this.data.size;
+            },
+            init(vals) {
+                this.data = new Set(vals);
+                this.render();
+            },
+            highlight(val, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                container.querySelectorAll('.hashset-tag').forEach(tag => {
+                    if (tag.innerText === String(val)) {
+                        tag.style.background = color;
+                        tag.style.transform = 'scale(1.1)';
+                        tag.style.boxShadow = `0 0 15px ${color}`;
+                    }
+                });
+            },
+            clearHighlights() {
+                this.render();
+            },
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                if (this.data.size === 0) {
+                    container.innerHTML = '<div class="hashset-wrapper"><div class="hashset-container"><div class="hashset-empty">Empty</div></div></div>';
+                    return;
+                }
+
+                const items = [...this.data].sort((a, b) => {
+                    if (typeof a === 'number' && typeof b === 'number') return a - b;
+                    return String(a).localeCompare(String(b));
+                });
+
+                let html = `<div class="hashset-wrapper"><div class="hashset-container" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px;">`;
+
+                items.forEach(val => {
+                    html += `<div class="hashset-tag" style="
+                        background: rgb(12, 71, 97);
+                        border: 2px solid rgb(56, 180, 218);
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 20px;
+                        font-weight: 600;
+                        font-family: 'Fira Code', monospace;
+                        box-shadow: 0 4px 12px rgba(56, 180, 218, 0.3);
+                        transition: all 0.2s ease;
+                        cursor: default;">${val}</div>`;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML = html;
+            },
+            clone() {
+                return { data: new Set(this.data) };
+            },
+            restore(state) {
+                this.data = new Set(state.data);
+                this.render();
+            }
+        });
+
+        // ============ UNION FIND PRIMITIVE ============
+
+        const createUnionFindPrimitive = (slotId) => ({
+            slotId,
+            data: [], // Array of { val, parent, rank, x, y, id }
+
+            init(size) {
+                size = Math.max(1, Math.min(size, 20));
+                this.data = [];
+                for (let i = 0; i < size; i++) {
+                    this.data.push({
+                        val: i,
+                        parent: i,
+                        rank: 0,
+                        x: 0,
+                        y: 0,
+                        id: `uf-${this.slotId}-${i}`
+                    });
+                }
+                this.render();
+            },
+
+            find(i) {
+                if (i < 0 || i >= this.data.length) return -1;
+                // Path Compression
+                const path = [];
+                let curr = i;
+                while (this.data[curr].parent !== curr) {
+                    path.push(curr);
+                    curr = this.data[curr].parent;
+                }
+
+                // Compress & highlight logic can be separate or integrated?
+                // For simplicity, just compress
+                for (const nodeIdx of path) {
+                    this.data[nodeIdx].parent = curr;
+                }
+
+                // Highlight done in render or explicitly called?
+                // The main app does highlight. Let's provide a highlight method.
+                this.highlightNode(curr, '#10b981'); // Root Green
+                path.forEach(idx => this.highlightNode(idx, '#3b82f6')); // Path Blue
+
+                this.render();
+                return curr;
+            },
+
+            union(i, j) {
+                const rootI = this.find(i);
+                const rootJ = this.find(j);
+
+                // We re-find inside union, which is fine, highlights will trigger twice but that's okay for visual step-through or auto-step.
+                // Actually if we want step-by-step, we might want to separate find and union calls in the script.
+
+                if (rootI !== -1 && rootJ !== -1 && rootI !== rootJ) {
+                    const nodeI = this.data[rootI];
+                    const nodeJ = this.data[rootJ];
+
+                    if (nodeI.rank < nodeJ.rank) {
+                        nodeI.parent = rootJ;
+                    } else if (nodeI.rank > nodeJ.rank) {
+                        nodeJ.parent = rootI;
+                    } else {
+                        nodeJ.parent = rootI;
+                        nodeI.rank++;
+                    }
+                    this.render();
+                    return true;
+                }
+                return false;
+            },
+
+            highlightNode(idx, color) {
+                if (idx < 0 || idx >= this.data.length) return;
+                const id = this.data[idx].id;
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+                const el = container.querySelector(`[data-id="${id}"]`);
+                if (el) {
+                    el.style.backgroundColor = color;
+                    el.style.borderColor = color;
+                    el.style.boxShadow = `0 0 15px ${color}`;
+                    el.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                }
+            },
+
+            clearHighlights() {
+                this.render();
+            },
+
+            // Layout
+            calculateForestLayout() {
+                // Group by roots
+                const roots = {};
+                this.data.forEach(node => {
+                    let r = node;
+                    while (r.parent !== r.val) {
+                        r = this.data[r.parent];
+                    }
+                    if (!roots[r.val]) roots[r.val] = [];
+                    roots[r.val].push(node);
+                });
+
+                const rootKeys = Object.keys(roots);
+                // Adjust width per tree based on number of nodes in tree? Or simplistic equal width?
+                // Let's use simplistic width allocation.
+                // Total width ~ 800px (virtual)
+                const widthPerTree = 800 / Math.max(1, rootKeys.length);
+
+                rootKeys.forEach((rootKey, i) => {
+                    const root = this.data[rootKey];
+                    const treeNodes = roots[rootKey];
+                    const centerX = (i * widthPerTree) + (widthPerTree / 2) - 400;
+                    const startY = 40; // Top relative to stage
+
+                    root.x = centerX;
+                    root.y = startY;
+
+                    // Direct Children
+                    const directChildren = treeNodes.filter(n => n.parent === root.val && n.val !== root.val);
+                    this.assignSubtree(root, directChildren, centerX, startY + 80, widthPerTree);
+                });
+            },
+
+            assignSubtree(parent, children, x, y, width) {
+                if (children.length === 0) return;
+                const slice = width / children.length;
+                let startX = x - width / 2 + slice / 2;
+
+                children.forEach((child, i) => {
+                    child.x = startX + i * slice;
+                    child.y = y;
+
+                    const grandChildren = this.data.filter(n => n.parent === child.val && n.val !== child.val);
+                    this.assignSubtree(child, grandChildren, child.x, y + 80, slice);
+                });
+            },
+
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                this.calculateForestLayout();
+
+                // Bounds
+                let minX = Infinity, maxX = -Infinity, maxY = 0;
+                this.data.forEach(n => {
+                    minX = Math.min(minX, n.x);
+                    maxX = Math.max(maxX, n.x);
+                    maxY = Math.max(maxY, n.y);
+                });
+
+                const width = Math.max(600, (maxX - minX) + 200);
+                const height = Math.max(400, maxY + 100);
+
+                const shiftX = (width / 2); // 0 is center, so shift by half width relative to 0?
+                // Our layout assumes 0 is center.
+                // So Stage center is (width/2, 0).
+
+                let html = `<div class="uf-wrapper" style="
+                    position: relative; 
+                    width: 100%; 
+                    height: 100%; 
+                    min-height: 400px;
+                    overflow: auto; 
+                ">
+                     <div class="uf-stage" style="
+                        position: relative; 
+                        width: ${width}px; 
+                        height: ${height}px;
+                        margin: 0 auto;
+                    ">`;
+
+                html += `<svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">
+                    <defs>
+                        <marker id="arrow-${this.slotId}" markerWidth="10" markerHeight="7" refX="24" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+                        </marker>
+                    </defs>`;
+
+                // Edges
+                this.data.forEach(node => {
+                    if (node.parent !== node.val) {
+                        const parent = this.data[node.parent];
+                        // x,y are centered around 0. Need to shift to stage coords.
+                        const x1 = node.x + shiftX;
+                        const y1 = node.y;
+                        const x2 = parent.x + shiftX;
+                        const y2 = parent.y;
+
+                        html += `<path d="M ${x1} ${y1} L ${x2} ${y2}" 
+                            stroke="#64748b" stroke-width="2" marker-end="url(#arrow-${this.slotId})" />`;
+                    }
+                });
+                html += `</svg>`;
+
+                // Nodes
+                this.data.forEach(node => {
+                    const isRoot = node.parent === node.val;
+                    const bg = isRoot ? '#8b5cf6' : '#1e293b';
+                    const border = isRoot ? '#7c3aed' : '#64748b';
+                    const glow = isRoot ? '0 0 10px rgba(139, 92, 246, 0.4)' : '0 4px 6px rgba(0,0,0,0.3)';
+                    const x = node.x + shiftX;
+                    const y = node.y;
+
+                    html += `<div class="uf-node" data-id="${node.id}" title="Rank: ${node.rank}" style="
+                        position: absolute;
+                        left: ${x}px;
+                        top: ${y}px;
+                        width: 36px;
+                        height: 36px;
+                        background: ${bg};
+                        border: 2px solid ${border};
+                        border-radius: 50%;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Fira Code', monospace;
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                        transform: translate(-50%, -50%);
+                        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        z-index: 2;
+                        box-shadow: ${glow};
+                        cursor: help;
+                    ">${node.val}</div>`;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML = html;
+            },
+
+            clone() {
+                return { data: JSON.parse(JSON.stringify(this.data)) };
+            },
+
+            restore(state) {
+                this.data = JSON.parse(JSON.stringify(state.data));
+                this.render();
+            }
+        });
+
+
+
+        // ============ BINARY TREE PRIMITIVE ============
+
+        const createBinaryTreePrimitive = (slotId) => ({
+            slotId,
+            root: null,
+            nodesMap: new Map(), // id -> node
+
+            init(vals) {
+                // LeetCode style init: [1, 2, 3, null, null, 4, 5]
+                if (!vals || vals.length === 0) {
+                    this.root = null;
+                    this.render();
+                    return;
+                }
+
+                // Create nodes
+                const nodes = vals.map(v =>
+                    (v === null || v === undefined) ? null : {
+                        id: `bt-${this.slotId}-${crypto.randomUUID()}`,
+                        val: v,
+                        left: null,
+                        right: null,
+                        x: 0,
+                        y: 0
+                    }
+                );
+
+                if (nodes[0]) {
+                    this.root = nodes[0];
+                    // Link up
+                    for (let i = 0; i < nodes.length; i++) {
+                        if (!nodes[i]) continue;
+                        const leftIdx = 2 * i + 1;
+                        const rightIdx = 2 * i + 2;
+                        if (leftIdx < nodes.length && nodes[leftIdx]) {
+                            nodes[i].left = nodes[leftIdx];
+                        }
+                        if (rightIdx < nodes.length && nodes[rightIdx]) {
+                            nodes[i].right = nodes[rightIdx];
+                        }
+                    }
+                } else {
+                    this.root = null;
+                }
+
+                // Refresh map
+                this.nodesMap.clear();
+                nodes.forEach(n => {
+                    if (n) this.nodesMap.set(n.id, n);
+                });
+
+                this.render();
+            },
+
+            // For external access/traversal
+            getRoot() {
+                return this.root;
+            },
+
+            highlight(nodeOrId, color) {
+                const id = (typeof nodeOrId === 'string') ? nodeOrId : nodeOrId?.id;
+                if (!id) return;
+
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                const el = container.querySelector(`[data-id="${id}"]`);
+                if (el) {
+                    el.style.backgroundColor = color;
+                    if (color) {
+                        el.style.borderColor = color;
+                        el.style.boxShadow = `0 0 15px ${color}`;
+                        // Text color white for better contrast on colored bg
+                        el.style.color = '#fff';
+                    } else {
+                        // Reset
+                        const isRoot = (this.root && this.root.id === id);
+                        el.style.backgroundColor = '#1e293b';
+                        el.style.borderColor = '#64748b';
+                        el.style.boxShadow = isRoot ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.3)';
+                        el.style.color = 'white';
+                    }
+                }
+            },
+
+            clearHighlights() {
+                this.render(); // Simply easier to re-render to clear all
+            },
+
+            // Logic ported from js/ds/tree.js renderTree
+            calculateLayout() {
+                if (!this.root) return { width: 400, height: 300 };
+
+                let leafCount = 0;
+                const nodeWidth = 40;
+                const gap = 30;
+                const levelHeight = 80;
+                // We'll store formatted pos on the node itself for this render cycle
+
+                // First pass: calculate x relative to leaf order
+                const posMap = new Map(); // node -> {x, depth}
+
+                const calcPos = (node, depth) => {
+                    if (!node) return;
+
+                    let leftX = null;
+                    let rightX = null;
+
+                    if (node.left) {
+                        calcPos(node.left, depth + 1);
+                        leftX = node.left.x;
+                    } else if (node.right) {
+                        // Missing left, use ghost
+                        leftX = leafCount * (nodeWidth + gap);
+                        leafCount++;
+                    }
+
+                    if (node.right) {
+                        calcPos(node.right, depth + 1);
+                        rightX = node.right.x;
+                    } else if (node.left) {
+                        // Missing right, use ghost
+                        rightX = leafCount * (nodeWidth + gap);
+                        leafCount++;
+                    }
+
+                    if (!node.left && !node.right) {
+                        node.x = leafCount * (nodeWidth + gap);
+                        leafCount++;
+                    } else {
+                        node.x = (leftX + rightX) / 2;
+                    }
+                    node.y = depth * levelHeight;
+                };
+
+                calcPos(this.root, 0);
+
+                // Dimensions
+                const treeWidth = leafCount * (nodeWidth + gap);
+
+                // Center the tree in the view? 
+                // We will center it relative to the 0 x-coordinate of the container (width/2)
+                // Or just let it start at 0?
+                // Let's maximize width usage.
+
+                // Recenter nodes so that root is roughly in middle? 
+                // Actually the algo creates x starting from 0.
+                // So the tree spans [0, treeWidth].
+                // We'll just return these bounds.
+
+                let maxY = 0;
+                this.nodesMap.forEach(n => maxY = Math.max(maxY, n.y));
+
+                return { width: Math.max(treeWidth, 400), height: Math.max(maxY + 100, 300), treeWidth };
+            },
+
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                if (!this.root) {
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-style:italic;">Empty Tree</div>';
+                    return;
+                }
+
+                const { width, height } = this.calculateLayout();
+
+                let minX = Infinity, maxX = -Infinity;
+                this.nodesMap.forEach(n => {
+                    minX = Math.min(minX, n.x);
+                    maxX = Math.max(maxX, n.x);
+                });
+
+                const realTreeWidth = maxX - minX;
+                const stageWidth = Math.max(realTreeWidth + 100, 400);
+                const stageHeight = Math.max(height + 50, 300);
+
+                const offsetX = (stageWidth / 2) - ((minX + maxX) / 2);
+                const offsetY = 40;
+
+                let html = `<div class="bt-wrapper" style="
+                    position: relative; 
+                    width: 100%; 
+                    height: 100%; 
+                    min-height: 400px;
+                    overflow: auto;
+                    display: flex;
+                    justify-content: center;
+                ">
+                     <div class="bt-stage" style="
+                        position: relative; 
+                        width: ${stageWidth}px;
+                        height: ${stageHeight}px;
+                        flex-shrink: 0;
+                    ">`;
+
+                html += `<svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">`;
+
+
+
+                const drawEdge = (node) => {
+                    if (!node) return '';
+                    let s = '';
+                    if (node.left) {
+                        s += `<line x1="${node.x + offsetX}" y1="${node.y + offsetY}" x2="${node.left.x + offsetX}" y2="${node.left.y + offsetY}" stroke="#64748b" stroke-width="2" />`;
+                        s += drawEdge(node.left);
+                    }
+                    if (node.right) {
+                        s += `<line x1="${node.x + offsetX}" y1="${node.y + offsetY}" x2="${node.right.x + offsetX}" y2="${node.right.y + offsetY}" stroke="#64748b" stroke-width="2" />`;
+                        s += drawEdge(node.right);
+                    }
+                    return s;
+                };
+                html += drawEdge(this.root);
+                html += `</svg>`;
+
+                // Nodes
+                const drawNode = (node) => {
+                    if (!node) return '';
+                    let s = '';
+
+                    const bg = '#1e293b';
+                    const border = '#64748b';
+                    const glow = '0 4px 6px rgba(0,0,0,0.3)';
+
+                    s += `<div class="bt-node" data-id="${node.id}" style="
+                        position: absolute;
+                        left: ${node.x + offsetX}px;
+                        top: ${node.y + offsetY}px;
+                        width: 40px;
+                        height: 40px;
+                        background: ${bg};
+                        border: 2px solid ${border};
+                        border-radius: 50%;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Fira Code', monospace;
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                        transform: translate(-50%, -50%);
+                        transition: all 0.3s ease;
+                        z-index: 2;
+                        box-shadow: ${glow};
+                    ">${node.val}</div>`;
+
+                    s += drawNode(node.left);
+                    s += drawNode(node.right);
+                    return s;
+                };
+                html += drawNode(this.root);
+
+                html += `</div></div>`;
+                container.innerHTML = html;
+            },
+
+            clone() {
+                // Deep clone logic if needed, simplify for now
+                return {};
+            },
+
+            restore(state) {
+                // Restore logic
+                this.render();
+            }
+        });
+
+        // ============ HEAP PRIMITIVE ============
+
+        const createHeapPrimitive = (slotId) => ({
+            slotId,
+            data: [], // Array backing
+            type: 'min', // 'min' or 'max'
+
+            init(vals, type = 'min') {
+                this.type = type;
+                this.data = [...vals];
+                // Heapify
+                for (let i = Math.floor(this.data.length / 2) - 1; i >= 0; i--) {
+                    this.heapifyDown(i);
+                }
+                this.render();
+            },
+
+            // Operations
+            push(val) {
+                this.data.push(val);
+                this.render();
+                // We can't easily animate here since it's one step, 
+                // but scripts can use low-level swap/compare if they want animation.
+                // For a primitive, we usually just update state.
+                this.heapifyUp(this.data.length - 1);
+                this.render();
+            },
+
+            pop() {
+                if (this.data.length === 0) return null;
+                const top = this.data[0];
+                const last = this.data.pop();
+                if (this.data.length > 0) {
+                    this.data[0] = last;
+                    this.heapifyDown(0);
+                }
+                this.render();
+                return top;
+            },
+
+            peek() {
+                return this.data[0];
+            },
+
+            // Helpers for internal use
+            heapifyUp(idx) {
+                if (idx === 0) return;
+                const parentIdx = Math.floor((idx - 1) / 2);
+                if (this.compare(this.data[idx], this.data[parentIdx])) {
+                    [this.data[idx], this.data[parentIdx]] = [this.data[parentIdx], this.data[idx]];
+                    this.heapifyUp(parentIdx);
+                }
+            },
+
+            heapifyDown(idx) {
+                const len = this.data.length;
+                let swapIdx = idx;
+                const left = 2 * idx + 1;
+                const right = 2 * idx + 2;
+
+                if (left < len && this.compare(this.data[left], this.data[swapIdx])) {
+                    swapIdx = left;
+                }
+                if (right < len && this.compare(this.data[right], this.data[swapIdx])) {
+                    swapIdx = right;
+                }
+
+                if (swapIdx !== idx) {
+                    [this.data[idx], this.data[swapIdx]] = [this.data[swapIdx], this.data[idx]];
+                    this.heapifyDown(swapIdx);
+                }
+            },
+
+            compare(a, b) {
+                if (this.type === 'min') return a < b;
+                return a > b;
+            },
+
+            // Visualization Helpers
+            highlight(idx, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+                // Idx maps to node id by position? 
+                // In render, we'll assign IDs based on index to make this easy: `heap-${slotId}-${index}`
+                const el = container.querySelector(`[data-index="${idx}"]`);
+                if (el) {
+                    el.style.backgroundColor = color;
+                    if (color) {
+                        el.style.borderColor = color;
+                        el.style.boxShadow = `0 0 15px ${color}`;
+                        el.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                    } else {
+                        el.style.backgroundColor = '#1e293b';
+                        el.style.borderColor = '#64748b';
+                        el.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+                        el.style.transform = 'translate(-50%, -50%)';
+                    }
+                }
+            },
+
+            clearHighlights() {
+                this.render();
+            },
+
+            // Layout (Reuse Tree Layout logic)
+            // But we build the tree structure on the fly from array
+            calculateLayout() {
+                if (this.data.length === 0) return { width: 400, height: 300, treeWidth: 0 };
+
+                // Build generic tree node structure for layout
+                const nodes = this.data.map((v, i) => ({
+                    id: `heap-${this.slotId}-${i}`,
+                    index: i,
+                    val: v,
+                    left: null,
+                    right: null,
+                    x: 0, y: 0
+                }));
+
+                for (let i = 0; i < nodes.length; i++) {
+                    let l = 2 * i + 1;
+                    let r = 2 * i + 2;
+                    if (l < nodes.length) nodes[i].left = nodes[l];
+                    if (r < nodes.length) nodes[i].right = nodes[r];
+                }
+
+                let leafCount = 0;
+                const nodeWidth = 40;
+                const gap = 30;
+                const levelHeight = 80;
+
+                const calcPos = (node, depth) => {
+                    if (!node) return;
+
+                    let leftX = null;
+                    let rightX = null;
+
+                    if (node.left) {
+                        calcPos(node.left, depth + 1);
+                        leftX = node.left.x;
+                    } else if (node.right) {
+                        leftX = leafCount * (nodeWidth + gap);
+                        leafCount++;
+                    }
+
+                    if (node.right) {
+                        calcPos(node.right, depth + 1);
+                        rightX = node.right.x;
+                    } else if (node.left) {
+                        rightX = leafCount * (nodeWidth + gap);
+                        leafCount++;
+                    }
+
+                    if (!node.left && !node.right) {
+                        node.x = leafCount * (nodeWidth + gap);
+                        leafCount++;
+                    } else {
+                        node.x = (leftX + rightX) / 2;
+                    }
+                    node.y = depth * levelHeight;
+                };
+
+                calcPos(nodes[0], 0);
+
+                let minX = Infinity, maxX = -Infinity, maxY = 0;
+                nodes.forEach(n => {
+                    minX = Math.min(minX, n.x);
+                    maxX = Math.max(maxX, n.x);
+                    maxY = Math.max(maxY, n.y);
+                });
+
+                const realTreeWidth = maxX - minX;
+                const stageWidth = Math.max(realTreeWidth + 100, 400);
+                const stageHeight = Math.max(maxY + 100, 300);
+
+                return {
+                    width: stageWidth,
+                    height: stageHeight,
+                    nodes,
+                    minX, maxX
+                };
+            },
+
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                if (this.data.length === 0) {
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-style:italic;">Empty Heap</div>';
+                    return;
+                }
+
+                const { width, height, nodes, minX, maxX } = this.calculateLayout();
+
+                const stageWidth = width;
+                const stageHeight = height;
+                const offsetX = (stageWidth / 2) - ((minX + maxX) / 2);
+                const offsetY = 40;
+
+                let html = `<div class="heap-wrapper" style="
+                    position: relative; 
+                    width: 100%; 
+                    height: 100%; 
+                    min-height: 400px;
+                    overflow: auto;
+                    display: flex;
+                    justify-content: center;
+                ">
+                     <div class="heap-stage" style="
+                        position: relative; 
+                        width: ${stageWidth}px;
+                        height: ${stageHeight}px;
+                        flex-shrink: 0;
+                    ">`;
+
+                html += `<svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">`;
+
+                const drawEdge = (node) => {
+                    if (!node) return '';
+                    let s = '';
+                    if (node.left) {
+                        s += `<line x1="${node.x + offsetX}" y1="${node.y + offsetY}" x2="${node.left.x + offsetX}" y2="${node.left.y + offsetY}" stroke="#64748b" stroke-width="2" />`;
+                        s += drawEdge(node.left);
+                    }
+                    if (node.right) {
+                        s += `<line x1="${node.x + offsetX}" y1="${node.y + offsetY}" x2="${node.right.x + offsetX}" y2="${node.right.y + offsetY}" stroke="#64748b" stroke-width="2" />`;
+                        s += drawEdge(node.right);
+                    }
+                    return s;
+                };
+                html += drawEdge(nodes[0]);
+                html += `</svg>`;
+
+                const drawNode = (node) => {
+                    if (!node) return '';
+                    const bg = '#1e293b';
+                    const border = '#64748b';
+                    return `<div class="heap-node" data-index="${node.index}" style="
+                        position: absolute;
+                        left: ${node.x + offsetX}px;
+                        top: ${node.y + offsetY}px;
+                        width: 40px;
+                        height: 40px;
+                        background: ${bg};
+                        border: 2px solid ${border};
+                        border-radius: 50%;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Fira Code', monospace;
+                        font-weight: bold;
+                        font-size: 0.9rem;
+                        transform: translate(-50%, -50%);
+                        transition: all 0.3s ease;
+                        z-index: 2;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                    ">${node.val}</div>` + drawNode(node.left) + drawNode(node.right);
+                };
+                html += drawNode(nodes[0]);
+
+                html += `</div></div>`;
+                container.innerHTML = html;
+            },
+
+            clone() { return { data: [...this.data], type: this.type }; },
+
+            restore(state) {
+                this.data = [...state.data];
+                this.type = state.type;
+                this.render();
+            }
+        });
+
+        // ============ TRIE PRIMITIVE ============
+
+        class TrieNode {
+            constructor(char = '') {
+                this.children = {};
+                this.isWord = false;
+                this.char = char;
+                this.id = Math.random().toString(36).substr(2, 9);
+                this.x = 0;
+                this.y = 0;
+            }
+        }
+
+        const createTriePrimitive = (slotId) => ({
+            slotId,
+            root: new TrieNode(),
+
+            insert(word) {
+                if (!word) return;
+                word = String(word).toLowerCase();
+                let node = this.root;
+                for (const char of word) {
+                    if (!node.children[char]) {
+                        node.children[char] = new TrieNode(char);
+                    }
+                    node = node.children[char];
+                }
+                node.isWord = true;
+                this.render();
+            },
+
+            search(word) {
+                if (!word) return false;
+                word = String(word).toLowerCase();
+                let node = this.root;
+                for (const char of word) {
+                    if (!node.children[char]) {
+                        // this.highlightNode(this.root.id, '#ef4444'); 
+                        return false;
+                    }
+                    node = node.children[char];
+                }
+                if (node.isWord) {
+                    this.highlightNode(node.id, '#10b981');
+                    return true;
+                } else {
+                    this.highlightNode(node.id, '#f59e0b');
+                    return false;
+                }
+            },
+
+            startsWith(prefix) {
+                if (!prefix) return false;
+                prefix = String(prefix).toLowerCase();
+                let node = this.root;
+                for (const char of prefix) {
+                    if (!node.children[char]) return false;
+                    node = node.children[char];
+                }
+                this.highlightNode(node.id, '#3b82f6');
+                return true;
+            },
+
+            getAllNodes(node = this.root) {
+                let nodes = [node];
+                for (const key in node.children) {
+                    nodes = nodes.concat(this.getAllNodes(node.children[key]));
+                }
+                return nodes;
+            },
+
+            highlightNode(id, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+                const el = container.querySelector(`[data-id="${id}"]`);
+                if (el) {
+                    const originalBg = el.style.backgroundColor;
+                    const originalBorder = el.style.borderColor;
+
+                    el.style.backgroundColor = color;
+                    el.style.borderColor = color;
+                    el.style.boxShadow = `0 0 15px ${color}`;
+                    el.style.transform = 'translate(-50%, -50%) scale(1.2)';
+
+                    // Auto-revert after delay for better UX? Or keep it?
+                    // The prompt didn't specify, but usually user wants to see result.
+                }
+            },
+
+            clearHighlights() {
+                this.render();
+            },
+
+            size() {
+                let count = 0;
+                const traverse = (node) => {
+                    if (node.isWord) count++;
+                    for (const key in node.children) traverse(node.children[key]);
+                };
+                traverse(this.root);
+                return count;
+            },
+
+            clear() {
+                this.root = new TrieNode();
+                this.render();
+            },
+
+            // === LAYOUT LOGIC (Smart) ===
+            calculateSubtreeWidth(node) {
+                const keys = Object.keys(node.children);
+                if (keys.length === 0) return 60; // Leaf width
+                let width = 0;
+                for (const key of keys) {
+                    width += this.calculateSubtreeWidth(node.children[key]);
+                }
+                return width;
+            },
+
+            assignPositionsSmart(node, x, y) {
+                node.x = x;
+                node.y = y;
+
+                const keys = Object.keys(node.children).sort();
+                const totalWidth = this.calculateSubtreeWidth(node);
+
+                let currentX = x - totalWidth / 2;
+
+                for (const key of keys) {
+                    const child = node.children[key];
+                    const childWidth = this.calculateSubtreeWidth(child);
+                    // Place child center at currentX + half its width
+                    this.assignPositionsSmart(child, currentX + childWidth / 2, y + 80);
+                    currentX += childWidth;
+                }
+            },
+
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                // 1. Calculate Positions
+                // We'll center the root at 0, 40 (relative to the inner stage)
+                // The stage will be centered in the scrollable wrapper.
+                this.assignPositionsSmart(this.root, 0, 40);
+
+                // Determine bounds to size the stage
+                let minX = Infinity, maxX = -Infinity, maxY = 0;
+                const activeNodes = this.getAllNodes();
+                activeNodes.forEach(n => {
+                    minX = Math.min(minX, n.x);
+                    maxX = Math.max(maxX, n.x);
+                    maxY = Math.max(maxY, n.y);
+                });
+
+                // Add padding
+                const width = Math.max(600, (maxX - minX) + 200);
+                const height = Math.max(400, maxY + 100);
+
+                // We want the root (0, 40) to be horizontally centered in the container.
+                // stageWidth
+                const stageWidth = width;
+                const stageHeight = height;
+
+                // Shift all nodes so minX is at padding
+                const shiftX = (stageWidth / 2); // Root is at 0, so we shift by half width to center it in stage
+
+                // Update node positions for rendering
+                activeNodes.forEach(n => {
+                    n.renderX = n.x + shiftX;
+                    n.renderY = n.y;
+                });
+
+                let html = `<div class="trie-wrapper" style="
+                    position: relative; 
+                    width: 100%; 
+                    height: 100%; 
+                    min-height: 400px;
+                    overflow: auto; 
+                ">
+                    <div class="trie-stage" style="
+                        position: relative; 
+                        width: ${stageWidth}px; 
+                        height: ${stageHeight}px;
+                        margin: 0 auto;
+                    ">`;
+
+                // SVG Layer
+                html += `<svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">
+                    <defs>
+                        <marker id="arrow-${this.slotId}" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+                        </marker>
+                    </defs>`;
+
+                // Draw Edges
+                const queue = [this.root];
+                while (queue.length) {
+                    const node = queue.shift();
+                    for (const key in node.children) {
+                        const child = node.children[key];
+                        // Draw from parent to child
+                        html += `<path d="M ${node.renderX} ${node.renderY} L ${child.renderX} ${child.renderY}" 
+                            stroke="#64748b" stroke-width="2" marker-end="url(#arrow-${this.slotId})" />`;
+
+                        // Label (Char) on edge? 
+                        // The nodes themselves have the char, so edge label is redundant or can be small.
+                        // Let's stick to node chars as per home page style.
+                        queue.push(child);
+                    }
+                }
+                html += `</svg>`;
+
+                // Draw Nodes
+                activeNodes.forEach(n => {
+                    const isRoot = !n.char;
+                    const label = isRoot ? '*' : n.char;
+                    const isWord = n.isWord;
+
+                    const bg = isWord ? '#10b981' : '#1e293b';
+                    const border = isWord ? '#059669' : '#64748b';
+                    const glow = isWord ? '0 0 10px rgba(16, 185, 129, 0.4)' : '0 4px 6px rgba(0,0,0,0.3)';
+                    const scale = isWord ? '1.1' : '1';
+
+                    html += `<div class="trie-node" data-id="${n.id}" style="
+                        position: absolute;
+                        left: ${n.renderX}px;
+                        top: ${n.renderY}px;
+                        width: 40px;
+                        height: 40px;
+                        background: ${bg};
+                        border: 2px solid ${border};
+                        border-radius: 50%;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Fira Code', monospace;
+                        font-weight: bold;
+                        font-size: 1rem;
+                        transform: translate(-50%, -50%) scale(${scale});
+                        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        z-index: 2;
+                        box-shadow: ${glow};
+                    ">${label}</div>`;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML = html;
+            },
+
+            clone() {
+                const serialize = (node) => {
+                    const copy = new TrieNode(node.char);
+                    copy.isWord = node.isWord;
+                    copy.id = node.id;
+                    for (const key in node.children) {
+                        copy.children[key] = serialize(node.children[key]);
+                    }
+                    return copy;
+                };
+                return { root: serialize(this.root) };
+            },
+
+            restore(state) {
+                this.root = state.root;
+                this.render();
+            }
+        });
+
+        // ============ SLL PRIMITIVE ============
+
+        const createSLLPrimitive = (slotId) => ({
+            slotId,
+            data: [], // Array of { id, val, addr }
+
+            _makeNode(val) {
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    val: val,
+                    addr: '0x' + Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, '0')
+                };
+            },
+
+            init(vals) {
+                this.data = vals.map(v => this._makeNode(v));
+                this.render();
+            },
+
+            addHead(val) {
+                this.data.unshift(this._makeNode(val));
+                this.render();
+            },
+
+            addTail(val) {
+                this.data.push(this._makeNode(val));
+                this.render();
+            },
+
+            removeHead() {
+                if (this.data.length === 0) return;
+                this.data.shift();
+                this.render();
+            },
+
+            removeTail() {
+                if (this.data.length === 0) return;
+                this.data.pop();
+                this.render();
+            },
+
+            get(index) {
+                if (index < 0 || index >= this.data.length) return undefined;
+                return this.data[index].val;
+            },
+
+            size() {
+                return this.data.length;
+            },
+
+            isEmpty() {
+                return this.data.length === 0;
+            },
+
+            search(val) {
+                return this.data.findIndex(n => n.val == val);
+            },
+
+            highlight(index, color) {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+                // Highlight the specific node box
+                const wrapper = container.querySelectorAll('.sll-node-wrapper')[index];
+                if (wrapper) {
+                    const box = wrapper.querySelector('.sll-node-box');
+                    if (box) {
+                        box.style.borderColor = color;
+                        box.style.backgroundColor = color === '' ? '' : (color + '33'); // Transparent fill
+                        box.style.boxShadow = color === '' ? '' : `0 0 10px ${color}`;
+                    }
+                }
+            },
+
+            clearHighlights() {
+                this.render();
+            },
+
+            clear() {
+                this.data = [];
+                this.render();
+            },
+
+            render() {
+                const container = document.getElementById(`slot-${this.slotId}-content`);
+                if (!container) return;
+
+                if (this.data.length === 0) {
+                    container.innerHTML = '<div class="sll-wrapper"><div class="sll-empty">Empty List</div></div>';
+                    return;
+                }
+
+                // Horizontal layout
+                // We'll calculate positions manually or just use flexbox and simple arrows?
+                // Flexbox is easier for layout, but arrows need absolute coordinates.
+                // Let's use a similar approach to the main app: absolute positioning for arrows, but maybe we can use flex for nodes and calculate arrow positions?
+                // Or just fixed gap absolute.
+
+                const nodeWidth = 100;
+                const gap = 60;
+                const startX = 20;
+                const startY = 80;
+
+                let html = `<div class="sll-wrapper" style="position: relative; width: 100%; height: 200px; overflow-x: auto; overflow-y: hidden; background: rgba(0,0,0,0.2); border-radius: 8px;">`;
+
+                // SVG Layer for arrows
+                // We'll use a wide SVG that scrolls with content if possible, or just huge width.
+                const totalWidth = startX + this.data.length * (nodeWidth + gap) + 100;
+                html += `<svg style="position: absolute; left: 0; top: 0; width: ${totalWidth}px; height: 100%; pointer-events: none;">
+                    <defs>
+                        <marker id="arrow-${this.slotId}" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+                        </marker>
+                    </defs>
+                `;
+
+                // Draw arrows
+                for (let i = 0; i < this.data.length - 1; i++) {
+                    const x1 = startX + i * (nodeWidth + gap) + nodeWidth; // Right edge of current
+                    const y1 = startY + 30; // Middle of box approx height 60
+                    const x2 = startX + (i + 1) * (nodeWidth + gap); // Left edge of next
+                    const y2 = y1;
+
+                    html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-${this.slotId})" />`;
+                }
+                html += `</svg>`;
+
+                // Nodes
+                this.data.forEach((node, i) => {
+                    const left = startX + i * (nodeWidth + gap);
+                    const top = startY;
+                    const nextAddr = (i < this.data.length - 1) ? this.data[i + 1].addr : 'NULL';
+
+                    html += `<div class="sll-node-wrapper" style="
+                        position: absolute;
+                        left: ${left}px;
+                        top: ${top}px;
+                        width: ${nodeWidth}px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    ">
+                        <div class="sll-addr" style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 4px;">${node.addr}</div>
+                        <div class="sll-node-box" style="
+                            width: 100%;
+                            background: #1e293b;
+                            border: 2px solid #334155;
+                            border-radius: 6px;
+                            overflow: hidden;
+                            transition: all 0.2s;
+                        ">
+                             <div class="sll-val" style="
+                                padding: 8px;
+                                text-align: center;
+                                font-weight: bold;
+                                color: white;
+                                border-bottom: 1px solid #334155;
+                             ">${node.val}</div>
+                             <div class="sll-next" style="
+                                padding: 4px;
+                                font-size: 0.7rem;
+                                color: #64748b;
+                                background: #0f172a;
+                                text-align: center;
+                                font-family: monospace;
+                             ">NEXT: ${nextAddr}</div>
+                        </div>
+                    </div>`;
+                });
+
+                html += `</div>`;
+                container.innerHTML = html;
+            },
+
+            clone() {
+                return { data: JSON.parse(JSON.stringify(this.data)) };
+            },
+
+            restore(state) {
+                this.data = JSON.parse(JSON.stringify(state.data));
+                this.render();
+            }
+        });
+
 
         function log(msg) {
             document.getElementById('log-container').textContent = msg;
@@ -1592,6 +2957,16 @@
                 });
             });
 
+            container.querySelectorAll('.hashset-tag').forEach(tag => {
+                highlights.push({
+                    type: 'hashset-tag',
+                    text: tag.innerText,
+                    bg: tag.style.background || '',
+                    transform: tag.style.transform || '',
+                    shadow: tag.style.boxShadow || ''
+                });
+            });
+
             return highlights;
         }
 
@@ -1636,6 +3011,14 @@
                         items[h.index].style.backgroundColor = h.bg;
                         items[h.index].style.borderColor = h.border;
                     }
+                } else if (h.type === 'hashset-tag') {
+                    container.querySelectorAll('.hashset-tag').forEach(tag => {
+                        if (tag.innerText === h.text) {
+                            tag.style.background = h.bg;
+                            tag.style.transform = h.transform;
+                            tag.style.boxShadow = h.shadow;
+                        }
+                    });
                 }
             });
         }

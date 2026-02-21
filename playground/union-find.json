@@ -1,0 +1,27 @@
+{
+    "id": "union-find-demo",
+    "name": "Union Find Demo",
+    "title": "Union Find (Disjoint Set)",
+    "difficulty": "Medium",
+    "description": "Visualize Union-Find operations including Union by Rank and Path Compression.",
+    "tags": [
+        "Union Find",
+        "Graph",
+        "Disjoint Set"
+    ],
+    "slots": [
+        {
+            "id": "uf",
+            "type": "union-find",
+            "label": "Union Find Forest"
+        }
+    ],
+    "inputs": [
+        {
+            "label": "Number of Elements",
+            "placeholder": "10",
+            "default": "10"
+        }
+    ],
+    "code": "class Playground {\n    async run(inputs) {\n        const N = parseInt(inputs[0]) || 10;\n        \n        this.log(`Initializing Union Find with ${N} elements...`);\n        this.uf.init(N);\n        await this.await();\n\n        // Helper to log state\n        const logUnion = async (a, b) => {\n            this.log(`Union(${a}, ${b})...`);\n            const merged = this.uf.union(a, b);\n            if (merged) this.log(`  -> Merged sets containing ${a} and ${b}`);\n            else this.log(`  -> ${a} and ${b} already in same set`);\n            await this.await();\n        };\n\n        // Demo Sequence\n        this.log('Step 1: Create some pairs');\n        await logUnion(0, 1);\n        await logUnion(2, 3);\n        await logUnion(4, 5);\n        await logUnion(6, 7);\n        \n        this.log('Step 2: Connect the pairs');\n        await logUnion(1, 3); // Connects (0-1) and (2-3) -> (0-1-2-3)\n        await logUnion(5, 7); // Connects (4-5) and (6-7) -> (4-5-6-7)\n\n        this.log('Step 3: Connect big components');\n        await logUnion(0, 6); // Connects the two big sets\n\n        this.log('Step 4: Path Compression Demo');\n        this.log('Finding 7 (should point to root 0 or near it after compression)');\n        const root = this.uf.find(7);\n        this.log(`Root of 7 is ${root}`);\n        await this.await();\n        \n        this.log('Done.');\n    }\n}"
+}

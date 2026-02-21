@@ -54,13 +54,15 @@ body {
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
 }
 
+/* --- VISUAL AREA --- */
 #visual-area {
     flex-grow: 1;
     position: relative;
     overflow: hidden;
-    /* Hide scrollbars, we pan manually */
-    background-image: radial-gradient(var(--border) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background: #0f172a;
+    /* Dot pattern background */
+    background-image: radial-gradient(#334155 1px, transparent 1px);
+    background-size: 20px 20px;
     cursor: grab;
 }
 
@@ -68,37 +70,43 @@ body {
     cursor: grabbing;
 }
 
-/* SVG Layer */
-#svg-layer {
+#pan-zoom-container {
+    width: 100%;
+    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
+    transform-origin: 0 0;
+}
+
+#stage {
     width: 100%;
     height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    /* Allow events to pass to SVG or handle them in children */
+    z-index: 2;
+}
+
+/* Children of stage need pointer-events: auto */
+#stage>* {
+    pointer-events: auto;
+}
+
+#svg-layer {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
     pointer-events: none;
     overflow: visible;
     z-index: 1;
 }
 
-/* Stage */
-#stage {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-}
-
-/* Pan Zoom Container */
-#pan-zoom-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transform-origin: 0 0;
-}
+/* --- GENERIC NODE STYLES --- */
 
 /* --- GENERIC NODE STYLES --- */
 .node-wrapper {
@@ -737,58 +745,155 @@ input[type=number]::-webkit-outer-spin-button {
 /* --- STEP CONTROLS --- */
 #step-controls {
     position: absolute;
-    bottom: 30px;
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 20px;
-    background: rgba(30, 41, 59, 0.95);
-    backdrop-filter: blur(12px);
-    padding: 12px 24px;
-    border-radius: 50px;
-    border: 1px solid var(--border);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 8px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
     z-index: 100;
 }
 
+/* --- Prev / Next Buttons --- */
 .step-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border: none;
-    color: white;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    box-shadow: none;
+    padding: 0;
+}
+
+.step-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 .step-btn:hover:not(:disabled) {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    background: rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .step-btn:active:not(:disabled) {
-    transform: scale(0.95);
+    transform: scale(0.92);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .step-btn:disabled {
-    background: rgba(100, 116, 139, 0.3);
+    background: rgba(255, 255, 255, 0.02);
     cursor: not-allowed;
     box-shadow: none;
-    opacity: 0.5;
+    opacity: 0.3;
+    color: #475569;
 }
 
+/* --- Step Indicator --- */
 #step-indicator {
-    font-family: "Fira Code", monospace;
-    font-size: 0.9rem;
-    color: var(--text-sub);
-    min-width: 100px;
+    font-family: "Inter", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #cbd5e1;
+    min-width: 140px;
+    max-width: 260px;
     text-align: center;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.2px;
+}
+
+/* --- Separator --- */
+#step-controls .step-separator {
+    width: 1px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
+    border-radius: 1px;
+}
+
+/* --- Play / Pause Button --- */
+#btnPlay {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    border: none !important;
+    color: #1e1e1e !important;
+    font-size: 0.8rem !important;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+    letter-spacing: 0;
+}
+
+#btnPlay:hover {
+    box-shadow: 0 4px 18px rgba(245, 158, 11, 0.5) !important;
+    transform: scale(1.08) !important;
+}
+
+#btnPlay:active {
+    transform: scale(0.92) !important;
+}
+
+/* --- Speed Slider --- */
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.speed-control input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 56px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.speed-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #f59e0b;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.speed-control input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+}
+
+.speed-control .speed-label {
+    font-size: 0.6rem;
+    color: #64748b;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
 }
 
 /* Hide scrollbar for visual-queue */

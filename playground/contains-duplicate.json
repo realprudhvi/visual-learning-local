@@ -1,0 +1,32 @@
+{
+    "id": "contains-duplicate",
+    "name": "Contains Duplicate",
+    "title": "Contains Duplicate",
+    "difficulty": "Easy",
+    "description": "Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.",
+    "tags": [
+        "Array",
+        "Hash Table",
+        "Set"
+    ],
+    "slots": [
+        {
+            "id": "nums",
+            "type": "array",
+            "label": "Input Array"
+        },
+        {
+            "id": "seen",
+            "type": "hashset-simple",
+            "label": "Seen Set"
+        }
+    ],
+    "inputs": [
+        {
+            "label": "Numbers (comma separated)",
+            "placeholder": "1, 2, 3, 1",
+            "default": "1, 2, 3, 1"
+        }
+    ],
+    "code": "class Playground {\n    async run(inputs) {\n        const numsInput = inputs[0];\n        const nums = numsInput.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));\n        \n        this.nums.init(nums);\n        this.seen.init([]);\n        this.log('Starting Contains Duplicate check...');\n        await this.await();\n\n        for (let i = 0; i < nums.length; i++) {\n            const num = nums[i];\n            \n            this.nums.highlight(i, '#f59e0b');\n            this.ptr.set('i', i);\n            this.log(`Checking number: ${num}`);\n            await this.await();\n\n            this.log(`Is ` + num + ` in seen set?`);\n            if (this.seen.has(num)) {\n                this.log(`Yes! ` + num + ` is already seen.`);\n                this.seen.highlight(num, '#10b981');\n                this.log('Duplicate found! Returning true.');\n                await this.await();\n                return true;\n            } else {\n                this.log(`No. Adding ` + num + ` to seen set.`);\n                this.seen.add(num);\n                await this.await();\n            }\n             \n             this.nums.highlight(i, '');\n        }\n\n        this.log('Finished. No duplicates found.');\n        return false;\n    }\n}"
+}

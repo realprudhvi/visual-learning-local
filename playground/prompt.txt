@@ -69,7 +69,16 @@ Given a coding problem (by name, description, or LeetCode-style prompt), generat
    - this.<id>.clear()                — Clear all entries
    - this.<id>.init(entries)          — Initialize with array of [key, val] pairs (e.g. [['A', 1], ['B', 2]])
 
-5. GRID (type: "grid")
+5. HASHSET SIMPLE (type: "hashset-simple")
+   - this.<id>.add(val)               — Add value to set
+   - this.<id>.remove(val)            — Remove value
+   - this.<id>.has(val)               — Check existence
+   - this.<id>.size()                 — Get count
+   - this.<id>.clear()                — Clear set
+   - this.<id>.init(vals)             — Initialize with array of values
+   - this.<id>.highlight(val, color)  — Highlight a specific value tag
+
+6. GRID (type: "grid")
    - this.<id>.init(matrix)           — Initialize with 2D array (rows of values)
    - this.<id>.getCell(r, c)          — Get cell value
    - this.<id>.setCell(r, c, val)     — Set cell value (re-renders)
