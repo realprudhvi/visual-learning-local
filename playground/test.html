@@ -40,8 +40,8 @@
             color: var(--text-main);
             min-height: 100vh;
             padding: 20px 24px;
-            padding-bottom: 110px;
-            /* Space for fixed controls */
+            padding-bottom: 220px;
+            /* Extra space for fixed log + controls */
             background-image: radial-gradient(var(--border) 1px, transparent 1px);
             background-size: 24px 24px;
         }
@@ -193,7 +193,7 @@
             flex-direction: column;
             gap: 16px;
             flex: 1;
-            min-height: 0;
+            min-width: 0;
             overflow: hidden;
             /* Ensure it bounds children properly */
         }
@@ -772,6 +772,25 @@
             line-height: 1.5;
         }
 
+        .log-panel-fixed {
+            position: fixed;
+            bottom: 84px;
+            /* Directly above the 16px controls container */
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 48px);
+            max-width: 1550px;
+            z-index: 999;
+            margin: 0;
+            box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.8) !important;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .log-panel-fixed h3 {
+            margin-bottom: 8px !important;
+        }
+
         /* === YOUR EXACT STEP CONTROLS === */
         .controls {
             display: flex;
@@ -899,15 +918,15 @@
         }
 
         .layout-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-wrap: wrap;
             gap: 20px;
-            flex: 1;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
             .layout-row {
-                grid-template-columns: 1fr;
+                flex-direction: column;
             }
         }
 
@@ -1045,17 +1064,19 @@
         }
 
         .layout-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-wrap: wrap;
             gap: 20px;
-            flex: 1;
+            width: 100%;
         }
 
-        /* Allow slot panels to be resizable */
+        /* Allow slot panels to flexibly grow and be resizable */
         #slots-container .panel {
             resize: both;
             overflow: auto;
             min-height: 300px;
+            /* Flex-grow but keep a strict basis so it doesn't collapse smaller than 400px but can be resized larger */
+            flex: 1 1 auto;
             min-width: 400px;
             position: relative;
         }
@@ -1132,19 +1153,20 @@
             <div class="right-content">
                 <!-- Data structure slots -->
                 <div class="layout-row" id="slots-container"
-                    style="flex: 1; overflow-y: auto; padding-right: 8px; align-content: flex-start;">
+                    style="flex: 1; overflow-y: auto; padding-right: 8px; align-content: flex-start; align-items: stretch;">
                     <!-- Dynamic slots will be created here based on JSON config -->
                 </div>
 
                 <!-- Pointer indicators -->
-                <div id="ptr-container" class="ptr-container-global"></div>
+                <div id="ptr-container" class="ptr-container-global" style="margin-bottom: 60px;"></div>
 
-                <div class="panel log-panel" style="flex-shrink: 0; min-height: fit-content; margin-top: auto;">
-                    <h3>Log</h3>
-                    <div id="log-container">Click "Start" to begin...</div>
-                </div>
             </div> <!-- end right-content -->
         </div> <!-- end main-layout -->
+
+        <div class="panel log-panel-fixed" id="fixed-log-panel">
+            <h3>Log</h3>
+            <div id="log-container">Click "Start" to begin...</div>
+        </div>
 
         <div class="controls">
             <button class="step-btn" id="btn-prev" disabled>←</button>
@@ -1618,51 +1640,64 @@
             rootId: null,
             activeId: null,
             cacheLinks: [],
+            nodeCounter: 0,
+            stateToNodeMap: new Map(),
             init() {
                 this.nodes.clear();
                 this.rootId = null;
                 this.activeId = null;
                 this.cacheLinks = [];
+                this.nodeCounter = 0;
+                this.stateToNodeMap.clear();
                 this.render();
             },
-            enterNode(nodeId, label, color = null) {
-                if (this.nodes.has(nodeId)) {
-                    this.activeId = nodeId;
-                } else {
-                    const newNode = { id: nodeId, label, color, parentId: this.activeId, childrenIds: [], x: 0, y: 0 };
-                    if (this.activeId && this.nodes.has(this.activeId)) {
-                        const parent = this.nodes.get(this.activeId);
-                        newNode.parentId = parent.id;
-                        if (!parent.childrenIds.includes(nodeId)) parent.childrenIds.push(nodeId);
-                    } else {
-                        this.rootId = nodeId;
-                    }
-                    this.nodes.set(nodeId, newNode);
-                    this.activeId = nodeId;
+            enterNode(semanticId, label, color = null) {
+                const uniqueId = semanticId + '_' + (this.nodeCounter++);
+                const newNode = { id: uniqueId, semanticId, label, color, parentId: this.activeId, childrenIds: [], x: 0, y: 0 };
+
+                if (!this.stateToNodeMap.has(semanticId)) {
+                    this.stateToNodeMap.set(semanticId, uniqueId);
                 }
+
+                if (this.activeId && this.nodes.has(this.activeId)) {
+                    const parent = this.nodes.get(this.activeId);
+                    newNode.parentId = parent.id;
+                    if (!parent.childrenIds.includes(uniqueId)) parent.childrenIds.push(uniqueId);
+                } else {
+                    this.rootId = uniqueId;
+                }
+
+                this.nodes.set(uniqueId, newNode);
+                this.activeId = uniqueId;
                 this.render();
             },
             exitNode(statusColor = null) {
                 if (this.activeId && this.nodes.has(this.activeId)) {
-                    if (statusColor) this.nodes.get(this.activeId).color = statusColor;
-                    this.activeId = this.nodes.get(this.activeId).parentId;
+                    const activeNode = this.nodes.get(this.activeId);
+                    if (statusColor) activeNode.color = statusColor;
+                    this.activeId = activeNode.parentId;
                     this.render();
                 }
             },
-            cacheHit(nodeId) {
-                if (this.activeId && this.nodes.has(nodeId)) {
-                    this.cacheLinks.push({ fromId: this.activeId, toId: nodeId });
-                    const active = this.nodes.get(this.activeId);
-                    if (active && (!active.color || active.color === '#1e293b' || active.color === '')) {
-                        active.color = '#f59e0b';
+            cacheHit(semanticId) {
+                if (this.activeId && this.stateToNodeMap.has(semanticId)) {
+                    const targetUniqueId = this.stateToNodeMap.get(semanticId);
+                    this.cacheLinks.push({ fromId: this.activeId, toId: targetUniqueId });
+                    const targetNode = this.nodes.get(targetUniqueId);
+                    if (targetNode && (!targetNode.color || targetNode.color === '#1e293b' || targetNode.color === '')) {
+                        targetNode.color = '#f59e0b'; // color the cached node orange
                     }
                     this.render();
                 }
             },
-            highlight(nodeId, color) {
-                if (this.nodes.has(nodeId)) {
-                    this.nodes.get(nodeId).color = color;
-                    this.render();
+            highlight(semanticId, color) {
+                if (this.stateToNodeMap.has(semanticId)) {
+                    const uniqueId = this.stateToNodeMap.get(semanticId);
+                    const node = this.nodes.get(uniqueId);
+                    if (node) {
+                        node.color = color;
+                        this.render();
+                    }
                 }
             },
             render() {
@@ -1715,14 +1750,13 @@
                 const stageWidth = Math.max(treeWidth + 180, 600); // Increased padding to handle wide nodes on edges
                 const stageHeight = Math.max(maxYOut + 100, 300);
 
-                // Adjust offset to ensure minXOut starts at least 90px from left edge
-                // So minXOut + offsetX = 90
-                const offsetX = 90 - minXOut;
+                // Adjust offset to prevent negative coordinate clipping
+                const offsetX = Math.max(90 - minXOut, 0);
                 const offsetY = 50;
 
-                let html = `<div class="rt-wrapper" style="position: relative; width: 100%; height: 100%; min-height: 400px; overflow: auto; display: flex; justify-content: flex-start; padding-right: 20px;">
-                             <div class="rt-stage" style="position: relative; width: ${stageWidth}px; height: ${stageHeight}px; flex-shrink: 0; margin: 0 auto;">`;
-                html += `<svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none;">`;
+                let html = `<div class="rt-wrapper" style="position: relative; width: 100%; height: 100%; min-height: 400px; overflow: auto; display: flex; justify-content: center; align-items: flex-start;">
+                             <div class="rt-stage" style="position: relative; width: ${stageWidth}px; min-width: 100%; height: ${stageHeight}px; flex-shrink: 0; padding-bottom: 50px;">`;
+                html += `<svg style="position: absolute; left: 0; top: 0; width: ${stageWidth}px; min-width: 100%; height: 100%; overflow: visible; pointer-events: none;">`;
 
                 const drawEdge = (id) => {
                     const node = this.nodes.get(id);
@@ -1768,15 +1802,19 @@
                     nodesArray: nodesClone,
                     rootId: this.rootId,
                     activeId: this.activeId,
-                    cacheLinks: JSON.parse(JSON.stringify(this.cacheLinks))
+                    cacheLinks: JSON.parse(JSON.stringify(this.cacheLinks)),
+                    nodeCounter: this.nodeCounter,
+                    stateToNodeMap: Array.from(this.stateToNodeMap.entries())
                 };
             },
             restore(state) {
                 this.nodes.clear();
-                state.nodesArray.forEach(v => this.nodes.set(v.id, v));
+                if (state.nodesArray) state.nodesArray.forEach(v => this.nodes.set(v.id, v));
                 this.rootId = state.rootId;
                 this.activeId = state.activeId;
-                this.cacheLinks = state.cacheLinks;
+                this.cacheLinks = state.cacheLinks || [];
+                this.nodeCounter = state.nodeCounter || 0;
+                this.stateToNodeMap = new Map(state.stateToNodeMap || []);
                 this.render();
             }
         });
@@ -1810,15 +1848,22 @@
                 const slotType = slot.type || 'array';
                 const slotLabel = slot.label || slotType.charAt(0).toUpperCase() + slotType.slice(1);
 
-                // Create panel HTML
-                const panel = document.createElement('div');
-                panel.className = 'panel';
-                panel.id = `slot-${slotId}-panel`;
-                panel.innerHTML = `
+                // Create the slot wrapper UI
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'panel';
+                slotDiv.id = `slot-panel-${slotId}`;
+
+                // Make specific slot types take up full width by default (e.g. recursion trees which get wide)
+                // We use flex: 1 1 100% instead of flex-basis directly to ensure the resize handle still works
+                if (slotType === 'recursion-tree' || slotType === 'array' || slotType === 'grid') {
+                    slotDiv.style.flex = "1 1 100%";
+                }
+
+                slotDiv.innerHTML = `
                     <h3>${slotLabel}</h3>
                     <div id="slot-${slotId}-content" class="slot-content"></div>
                 `;
-                slotsContainer.appendChild(panel);
+                slotsContainer.appendChild(slotDiv);
 
                 // Create primitive instance based on type
                 let primitive;
