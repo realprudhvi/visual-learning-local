@@ -379,8 +379,8 @@
         .array-box {
             width: 76px;
             height: 76px;
-            background-color: rgb(6, 74, 52);
-            border: 2px solid rgb(52, 201, 134);
+            background-color: #0f5132;
+            border: 2px solid #28d17c;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -400,7 +400,7 @@
         .array-box:hover {
             transform: scale(1.05);
             box-shadow: none;
-            border-color: rgb(52, 201, 134);
+            border-color: #28d17c;
         }
 
         .array-idx {
@@ -455,8 +455,8 @@
 
         .stack-item {
             height: 56px;
-            background: linear-gradient(145deg, rgba(12, 74, 110, 0.95), rgba(12, 74, 110, 0.75));
-            border: 2px solid var(--stack-border);
+            background-color: #154c79;
+            border: 2px solid #3fbfff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -465,30 +465,19 @@
             animation: stackDropIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             transition: all 0.25s ease;
             border-radius: 12px;
-            box-shadow:
-                0 3px 10px rgba(56, 189, 248, 0.2),
-                0 0 0 1px rgba(56, 189, 248, 0.1) inset,
-                0 1px 0 rgba(255, 255, 255, 0.1) inset;
+            box-shadow: none;
             position: relative;
             overflow: hidden;
         }
 
         .stack-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
-            border-radius: 8px 8px 0 0;
+            display: none;
         }
 
         .stack-item:hover {
             transform: scale(1.03);
-            box-shadow:
-                0 6px 20px rgba(56, 189, 248, 0.35),
-                0 0 0 1px rgba(56, 189, 248, 0.2) inset;
+            border-color: #3fbfff;
+            box-shadow: none;
         }
 
         @keyframes stackDropIn {
@@ -657,8 +646,8 @@
         .queue-vis-item {
             width: 64px;
             height: 64px;
-            background: linear-gradient(145deg, rgba(131, 24, 67, 0.9), rgba(131, 24, 67, 0.7));
-            border: 2px solid var(--queue-border);
+            background-color: #7a163d;
+            border: 2px solid #ff5fa2;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -667,30 +656,19 @@
             border-radius: 12px;
             animation: queueSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             transition: all 0.25s ease;
-            box-shadow:
-                0 3px 10px rgba(244, 114, 182, 0.2),
-                0 0 0 1px rgba(244, 114, 182, 0.1) inset,
-                0 1px 0 rgba(255, 255, 255, 0.1) inset;
+            box-shadow: none;
             position: relative;
             overflow: hidden;
         }
 
         .queue-vis-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
-            border-radius: 8px 8px 0 0;
+            display: none;
         }
 
         .queue-vis-item:hover {
             transform: scale(1.06);
-            box-shadow:
-                0 6px 20px rgba(244, 114, 182, 0.35),
-                0 0 0 1px rgba(244, 114, 182, 0.2) inset;
+            border-color: #ff5fa2;
+            box-shadow: none;
         }
 
         @keyframes queueSlideIn {
@@ -1246,8 +1224,8 @@
                             boxes[i].style.transform = 'scale(1.05)';
                         } else {
                             // Default defined user colors
-                            boxes[i].style.background = 'rgb(6, 74, 52)';
-                            boxes[i].style.borderColor = 'rgb(52, 201, 134)';
+                            boxes[i].style.background = '#0f5132';
+                            boxes[i].style.borderColor = '#28d17c';
                             boxes[i].style.boxShadow = 'none';
                             boxes[i].style.transform = 'scale(1)';
                         }
@@ -1267,8 +1245,8 @@
                 const container = document.getElementById(`slot-${this.slotId}-content`);
                 if (this.displayMode === 'bar') {
                     container.querySelectorAll('.array-box-bar').forEach(b => {
-                        b.style.background = 'rgb(6, 74, 52)';
-                        b.style.borderColor = 'rgb(52, 201, 134)';
+                        b.style.background = '#0f5132';
+                        b.style.borderColor = '#28d17c';
                         b.style.boxShadow = 'none';
                         b.style.transform = 'scale(1)';
                     });
@@ -1297,7 +1275,7 @@
                             // Ensure a minimum height so number doesn't cut off inside, padding takes up space
                             const h = Math.max(36, (valNum / maxVal) * 150);
                             return `<div class="array-cell">
-                                <div class="array-box-bar" style="width: 44px; height: ${h}px; background-color: rgb(6, 74, 52); border: 2px solid rgb(52, 201, 134); border-radius: 6px 6px 0 0; border-bottom: none; display: flex; align-items: flex-start; justify-content: center; padding-top: 8px; font-weight: bold; font-family: 'Fira Code', monospace; color: white; transition: all 0.3s; box-shadow: none; font-size: 0.95rem; overflow: hidden;">${v}</div>
+                                <div class="array-box-bar" style="width: 44px; height: ${h}px; background-color: #0f5132; border: 2px solid #28d17c; border-radius: 6px 6px 0 0; border-bottom: none; display: flex; align-items: flex-start; justify-content: center; padding-top: 8px; font-weight: bold; font-family: 'Fira Code', monospace; color: white; transition: all 0.3s; box-shadow: none; font-size: 0.95rem; overflow: hidden;">${v}</div>
                                 <div class="array-idx">${i}</div>
                             </div>`;
                         }).join('') + `</div>`;
@@ -2174,7 +2152,7 @@
                 if (el) {
                     el.style.backgroundColor = color;
                     el.style.borderColor = color;
-                    el.style.boxShadow = `0 0 15px ${color}`;
+                    el.style.boxShadow = `0 0 8px ${color}`;
                     el.style.transform = 'translate(-50%, -50%) scale(1.2)';
                 }
             },
@@ -2296,9 +2274,9 @@
                 // Nodes
                 this.data.forEach(node => {
                     const isRoot = node.parent === node.val;
-                    const bg = isRoot ? '#8b5cf6' : '#1e293b';
-                    const border = isRoot ? '#7c3aed' : '#64748b';
-                    const glow = isRoot ? '0 0 10px rgba(139, 92, 246, 0.4)' : '0 4px 6px rgba(0,0,0,0.3)';
+                    const bg = '#3d1a78';
+                    const border = isRoot ? '#a970ff' : '#64748b';
+                    const glow = isRoot ? '0 0 10px #a970ff' : '0 4px 6px rgba(0,0,0,0.3)';
                     const x = node.x + shiftX;
                     const y = node.y;
 
@@ -2947,13 +2925,13 @@
                 if (!container) return;
                 const el = container.querySelector(`[data-node-id="${uid}"]`);
                 if (el) {
-                    el.style.backgroundColor = color;
                     if (color) {
+                        el.style.background = color;
                         el.style.borderColor = color;
-                        el.style.boxShadow = `0 0 15px ${color}`;
+                        el.style.boxShadow = `0 0 8px ${color}`;
                     } else {
-                        el.style.backgroundColor = '#1e293b';
-                        el.style.borderColor = '#64748b';
+                        el.style.background = 'linear-gradient(145deg, #1b204f, #14183c)';
+                        el.style.borderColor = '#6c8cff';
                         el.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
                     }
                 }
@@ -3087,8 +3065,8 @@
                         top:${n.y}px;
                         width:36px;
                         height:36px;
-                        background:#1e293b;
-                        border:2px solid #64748b;
+                        background:linear-gradient(145deg, #1b204f, #14183c);
+                        border:2px solid #6c8cff;
                         border-radius:50%;
                         color:white;
                         display:flex;
@@ -3198,10 +3176,17 @@
                 if (!container) return;
                 const el = container.querySelector(`[data-id="${actualId}"]`);
                 if (el) {
-                    el.style.backgroundColor = color || '';
-                    el.style.borderColor = color || '';
-                    el.style.boxShadow = color ? `0 0 15px ${color}` : '';
-                    el.style.transform = color ? 'translate(-50%, -50%) scale(1.2)' : 'translate(-50%, -50%)';
+                    if (color) {
+                        el.style.background = color;
+                        el.style.borderColor = color;
+                        el.style.boxShadow = `0 0 8px ${color}`;
+                        el.style.transform = 'translate(-50%, -50%) scale(1.2)';
+                    } else {
+                        el.style.background = 'linear-gradient(145deg, #1b204f, #14183c)';
+                        el.style.borderColor = '#6c8cff';
+                        el.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+                        el.style.transform = 'translate(-50%, -50%) scale(1)';
+                    }
                 }
             },
 
@@ -3359,9 +3344,9 @@
                     const label = isRoot ? '*' : n.char;
                     const isWord = n.isWord;
 
-                    const bg = isWord ? '#10b981' : '#1e293b';
-                    const border = isWord ? '#059669' : '#64748b';
-                    const glow = isWord ? '0 0 10px rgba(16, 185, 129, 0.4)' : '0 4px 6px rgba(0,0,0,0.3)';
+                    const bg = isWord ? 'linear-gradient(145deg, #3d2b00, #2e2100)' : 'linear-gradient(145deg, #1b204f, #14183c)';
+                    const border = isWord ? '#ffb703' : '#6c8cff';
+                    const glow = isWord ? '0 0 10px rgba(255, 183, 3, 0.4)' : '0 4px 6px rgba(0,0,0,0.3)';
                     const scale = isWord ? '1.1' : '1';
 
                     html += `<div class="trie-node" data-id="${n.id}" style="

@@ -1,32 +1,50 @@
 {
-  "id": "container-with-most-water",
-  "name": "Container With Most Water",
-  "difficulty": "Medium",
-  "description": "<p>You are given an integer array <code>height</code> of length <code>n</code>. There are <code>n</code> vertical lines drawn such that the two endpoints of the <code>ith</code> line are <code>(i, 0)</code> and <code>(i, height[i])</code>.</p><p>Find two lines that together with the x-axis form a container, such that the container contains the most water.</p><ul><li>The width of the container is the distance between the two indices.</li><li>The height is the minimum of the two heights.</li><li>Area = width × min(height[i], height[j]).</li></ul><p>Return the <em>maximum amount of water</em> a container can store.</p>",
+  "id": "ui-color-showcase",
+  "name": "UI Components Color Palette Showcase",
+  "difficulty": "Easy",
+  "description": "<p>This is a custom playground scenario to visually verify the color themes applied to all supported Data Structure components.</p>",
   "tags": [
-    "Array",
-    "Two Pointers",
-    "Greedy"
+    "UI Test",
+    "Playground"
   ],
   "slots": [
     {
-      "id": "heights",
+      "id": "arr",
       "type": "array",
-      "display": "bar",
-      "label": "Heights Array"
+      "label": "Standard Array (#0f5132 / #28d17c)"
     },
     {
-      "id": "vars",
-      "type": "hashmap",
-      "label": "Variables & State"
-    }
-  ],
-  "inputs": [
+      "id": "arr_bar",
+      "type": "array",
+      "display": "bar",
+      "label": "Bar Chart Array (#0f5132 / #28d17c)"
+    },
     {
-      "label": "Heights (comma separated)",
-      "default": "1,8,6,2,5,4,8,3,7",
-      "placeholder": "1,8,6,2,5,4,8,3,7"
+      "id": "stk",
+      "type": "stack",
+      "label": "Stack (#154c79 / #3fbfff)"
+    },
+    {
+      "id": "que",
+      "type": "queue",
+      "label": "Queue (#7a163d / #ff5fa2)"
+    },
+    {
+      "id": "uf",
+      "type": "union-find",
+      "label": "Union Find (#3d1a78 / #a970ff)"
+    },
+    {
+      "id": "gr",
+      "type": "graph",
+      "label": "Graph (#1b204f / #6c8cff & Graph Trace Highlights)"
+    },
+    {
+      "id": "tr",
+      "type": "trie",
+      "label": "Trie (#1b204f / #6c8cff & Matches: #3d2b00 / #ffb703)"
     }
   ],
-  "code": "class Playground {\n    async run(inputs) {\n        // Parse input\n        const heightsInput = inputs[0].split(',').map(v => parseInt(v.trim()));\n        \n        // Initialize visualization slots\n        await this.heights.init(heightsInput);\n        await this.vars.init([\n            [\"left\", 0],\n            [\"right\", heightsInput.length - 1],\n            [\"maxArea\", 0],\n            [\"currentArea\", 0]\n        ]);\n\n        let left = 0;\n        let right = heightsInput.length - 1;\n        let maxArea = 0;\n\n        this.log(\"Starting two-pointer approach from both ends.\");\n        await this.await();\n\n        while (left < right) {\n            // Highlight the current boundaries\n            this.heights.highlight(left, \"#3b82f6\"); // Blue\n            this.heights.highlight(right, \"#3b82f6\");\n\n            const hLeft = heightsInput[left];\n            const hRight = heightsInput[right];\n            const width = right - left;\n            const minHeight = Math.min(hLeft, hRight);\n            const currentArea = width * minHeight;\n\n            maxArea = Math.max(maxArea, currentArea);\n\n            // Update variable tracker\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            this.vars.put(\"currentArea\", currentArea);\n            this.vars.put(\"maxArea\", maxArea);\n\n            this.log(`Width: ${width}, Min Height: ${minHeight} (min of ${hLeft}, ${hRight}). Calculated Area: ${currentArea}.`);\n            await this.await();\n\n            // Decide which pointer to move\n            if (hLeft < hRight) {\n                this.log(`Left height (${hLeft}) is smaller than Right height (${hRight}). Moving left pointer inward.`);\n                this.heights.highlight(left, null);\n                left++;\n            } else {\n                this.log(`Right height (${hRight}) is smaller than or equal to Left height (${hLeft}). Moving right pointer inward.`);\n                this.heights.highlight(right, null);\n                right--;\n            }\n            \n            // Update pointers in variables before next step\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            await this.await();\n        }\n\n        this.log(`Algorithm finished. Maximum water found: ${maxArea}`);\n        return maxArea;\n    }\n}"
+  "inputs": [],
+  "code": "class Playground {\n    async run(inputs) {\n        // 1. Array\n        this.arr.init([5, 8, 3, 1]);\n        this.arr.highlight(1, '#28d17c');\n\n        // 2. Bar Array\n        this.arr_bar.init([2, 5, 8, 4, 7]);\n        this.arr_bar.highlight(2, '#28d17c');\n\n        // 3. Stack\n        this.stk.init([]);\n        this.stk.push(10);\n        this.stk.push(20);\n\n        // 4. Queue\n        this.que.init([]);\n        this.que.enqueue(100);\n        this.que.enqueue(200);\n\n        // 5. Union Find\n        this.uf.init(5);\n        this.uf.union(0, 1);\n        this.uf.union(1, 2);\n        this.uf.highlightNode(0, '#a970ff');\n\n        // 6. Graph\n        this.gr.init([\n            {id: 'A', val: 'A'}, {id: 'B', val: 'B'}, {id: 'C', val: 'C'}\n        ], [\n            {u: 'A', v: 'B', directed: false},\n            {u: 'B', v: 'C', directed: false}\n        ]);\n        this.gr.highlightNode('A', '#00e0ff'); // Current\n        this.gr.highlightNode('B', '#00f5a0'); // Visited\n        this.gr.highlightNode('C', '#ffb703'); // Neighbor\n\n        // 7. Trie\n        this.tr.init();\n        this.tr.insert('cat');\n        this.tr.insert('car');\n        this.tr.search('cat');\n\n        this.log('All Data Structures initialized with their respective themes and highlights!');\n        await this.await();\n        return true;\n    }\n}"
 }

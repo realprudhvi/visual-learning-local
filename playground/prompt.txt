@@ -85,6 +85,7 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
    - `addNode(id, val)`, `addEdge(u, v, directed, weight?)`.
    - `getNeighbors(u)`: returns `[{node, weight}]`.
    - `highlightNode(id, color)`, `highlightEdge(u, v, color)`.
+   - **COLOR RULE**: For Graph traversals, ALWAYS use `#00e0ff` for current node, `#00f5a0` for visited nodes, and `#ffb703` for neighbour nodes.
 
 10. **Binary Tree**:
     - `init(vals)`: LeetCode style array.
@@ -106,6 +107,7 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
     - `init()`: Clear the Trie.
     - `insert(word)`, `search(word)`.
     - `highlight(nodeOrIdOrWord, color)`.
+    - **COLOR RULE**: When manually highlighting Trie paths, use `#6c8cff` for general paths and `#ffb703` for active/word matches.
 
 14. **Call Stack**:
     - `init()`.
