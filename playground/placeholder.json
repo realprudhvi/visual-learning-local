@@ -1,37 +1,32 @@
 {
-  "id": "binary-search",
-  "name": "Binary Search",
-  "difficulty": "Easy",
-  "description": "<p>Binary Search is an efficient algorithm for finding an item from a <strong>sorted list</strong> of items. It works by repeatedly dividing in half the portion of the list that could contain the item, until you've narrowed down the possible locations to just one.</p><ul><li><strong>Time Complexity:</strong> O(log n)</li><li><strong>Space Complexity:</strong> O(1)</li><li><strong>Pre-condition:</strong> The input array must be sorted.</li></ul>",
+  "id": "container-with-most-water",
+  "name": "Container With Most Water",
+  "difficulty": "Medium",
+  "description": "<p>You are given an integer array <code>height</code> of length <code>n</code>. There are <code>n</code> vertical lines drawn such that the two endpoints of the <code>ith</code> line are <code>(i, 0)</code> and <code>(i, height[i])</code>.</p><p>Find two lines that together with the x-axis form a container, such that the container contains the most water.</p><ul><li>The width of the container is the distance between the two indices.</li><li>The height is the minimum of the two heights.</li><li>Area = width × min(height[i], height[j]).</li></ul><p>Return the <em>maximum amount of water</em> a container can store.</p>",
   "tags": [
     "Array",
-    "Searching",
-    "Binary Search",
-    "Divide and Conquer"
+    "Two Pointers",
+    "Greedy"
   ],
   "slots": [
     {
-      "id": "array",
+      "id": "heights",
       "type": "array",
-      "label": "Sorted Array"
+      "display": "bar",
+      "label": "Heights Array"
     },
     {
       "id": "vars",
       "type": "hashmap",
-      "label": "Pointers & State"
+      "label": "Variables & State"
     }
   ],
   "inputs": [
     {
-      "label": "Sorted Array",
-      "default": "[2, 5, 8, 12, 16, 23, 38, 56, 72, 91]",
-      "placeholder": "Enter a sorted array"
-    },
-    {
-      "label": "Target",
-      "default": "23",
-      "placeholder": "Value to find"
+      "label": "Heights (comma separated)",
+      "default": "1,8,6,2,5,4,8,3,7",
+      "placeholder": "1,8,6,2,5,4,8,3,7"
     }
   ],
-  "code": "class Playground {\n    async run(inputs) {\n        // 1. Parse inputs\n        const nums = JSON.parse(inputs[0]);\n        const target = parseInt(inputs[1]);\n\n        // 2. Initialize Data Structures\n        await this.array.init(nums);\n        await this.vars.init([\n            [\"low\", 0],\n            [\"high\", nums.length - 1],\n            [\"mid\", \"-\"],\n            [\"status\", \"Initializing\"]\n        ]);\n\n        this.log(`Starting Binary Search for target: ${target}`);\n        await this.await();\n\n        let low = 0;\n        let high = nums.length - 1;\n\n        while (low <= high) {\n            // Update variables\n            const mid = Math.floor(low + (high - low) / 2);\n            this.vars.put(\"low\", low);\n            this.vars.put(\"high\", high);\n            this.vars.put(\"mid\", mid);\n            this.vars.put(\"status\", \"Calculating Mid\");\n\n            // Visualization: Clear previous highlights and show current search range\n            for (let i = 0; i < nums.length; i++) {\n                this.array.highlight(i, \"transparent\");\n            }\n            this.array.highlightRange(low, high, \"rgba(0, 150, 255, 0.2)\");\n            this.array.highlight(mid, \"orange\");\n\n            this.log(`Range [${low}, ${high}]. Mid index: ${mid}, Mid value: ${this.array.get(mid)}`);\n            await this.await();\n\n            const midVal = this.array.get(mid);\n\n            if (midVal === target) {\n                // Target Found\n                this.array.highlight(mid, \"#4CAF50\"); // Green\n                this.vars.put(\"status\", \"Target Found!\");\n                this.log(`Success: Target ${target} found at index ${mid}`);\n                await this.await();\n                return mid;\n            } \n            \n            if (midVal < target) {\n                // Target is in the right half\n                this.log(`${midVal} < ${target}. Ignoring the left half (moving low).`);\n                this.vars.put(\"status\", \"Searching Right\");\n                low = mid + 1;\n            } else {\n                // Target is in the left half\n                this.log(`${midVal} > ${target}. Ignoring the right half (moving high).`);\n                this.vars.put(\"status\", \"Searching Left\");\n                high = mid - 1;\n            }\n            \n            await this.await();\n        }\n\n        // Target Not Found\n        this.log(`Target ${target} was not found in the array.`);\n        this.vars.put(\"status\", \"Not Found\");\n        this.vars.put(\"low\", low);\n        this.vars.put(\"high\", high);\n        this.vars.put(\"mid\", \"-\");\n        \n        // Cleanup highlights\n        for (let i = 0; i < nums.length; i++) {\n            this.array.highlight(i, \"rgba(255, 0, 0, 0.1)\");\n        }\n        \n        await this.await();\n        return -1;\n    }\n}"
+  "code": "class Playground {\n    async run(inputs) {\n        // Parse input\n        const heightsInput = inputs[0].split(',').map(v => parseInt(v.trim()));\n        \n        // Initialize visualization slots\n        await this.heights.init(heightsInput);\n        await this.vars.init([\n            [\"left\", 0],\n            [\"right\", heightsInput.length - 1],\n            [\"maxArea\", 0],\n            [\"currentArea\", 0]\n        ]);\n\n        let left = 0;\n        let right = heightsInput.length - 1;\n        let maxArea = 0;\n\n        this.log(\"Starting two-pointer approach from both ends.\");\n        await this.await();\n\n        while (left < right) {\n            // Highlight the current boundaries\n            this.heights.highlight(left, \"#3b82f6\"); // Blue\n            this.heights.highlight(right, \"#3b82f6\");\n\n            const hLeft = heightsInput[left];\n            const hRight = heightsInput[right];\n            const width = right - left;\n            const minHeight = Math.min(hLeft, hRight);\n            const currentArea = width * minHeight;\n\n            maxArea = Math.max(maxArea, currentArea);\n\n            // Update variable tracker\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            this.vars.put(\"currentArea\", currentArea);\n            this.vars.put(\"maxArea\", maxArea);\n\n            this.log(`Width: ${width}, Min Height: ${minHeight} (min of ${hLeft}, ${hRight}). Calculated Area: ${currentArea}.`);\n            await this.await();\n\n            // Decide which pointer to move\n            if (hLeft < hRight) {\n                this.log(`Left height (${hLeft}) is smaller than Right height (${hRight}). Moving left pointer inward.`);\n                this.heights.highlight(left, null);\n                left++;\n            } else {\n                this.log(`Right height (${hRight}) is smaller than or equal to Left height (${hLeft}). Moving right pointer inward.`);\n                this.heights.highlight(right, null);\n                right--;\n            }\n            \n            // Update pointers in variables before next step\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            await this.await();\n        }\n\n        this.log(`Algorithm finished. Maximum water found: ${maxArea}`);\n        return maxArea;\n    }\n}"
 }

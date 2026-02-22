@@ -40,8 +40,8 @@
             color: var(--text-main);
             min-height: 100vh;
             padding: 20px 24px;
-            padding-bottom: 220px;
-            /* Extra space for fixed log + controls */
+            padding-bottom: 120px;
+            /* Extra space for unified bottom bar */
             background-image: radial-gradient(var(--border) 1px, transparent 1px);
             background-size: 24px 24px;
         }
@@ -379,8 +379,8 @@
         .array-box {
             width: 76px;
             height: 76px;
-            background: linear-gradient(145deg, rgba(6, 78, 59, 0.9), rgba(6, 78, 59, 0.7));
-            border: 2px solid var(--array-border);
+            background-color: rgb(6, 74, 52);
+            border: 2px solid rgb(52, 201, 134);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -388,32 +388,19 @@
             font-size: 1.5rem;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 14px;
-            box-shadow:
-                0 4px 12px rgba(52, 211, 153, 0.2),
-                0 0 0 1px rgba(52, 211, 153, 0.1) inset,
-                0 2px 0 rgba(255, 255, 255, 0.1) inset;
+            box-shadow: none;
             position: relative;
             overflow: hidden;
         }
 
         .array-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
-            border-radius: 10px 10px 0 0;
+            display: none;
         }
 
         .array-box:hover {
             transform: scale(1.05);
-            box-shadow:
-                0 8px 24px rgba(52, 211, 153, 0.3),
-                0 0 0 1px rgba(52, 211, 153, 0.2) inset,
-                0 2px 0 rgba(255, 255, 255, 0.15) inset;
-            border-color: #6ee7b7;
+            box-shadow: none;
+            border-color: rgb(52, 201, 134);
         }
 
         .array-idx {
@@ -756,59 +743,72 @@
                 0 0 0 1px rgba(245, 158, 11, 0.1) inset;
         }
 
-        /* === LOG PANEL === */
+        /* === UNIFIED BOTTOM BAR === */
+        .unified-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            z-index: 1000;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .step-explanation-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .step-expl-title {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-expl-title::before {
+            content: '';
+            width: 4px;
+            height: 12px;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+
         #log-container {
             font-family: "Fira Code", monospace;
             font-size: 0.95rem;
             color: #fbbf24;
-            min-height: 40px;
-            padding: 14px 18px;
+            min-height: 44px;
+            padding: 10px 16px;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.2));
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid rgba(251, 191, 36, 0.2);
-            box-shadow:
-                0 4px 16px rgba(0, 0, 0, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.03) inset;
             line-height: 1.5;
-        }
-
-        .log-panel-fixed {
-            position: fixed;
-            bottom: 84px;
-            /* Directly above the 16px controls container */
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 48px);
-            max-width: 1550px;
-            z-index: 999;
-            margin: 0;
-            box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.8) !important;
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-
-        .log-panel-fixed h3 {
-            margin-bottom: 8px !important;
-        }
-
-        /* === YOUR EXACT STEP CONTROLS === */
-        .controls {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 18px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 10px 24px;
-            border-radius: 50px;
-            border: 1px solid var(--border);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            /* Fixed at bottom */
-            position: fixed;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
+        }
+
+        .controls-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(30, 41, 59, 0.6);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .step-btn {
@@ -943,37 +943,37 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-width: 360px;
+            min-width: auto;
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.3));
-            padding: 24px;
-            border-radius: 18px;
+            padding: 16px;
+            border-radius: 12px;
             border: 1px solid rgba(100, 116, 139, 0.2);
         }
 
         .hashmap-header {
             display: grid;
-            grid-template-columns: 130px 190px;
+            grid-template-columns: minmax(80px, 1fr) minmax(100px, 1.5fr);
             gap: 6px;
-            padding-bottom: 14px;
+            padding-bottom: 10px;
             border-bottom: 2px solid rgba(100, 116, 139, 0.3);
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .hashmap-header-cell {
             font-family: "Fira Code", monospace;
-            font-size: 0.75rem;
+            font-size: 0.70rem;
             color: #94a3b8;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 10px 14px;
+            letter-spacing: 1px;
+            padding: 6px 10px;
             font-weight: 600;
         }
 
         .hashmap-row {
             display: grid;
-            grid-template-columns: 130px 190px;
+            grid-template-columns: minmax(80px, 1fr) minmax(100px, 1.5fr);
             gap: 6px;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -989,10 +989,10 @@
         .hashmap-key {
             background: linear-gradient(145deg, #3b82f6, #2563eb);
             color: white;
-            padding: 14px 16px;
-            font-weight: 700;
+            padding: 10px 12px;
+            font-weight: 600;
             font-family: "Fira Code", monospace;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             position: relative;
             overflow: hidden;
             display: flex;
@@ -1013,10 +1013,10 @@
         .hashmap-value {
             background: linear-gradient(145deg, #10b981, #059669);
             color: white;
-            padding: 14px 16px;
+            padding: 10px 12px;
             font-family: "Fira Code", monospace;
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 500;
             position: relative;
             overflow: hidden;
             display: flex;
@@ -1110,29 +1110,28 @@
                     <div class="problem-tags" id="problem-tags"></div>
                 </div>
 
-                <div class="panel" id="ai-generator-panel"
-                    style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(88, 28, 135, 0.3)); border-color: #8b5cf6;">
-                    <h3 style="color: #c4b5fd;">✨ Generate Visualization</h3>
+                <div class="panel" id="ai-generator-panel">
+                    <h3>✨ Generate Visualization</h3>
                     <div class="input-group">
                         <label class="input-label" for="ai-api-key">Gemini API Key</label>
                         <input type="password" class="input-field" id="ai-api-key" placeholder="Enter your API key"
-                            onblur="fetchModels()">
+                            onblur="fetchModels()" style="padding: 10px;">
                     </div>
                     <div class="input-group">
                         <label class="input-label" for="ai-model">Model Selection</label>
                         <select class="input-field" id="ai-model"
-                            style="background: var(--bg-body); color: white; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif;">
+                            style="background: var(--bg-body); color: white; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif; padding: 10px;">
                             <option value="">Enter API Key to load models...</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label class="input-label" for="ai-problem-desc">Problem Description</label>
-                        <textarea class="input-field" id="ai-problem-desc" rows="3"
+                        <textarea class="input-field" id="ai-problem-desc" rows="2"
                             placeholder="Describe the problem, e.g., 'Initialize an empty array of size 5'"
-                            style="resize: vertical; font-family: inherit;"></textarea>
+                            style="resize: vertical; font-family: inherit; padding: 10px;"></textarea>
                     </div>
                     <button id="btn-generate-ai" onclick="generateWithAI()"
-                        style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; padding: 12px; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 8px; transition: opacity 0.2s;">
+                        style="width: 100%; background: linear-gradient(135deg, #475569, #334155); border: 1px solid #64748b; padding: 10px; color: white; border-radius: 8px; cursor: pointer; font-weight: 500; margin-top: 4px; transition: opacity 0.2s;">
                         Generate with AI
                     </button>
                     <div id="ai-status"
@@ -1163,25 +1162,27 @@
             </div> <!-- end right-content -->
         </div> <!-- end main-layout -->
 
-        <div class="panel log-panel-fixed" id="fixed-log-panel">
-            <h3>Step Explanation</h3>
-            <div id="log-container">Click "Start" to begin...</div>
-        </div>
+        <div class="unified-bottom-bar" id="unified-bottom-bar">
+            <div class="step-explanation-area">
+                <div class="step-expl-title">Step Explanation</div>
+                <div id="log-container">Click "Start" to begin...</div>
+            </div>
 
-        <div class="controls">
-            <button class="step-btn" id="btn-prev" disabled>←</button>
-            <span id="step-indicator">Step 0</span>
-            <button class="step-btn" id="btn-next" disabled>→</button>
+            <div class="controls-area">
+                <button class="step-btn" id="btn-prev" disabled>←</button>
+                <span id="step-indicator">Step 0</span>
+                <button class="step-btn" id="btn-next" disabled>→</button>
 
-            <div class="separator"></div>
+                <div class="separator"></div>
 
-            <div class="autoplay-controls">
-                <button class="step-btn" id="btn-play"
-                    style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">▶</button>
-                <div class="speed-control">
-                    <input type="range" id="speed-slider" class="speed-slider" min="100" max="2000" value="800"
-                        step="100">
-                    <span class="speed-label">Speed</span>
+                <div class="autoplay-controls">
+                    <button class="step-btn" id="btn-play"
+                        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">▶</button>
+                    <div class="speed-control">
+                        <input type="range" id="speed-slider" class="speed-slider" min="100" max="2000" value="800"
+                            step="100">
+                        <span class="speed-label">Speed</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1210,8 +1211,9 @@
         let activeSlots = {};
 
         // Factory functions to create primitives for a specific slot
-        const createArrayPrimitive = (slotId) => ({
+        const createArrayPrimitive = (slotId, slotConfig = {}) => ({
             slotId,
+            displayMode: slotConfig.display || 'standard',
             data: [],
             init(vals) {
                 this.data = [...vals];
@@ -1234,10 +1236,28 @@
             },
             highlight(i, color) {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
-                const boxes = container.querySelectorAll('.array-box');
-                if (boxes[i]) {
-                    boxes[i].style.backgroundColor = color;
-                    boxes[i].style.borderColor = color;
+                if (this.displayMode === 'bar') {
+                    const boxes = container.querySelectorAll('.array-box-bar');
+                    if (boxes[i]) {
+                        if (color) {
+                            boxes[i].style.background = color;
+                            boxes[i].style.borderColor = color;
+                            boxes[i].style.boxShadow = 'none';
+                            boxes[i].style.transform = 'scale(1.05)';
+                        } else {
+                            // Default defined user colors
+                            boxes[i].style.background = 'rgb(6, 74, 52)';
+                            boxes[i].style.borderColor = 'rgb(52, 201, 134)';
+                            boxes[i].style.boxShadow = 'none';
+                            boxes[i].style.transform = 'scale(1)';
+                        }
+                    }
+                } else {
+                    const boxes = container.querySelectorAll('.array-box');
+                    if (boxes[i]) {
+                        boxes[i].style.backgroundColor = color;
+                        boxes[i].style.borderColor = color;
+                    }
                 }
             },
             highlightRange(start, end, color) {
@@ -1245,22 +1265,50 @@
             },
             clearHighlights() {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
-                container.querySelectorAll('.array-box').forEach(b => {
-                    b.style.backgroundColor = '';
-                    b.style.borderColor = '';
-                });
+                if (this.displayMode === 'bar') {
+                    container.querySelectorAll('.array-box-bar').forEach(b => {
+                        b.style.background = 'rgb(6, 74, 52)';
+                        b.style.borderColor = 'rgb(52, 201, 134)';
+                        b.style.boxShadow = 'none';
+                        b.style.transform = 'scale(1)';
+                    });
+                } else {
+                    container.querySelectorAll('.array-box').forEach(b => {
+                        b.style.backgroundColor = '';
+                        b.style.borderColor = '';
+                    });
+                }
             },
             get length() { return this.data.length; },
             getValues() { return [...this.data]; },
             render() {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
                 if (!container) return;
-                container.innerHTML = this.data.map((v, i) =>
-                    `<div class="array-cell">
-                        <div class="array-box">${v}</div>
-                        <div class="array-idx">${i}</div>
-                    </div>`
-                ).join('');
+
+                if (this.displayMode === 'bar') {
+                    if (this.data.length === 0) {
+                        container.innerHTML = '<div>Empty Array</div>';
+                        return;
+                    }
+                    const maxVal = Math.max(...this.data.map(v => Number(v) || 0), 1);
+                    container.innerHTML = `<div style="display:flex; align-items:flex-end; gap:12px; height:180px; padding-bottom:10px;">` +
+                        this.data.map((v, i) => {
+                            const valNum = Number(v) || 0;
+                            // Ensure a minimum height so number doesn't cut off inside, padding takes up space
+                            const h = Math.max(36, (valNum / maxVal) * 150);
+                            return `<div class="array-cell">
+                                <div class="array-box-bar" style="width: 44px; height: ${h}px; background-color: rgb(6, 74, 52); border: 2px solid rgb(52, 201, 134); border-radius: 6px 6px 0 0; border-bottom: none; display: flex; align-items: flex-start; justify-content: center; padding-top: 8px; font-weight: bold; font-family: 'Fira Code', monospace; color: white; transition: all 0.3s; box-shadow: none; font-size: 0.95rem; overflow: hidden;">${v}</div>
+                                <div class="array-idx">${i}</div>
+                            </div>`;
+                        }).join('') + `</div>`;
+                } else {
+                    container.innerHTML = this.data.map((v, i) =>
+                        `<div class="array-cell">
+                            <div class="array-box">${v}</div>
+                            <div class="array-idx">${i}</div>
+                        </div>`
+                    ).join('');
+                }
             },
             clone() {
                 return { data: [...this.data] };
@@ -1878,7 +1926,7 @@
                 let primitive;
                 switch (slotType) {
                     case 'array':
-                        primitive = createArrayPrimitive(slotId);
+                        primitive = createArrayPrimitive(slotId, slot);
                         break;
                     case 'stack':
                         primitive = createStackPrimitive(slotId);

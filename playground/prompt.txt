@@ -25,6 +25,7 @@ You must return only a valid JSON object following this template:
 Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and `await this.await()`.
 
 1. **Array**:
+   - For problems involving heights, areas, or sorting, set `"display": "bar"` on the slot configuration to render a bar chart visualization.
    - `init(vals)`: Initialize with array.
    - `set(i, v)`: Set value at index.
    - `get(i)`: Get value.
