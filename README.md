@@ -16,7 +16,6 @@ The project is categorized into several domains of data structures, each with sp
 ### 2. Memory & Pointers (Linked Lists)
 *   **Singly Linked List (SLL)**: Visualizes nodes with a single pointer to the next node.
 *   **Doubly Linked List (DLL)**: Visualizes nodes with pointers to both next and previous nodes.
-*   **Circular Linked List (CLL)**: Demonstrates circular connections where the last node points back to the first.
 *   **Operations**: Supports `Append`, `Prepend`, `Remove Value`, `Search`, `Pop Head`, and `Pop Tail`.
 
 ### 3. Hierarchical Structures
@@ -27,6 +26,8 @@ The project is categorized into several domains of data structures, each with sp
 *   **Heaps (Min Heap & Max Heap)**:
     *   **Operations**: Insert, Poll (Extract), Peek.
     *   **Visualization**: Shows the tree structure maintaining the heap property.
+*   **Trie (Prefix Tree)**: Visualizes word insertion and prefix searching dynamically.
+*   **Union Find (Disjoint Set)**: Visualizes connected components with path compression and rank-based weighting.
 
 ### 4. Graph Structures
 A robust interactive Graph Builder and visualizer:
@@ -60,7 +61,8 @@ Comprehensive support for hashing concepts:
     *   **Traversal Output**: Displays the sequence of nodes visited.
     *   **Visited Array**: Shows which nodes have been processed.
     *   **Queue/Stack Visuals**: Shows the internal state of auxiliary data structures during algorithm execution.
-    *   **Call Stack**: Visualizes recursion depth and function calls.
+    *   **Call Stack**: Visualizes recursion depth and function calls pushed/popped during execution.
+    *   **Recursion Tree**: Dynamically plots a state-space tree as recursive algorithms branch, highlighting caches and dead-ends for DP and Backtracking.
 
 *   **Enhanced Visuals**:
     *   **Resized Slots**: Optimized visual dimensions for stack and array slots.
@@ -98,31 +100,3 @@ The project is built using **Vanilla JavaScript**, **HTML5**, and **CSS3**, focu
 *   **Dark Theme**: Modern, developer-friendly dark interface.
 *   **Responsive Layout**: Sidebar for controls, main area for visualization, and adjustable auxiliary panels.
 *   **Visual Feedback**: Color-coded nodes (visited, active, queued) and smooth transitions.
-
-## Visually AI Engine (Neuro-Symbolic Framework)
-
-In addition to the web-based interactive visualizations, the project includes an advanced **Neuro-Symbolic AI Engine** ("Visually") capable of generating publication-quality static and dynamic visualizations from natural language queries.
-
-### 1. Architecture
-*   **Logic Core**: Powered by **Gemini API**, acting as the reasoning engine to interpret user queries and generate structured JSON responses containing code, visual types, and explanations.
-*   **Router**: Dynamically selects the best rendering engine based on the problem domain.
-*   **Rendering Engines**:
-    *   **Matplotlib**: For precision plotting, Physics vectors, and Calculus.
-    *   **Graphviz**: For structural diagrams, System Architectures, and hierarchies.
-    *   **HTML/JS**: For dynamic algorithm animations (e.g., BFS grids).
-
-### 2. Domain Capabilities
-*   **Physics (Matplotlib)**:
-    *   **Mechanics**: Free Body Diagrams (FBD) with accurate force vectors (Gravity, Normal, Friction).
-    *   **Optics**: Ray tracing, normal lines at interfaces, and reflection angles.
-    *   **Circuits**: Component labeling (R, L, C, V) and connection diagrams.
-*   **Computer Science & Architecture (Graphviz)**:
-    *   **System Design**: Cloud architectures, pipelines, and flowcharts using orthogonal splines (`splines=ortho`).
-    *   **Data Structures**: Neural Networks (Layer grouping), Decision Trees, and Org Charts.
-    *   **Styling**: Professional 'rankdir' orientation (LR for pipelines, TB for hierarchies).
-*   **Mathematics (Matplotlib)**:
-    *   **Calculus**: Area under curves (`fill_between`), definite integrals, and critical point annotation.
-    *   **Plotting**: High-fidelity function plots with 'seaborn' styling.
-
-### 3. Workflow
-The system follows a strict pipeline: **User Query** → **Logic Core** (JSON Generation) → **Router** → **Unified Rendering** (Sandboxed execution of Python/DOT code).

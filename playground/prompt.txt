@@ -21,6 +21,7 @@ You must return only a valid JSON object following this template:
 "array", "stack", "callstack", "recursion-tree", "queue", "deque", "sll", "dll", "hashmap", "hashset", "graph", "grid", "binary-tree", "heap", "union-find", "trie"
 
 ### API REFERENCE FOR SLOTS
+**CRITICAL STRICTNESS**: You are STRICTLY LIMITED to the methods listed below for each data structure. DO NOT guess or invent methods (e.g., do NOT call `getValues()` on an Array slot since it does not exist). If a method is not explicitly listed here, it DOES NOT EXIST.
 Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and `await this.await()`.
 
 1. **Array**:
@@ -29,15 +30,18 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
    - `get(i)`: Get value.
    - `swap(i, j)`: Swap elements.
    - `push(v)`, `pop()`.
+   - `getValues()`: Returns a copy of the entire array.
    - `highlight(i, color)`: Highlight index.
    - `highlightRange(start, end, color)`.
 
 2. **Stack**:
    - `init(vals)`, `push(v)`, `pop()`, `peek()`, `isEmpty()`, `size()`, `clear()`.
+   - `getValues()`: Returns a copy of the stack array.
    - `highlight(i, color)`: Highlight by index.
 
 3. **Queue**:
    - `init(vals)`, `enqueue(v)`, `dequeue()`, `peek()`, `isEmpty()`, `size()`, `clear()`.
+   - `getValues()`: Returns a copy of the queue array.
    - `highlight(i, color)`: Highlight by index.
 
 4. **Deque**:
@@ -50,15 +54,18 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
    - `init(entries)`: entries is `[[key, val], ...]`.
    - `put(key, val)`: Store value (use this instead of set).
    - `get(key)`, `has(key)`, `remove(key)`, `clear()`, `size()`.
+   - `getEntries()`: Returns an array of `[key, val]` entries.
    - `highlight(key, color)`.
 
 6. **Hashset**:
    - `init(vals)`, `add(val)`, `has(val)`, `remove(val)`, `delete(val)`, `clear()`, `size()`.
+   - `getValues()`: Returns an array of the set values.
    - `highlight(val, color)`.
 
 7. **Grid**:
    - `init(matrix)`: 2D array.
    - `setCell(r, c, val)`, `getCell(r, c)`.
+   - `getValues()`: Returns a copy of the 2D matrix.
    - `highlight(r, c, color)`.
 
 8. **SLL / DLL (Linked Lists)**:
@@ -91,6 +98,7 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
 12. **Union Find**:
     - `init(size)`.
     - `find(i)`, `union(i, j)`.
+    - `getValues()`: Returns an array of the `parent` pointers.
     - `highlightNode(i, color)`.
 
 13. **Trie**:
@@ -116,7 +124,7 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
 - **Logging**: Use `this.log("Descriptive message")` before `await this.await()` to explain what the algorithm is doing.
 - **Inputs**: Read inputs from the `inputs` array (e.g., `const k = parseInt(inputs[0])`).
 - **Initialization**: Always call `.init()` on structures at the start of `run(inputs)`.
-- **Method Names**: STRICTLY follow the method names in the API reference above (e.g., `put` for HashMap, NOT `set`).
+- **Method Names & Supported Methods**: You MUST NOT invent or imagine method names. STRICTLY use ONLY the exact method names listed in the **API REFERENCE FOR SLOTS** below. If a method is not explicitly documented for a specific data structure, you cannot use it (e.g. do not try to use `.getValues()` on arrays, use `.get(i)` instead; use `put` for HashMap, NOT `set`).
 - **Explicit Returns**: Always return a meaningful result at the end of the `run` method. If no solution is found, return a technical "not found" value (e.g., `[-1, -1]` for index-based problems, `null` or `false` for others) rather than returning nothing.
 - **Advanced Visualization**: 
     - **Priority Queue Note**: When a problem requires a Priority Queue (like Dijkstra's), you SHOULD use a `Heap` with `init([], 'min')`.

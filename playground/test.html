@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playground Test Runner</title>
+    <title>Algorithm Visualizer Playground</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
@@ -1097,7 +1097,7 @@
     </button>
 
     <div class="container">
-        <h1>Playground Test</h1>
+        <h1>Algorithm Visualizer Playground</h1>
 
         <div class="main-layout" id="main-layout">
             <!-- Left: Problem Description + Input -->
@@ -1164,7 +1164,7 @@
         </div> <!-- end main-layout -->
 
         <div class="panel log-panel-fixed" id="fixed-log-panel">
-            <h3>Log</h3>
+            <h3>Step Explanation</h3>
             <div id="log-container">Click "Start" to begin...</div>
         </div>
 
@@ -1251,6 +1251,7 @@
                 });
             },
             get length() { return this.data.length; },
+            getValues() { return [...this.data]; },
             render() {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
                 if (!container) return;
@@ -1282,6 +1283,7 @@
             peek() { return this.data[this.data.length - 1]; },
             isEmpty() { return this.data.length === 0; },
             size() { return this.data.length; },
+            getValues() { return [...this.data]; },
             highlight(i, color) {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
                 const items = container.querySelectorAll('.stack-item');
@@ -1334,6 +1336,9 @@
             },
             size() {
                 return this.data.size;
+            },
+            getEntries() {
+                return [...this.data.entries()];
             },
             highlight(key, color) {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
@@ -1422,6 +1427,9 @@
             clearHighlights() {
                 this.render();
             },
+            getValues() {
+                return this.data.map(row => [...row]);
+            },
             render() {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
                 if (!container) return;
@@ -1488,6 +1496,7 @@
             peek() { return this.data[0]; },
             isEmpty() { return this.data.length === 0; },
             size() { return this.data.length; },
+            getValues() { return [...this.data]; },
             init(arr) { this.data = [...arr]; this.render(); },
             highlight(i, color) {
                 const container = document.getElementById(`slot-${this.slotId}-content`);
@@ -1974,6 +1983,9 @@
             size() {
                 return this.data.size;
             },
+            getValues() {
+                return [...this.data];
+            },
             init(vals) {
                 this.data = new Set(vals);
                 this.render();
@@ -2121,6 +2133,10 @@
 
             clearHighlights() {
                 this.render();
+            },
+
+            getValues() {
+                return this.data.map(n => n.parent);
             },
 
             // Layout

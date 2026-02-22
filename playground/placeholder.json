@@ -1,47 +1,37 @@
 {
-  "id": "edit-distance-dp-backtracking",
-  "name": "Edit Distance (Levenshtein Distance)",
-  "difficulty": "Hard",
-  "description": "Given two strings <code>word1</code> and <code>word2</code>, return the minimum number of operations required to convert <code>word1</code> to <code>word2</code>.<br/><br/>You have the following three operations permitted on a word:<ul><li>Insert a character</li><li>Delete a character</li><li>Replace a character</li></ul><p>This visualizer demonstrates both the <b>DP Tabulation</b> (Grid) and the <b>Recursive Backtracking</b> (Recursion Tree) approaches.</p>",
+  "id": "union-find-basics",
+  "name": "Union Find (Disjoint Set Union)",
+  "difficulty": "Easy",
+  "description": "<p>A <strong>Disjoint Set Union (DSU)</strong>, also known as <strong>Union-Find</strong>, is a data structure that keeps track of elements partitioned into a number of disjoint (non-overlapping) sets.</p><p>It provides two primary operations:</p><ul><li><code>find(i)</code>: Determine which set element <code>i</code> belongs to. This can be used for determining if two elements are in the same set.</li><li><code>union(i, j)</code>: Join two disjoint sets into a single set.</li></ul><p>The visualization demonstrates <strong>Path Compression</strong> and <strong>Union by Rank/Size</strong>, which optimize the structure to nearly constant time per operation.</p>",
   "tags": [
-    "Dynamic Programming",
-    "String",
-    "Recursion",
-    "Memoization"
+    "Union Find",
+    "Disjoint Set",
+    "Graph",
+    "Algorithms"
   ],
   "slots": [
     {
-      "id": "dpTable",
-      "type": "grid",
-      "label": "DP Tabulation Table"
+      "id": "uf",
+      "type": "union-find",
+      "label": "Disjoint Set Structure"
     },
     {
       "id": "vars",
       "type": "hashmap",
       "label": "State Variables"
-    },
-    {
-      "id": "callstack",
-      "type": "callstack",
-      "label": "Call Stack"
-    },
-    {
-      "id": "recTree",
-      "type": "recursion-tree",
-      "label": "Recursion Tree (Memoized)"
     }
   ],
   "inputs": [
     {
-      "label": "Word 1",
-      "default": "horse",
-      "placeholder": "Enter first word"
+      "label": "Number of Elements",
+      "default": "8",
+      "placeholder": "e.g. 8"
     },
     {
-      "label": "Word 2",
-      "default": "ros",
-      "placeholder": "Enter second word"
+      "label": "Unions (u-v pairs)",
+      "default": "0-1, 2-3, 4-5, 6-7, 1-3, 5-7, 0-7",
+      "placeholder": "e.g. 0-1, 1-2"
     }
   ],
-  "code": "class Playground {\n    async run(inputs) {\n        const word1 = inputs[0] || \"\";\n        const word2 = inputs[1] || \"\";\n        const m = word1.length;\n        const n = word2.length;\n\n        // 1. INITIALIZATION\n        this.vars.init([]);\n        this.callstack.init();\n        this.recTree.init();\n        \n        this.log(\"--- PART 1: DP TABULATION ---\");\n        const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));\n        this.dpTable.init(dp);\n        await this.await();\n\n        // Fill base cases\n        for (let i = 0; i <= m; i++) {\n            dp[i][0] = i;\n            this.dpTable.setCell(i, 0, i);\n            this.dpTable.highlight(i, 0, \"#3b82f6\");\n            this.log(`Base case: converting \"${word1.substring(0, i)}\" to empty string requires ${i} deletions.`);\n            await this.await();\n        }\n        for (let j = 0; j <= n; j++) {\n            dp[0][j] = j;\n            this.dpTable.setCell(0, j, j);\n            this.dpTable.highlight(0, j, \"#3b82f6\");\n            this.log(`Base case: converting empty string to \"${word2.substring(0, j)}\" requires ${j} insertions.`);\n            await this.await();\n        }\n\n        // Fill the rest of the DP table\n        for (let i = 1; i <= m; i++) {\n            for (let j = 1; j <= n; j++) {\n                this.vars.put(\"i\", i);\n                this.vars.put(\"j\", j);\n                this.vars.put(\"char1\", word1[i-1]);\n                this.vars.put(\"char2\", word2[j-1]);\n                this.dpTable.highlight(i, j, \"#eab308\");\n\n                if (word1[i - 1] === word2[j - 1]) {\n                    this.log(`Characters '${word1[i-1]}' match! No new operation needed.`);\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else {\n                    this.log(`Mismatch: taking min of Replace(${dp[i-1][j-1]}), Insert(${dp[i][j-1]}), Delete(${dp[i-1][j]}) + 1`);\n                    dp[i][j] = Math.min(\n                        dp[i - 1][j - 1], // replace\n                        dp[i][j - 1],     // insert\n                        dp[i - 1][j]      // delete\n                    ) + 1;\n                }\n                \n                this.dpTable.setCell(i, j, dp[i][j]);\n                await this.await();\n                this.dpTable.highlight(i, j, \"#22c55e\");\n            }\n        }\n\n        const dpResult = dp[m][n];\n        this.log(`Tabulation Complete. Min Distance: ${dpResult}`);\n        await this.await();\n\n        // 2. RECURSIVE BACKTRACKING (With Memoization visualization)\n        this.log(\"--- PART 2: RECURSIVE BACKTRACKING ---\");\n        const memo = new Map();\n\n        const solve = async (i, j) => {\n            const nodeId = `node-${i}-${j}`;\n            const label = `dist(${i}, ${j})`;\n            \n            this.callstack.pushFrame(\"minDist\", { i, j });\n            this.recTree.enterNode(nodeId, label);\n            await this.await();\n\n            if (memo.has(`${i}-${j}`)) {\n                this.log(`Cache hit for (${i}, ${j})`);\n                this.recTree.cacheHit(nodeId);\n                const val = memo.get(`${i}-${j}`);\n                this.callstack.popFrame(val);\n                this.recTree.exitNode(\"#22c55e\");\n                return val;\n            }\n\n            // Base Cases\n            if (i === 0) {\n                this.log(`Base Case: i=0, return j=${j}`);\n                this.callstack.popFrame(j);\n                this.recTree.exitNode(\"#3b82f6\");\n                return j;\n            }\n            if (j === 0) {\n                this.log(`Base Case: j=0, return i=${i}`);\n                this.callstack.popFrame(i);\n                this.recTree.exitNode(\"#3b82f6\");\n                return i;\n            }\n\n            let res;\n            if (word1[i - 1] === word2[j - 1]) {\n                this.log(`Characters match at indices ${i-1}, ${j-1}`);\n                res = await solve(i - 1, j - 1);\n            } else {\n                this.log(`Branching for Replace, Insert, Delete at (${i}, ${j})`);\n                const replace = await solve(i - 1, j - 1);\n                const insert = await solve(i, j - 1);\n                const del = await solve(i - 1, j);\n                res = Math.min(replace, insert, del) + 1;\n            }\n\n            memo.set(`${i}-${j}`, res);\n            this.callstack.popFrame(res);\n            this.recTree.exitNode(\"#22c55e\");\n            return res;\n        };\n\n        // Run recursion on a subset or full depending on size to keep visualization readable\n        // Note: For visualization clarity, we call recursion last.\n        const recResult = await solve(m, n);\n        \n        this.log(`Final Result: ${recResult}`);\n        return recResult;\n    }\n}"
+  "code": "class Playground {\n    async run(inputs) {\n        const n = parseInt(inputs[0]) || 8;\n        const unionString = inputs[1] || \"\";\n\n        // Initialize structures\n        this.uf.init(n);\n        this.vars.init([\n            [\"Status\", \"Initialized\"],\n            [\"Operation\", \"None\"],\n            [\"Result\", \"N/A\"]\n        ]);\n\n        this.log(`Initialized Union Find with ${n} elements (0 to ${n - 1}).`);\n        await this.await();\n\n        // Parse input pairs\n        const pairs = unionString.split(',')\n            .map(p => p.trim().split('-').map(Number))\n            .filter(p => p.length === 2 && !isNaN(p[0]) && !isNaN(p[1]));\n\n        for (const [u, v] of pairs) {\n            this.vars.put(\"Status\", \"Processing\");\n            this.vars.put(\"Operation\", `union(${u}, ${v})`);\n            \n            this.log(`Starting Union operation for nodes ${u} and ${v}`);\n            this.uf.highlightNode(u, \"var(--primary)\");\n            this.uf.highlightNode(v, \"var(--primary)\");\n            await this.await();\n\n            // Step 1: Find roots\n            this.log(`Finding root of element ${u}...`);\n            const rootU = this.uf.find(u);\n            this.uf.highlightNode(rootU, \"orange\");\n            this.vars.put(\"Result\", `root(${u}) = ${rootU}`);\n            await this.await();\n\n            this.log(`Finding root of element ${v}...`);\n            const rootV = this.uf.find(v);\n            this.uf.highlightNode(rootV, \"orange\");\n            this.vars.put(\"Result\", `root(${v}) = ${rootV}`);\n            await this.await();\n\n            // Step 2: Union if roots are different\n            if (rootU !== rootV) {\n                this.log(`Roots are different (${rootU} != ${rootV}). Merging sets.`);\n                this.uf.union(u, v);\n                this.vars.put(\"Result\", \"Sets Merged\");\n                await this.await();\n            } else {\n                this.log(`Roots are the same (${rootU}). Nodes are already in the same set.`);\n                this.vars.put(\"Result\", \"Already in same set\");\n                await this.await();\n            }\n\n            // Cleanup highlights for next iteration\n            this.uf.highlightNode(u, null);\n            this.uf.highlightNode(v, null);\n            this.uf.highlightNode(rootU, null);\n            this.uf.highlightNode(rootV, null);\n            this.vars.put(\"Operation\", \"Waiting\");\n            await this.await();\n        }\n\n        this.vars.put(\"Status\", \"Finished\");\n        this.vars.put(\"Operation\", \"None\");\n        this.log(\"All union operations completed.\");\n        \n        // Final state representation\n        const parents = this.uf.getValues();\n        return {\n            message: \"Union Find completed\",\n            parentArray: parents\n        };\n    }\n}"
 }
