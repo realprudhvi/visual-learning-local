@@ -1053,9 +1053,9 @@
             resize: both;
             overflow: auto;
             min-height: 300px;
-            /* Flex-grow but keep a strict basis so it doesn't collapse smaller than 400px but can be resized larger */
+            /* Flex-grow but keep a strict basis so it doesn't collapse smaller than 200px but can be resized larger */
             flex: 1 1 auto;
-            min-width: 400px;
+            min-width: 200px;
             position: relative;
         }
 
@@ -1184,6 +1184,35 @@
         });
 
         // ============ SLOT-BASED DYNAMIC PRIMITIVES ============
+
+        // Utility to allow dragging/panning on overflow containers (Graph, Trees, etc)
+        window.makeDraggable = function (el) {
+            if (!el || el.dataset.draggableAttached) return;
+            el.dataset.draggableAttached = 'true';
+            let isDown = false;
+            let startX, startY, scrollLeft, scrollTop;
+            el.addEventListener('mousedown', (e) => {
+                isDown = true;
+                el.style.cursor = 'grabbing';
+                startX = e.pageX - el.offsetLeft;
+                startY = e.pageY - el.offsetTop;
+                scrollLeft = el.scrollLeft;
+                scrollTop = el.scrollTop;
+            });
+            el.addEventListener('mouseleave', () => { isDown = false; el.style.cursor = 'grab'; });
+            el.addEventListener('mouseup', () => { isDown = false; el.style.cursor = 'grab'; });
+            el.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - el.offsetLeft;
+                const y = e.pageY - el.offsetTop;
+                const walkX = (x - startX);
+                const walkY = (y - startY);
+                el.scrollLeft = scrollLeft - walkX;
+                el.scrollTop = scrollTop - walkY;
+            });
+            el.style.cursor = 'grab';
+        };
 
         // Active slots registry - stores all slot instances
         let activeSlots = {};
@@ -1829,6 +1858,7 @@
 
                 html += `</div></div>`;
                 container.innerHTML = html;
+                if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
             clone() {
                 const nodesClone = [];
@@ -1888,10 +1918,11 @@
                 slotDiv.className = 'panel';
                 slotDiv.id = `slot-panel-${slotId}`;
 
-                // Make specific slot types take up full width by default (e.g. recursion trees which get wide)
-                // We use flex: 1 1 100% instead of flex-basis directly to ensure the resize handle still works
+                // Make specific slot types start full width by default (e.g. recursion trees which get wide)
+                // Use flex: 1 1 auto and width: 100% so that the 'resize' CSS handle can still shrink the element correctly.
                 if (slotType === 'recursion-tree' || slotType === 'array' || slotType === 'grid') {
-                    slotDiv.style.flex = "1 1 100%";
+                    slotDiv.style.flex = "1 1 auto";
+                    slotDiv.style.width = "100%";
                 }
 
                 slotDiv.innerHTML = `
@@ -2306,6 +2337,7 @@
 
                 html += `</div></div>`;
                 container.innerHTML = html;
+                if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
 
             clone() {
@@ -2575,6 +2607,7 @@
 
                 html += `</div></div>`;
                 container.innerHTML = html;
+                if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
 
             clone() {
@@ -2851,6 +2884,7 @@
 
                 html += `</div></div>`;
                 container.innerHTML = html;
+                if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
 
             clone() { return { data: [...this.data], type: this.type }; },
@@ -3084,6 +3118,7 @@
 
                 html += `</div></div>`;
                 container.innerHTML = html;
+                if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
 
             clone() { return { nodes: JSON.parse(JSON.stringify(this.nodes)), edges: JSON.parse(JSON.stringify(this.edges)) }; },
@@ -3374,6 +3409,7 @@
 
                 html += `</div></div>`;
                 container.innerHTML = html;
+                if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
 
             clone() {
