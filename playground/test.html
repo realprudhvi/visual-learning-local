@@ -318,8 +318,8 @@
             justify-content: center;
             align-items: center;
             padding: 24px 20px;
-            /* RESIZABLE */
-            resize: both;
+            flex: 1;
+            /* Allow content to grow within flex column panel */
             overflow: auto;
             border: 1px dashed rgba(100, 116, 139, 0.3);
             border-radius: 8px;
@@ -1060,6 +1060,8 @@
             flex: 1 1 auto;
             min-width: 200px;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .home-btn:hover {
