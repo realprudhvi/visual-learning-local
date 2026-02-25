@@ -1209,7 +1209,10 @@
             el.dataset.draggableAttached = 'true';
             let isDown = false;
             let startX, startY, scrollLeft, scrollTop;
+
             el.addEventListener('mousedown', (e) => {
+                // Prevent drag if clicking on a specific internal element like a node/tag
+                if (e.target.closest('.array-box') || e.target.closest('.stack-item') || e.target.closest('.hashmap-entry')) return;
                 isDown = true;
                 el.style.cursor = 'grabbing';
                 startX = e.pageX - el.offsetLeft;
@@ -1926,6 +1929,8 @@
             const totalCols = Math.min(slots.length, 3);
             slotsContainer.style.gridTemplateColumns = `repeat(${totalCols}, 1fr)`;
 
+            let draggedPanel = null;
+
             slots.forEach((slot, idx) => {
                 const slotId = slot.id || `slot${idx}`;
                 const slotType = slot.type || 'array';
@@ -1937,16 +1942,61 @@
                 slotDiv.id = `slot-panel-${slotId}`;
 
                 // Make specific slot types start full width by default (e.g. recursion trees which get wide)
-                // Use flex: 1 1 auto and width: 100% so that the 'resize' CSS handle can still shrink the element correctly.
                 if (slotType === 'recursion-tree' || slotType === 'array' || slotType === 'grid') {
                     slotDiv.style.flex = "1 1 auto";
                     slotDiv.style.width = "100%";
                 }
 
                 slotDiv.innerHTML = `
-                    <h3>${slotLabel}</h3>
+                    <h3 draggable="true" style="cursor: grab; user-select: none;" onmousedown="this.style.cursor='grabbing'" onmouseup="this.style.cursor='grab'">${slotLabel}</h3>
                     <div id="slot-${slotId}-content" class="slot-content"></div>
                 `;
+
+                // Panel Drag & Drop logic
+                const header = slotDiv.querySelector('h3');
+                header.addEventListener('dragstart', (e) => {
+                    draggedPanel = slotDiv;
+                    e.dataTransfer.effectAllowed = 'move';
+                    // Make the drag image the entire panel, not just the text
+                    e.dataTransfer.setDragImage(slotDiv, 20, 20);
+                    // Add slight opacity to the original panel being dragged
+                    setTimeout(() => slotDiv.style.opacity = '0.5', 0);
+                });
+
+                slotDiv.addEventListener('dragover', (e) => {
+                    e.preventDefault(); // Necessary to allow dropping
+                    e.dataTransfer.dropEffect = 'move';
+                    if (slotDiv !== draggedPanel && draggedPanel) {
+                        slotDiv.style.border = '2px dashed #00e0ff';
+                    }
+                });
+
+                slotDiv.addEventListener('dragleave', (e) => {
+                    slotDiv.style.border = '';
+                });
+
+                slotDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slotDiv.style.border = '';
+                    if (!draggedPanel || draggedPanel === slotDiv) return;
+
+                    const allPanels = [...slotsContainer.querySelectorAll('.panel')];
+                    const draggedIdx = allPanels.indexOf(draggedPanel);
+                    const targetIdx = allPanels.indexOf(slotDiv);
+
+                    // Reorder in DOM
+                    if (draggedIdx < targetIdx) {
+                        slotsContainer.insertBefore(draggedPanel, slotDiv.nextSibling);
+                    } else {
+                        slotsContainer.insertBefore(draggedPanel, slotDiv);
+                    }
+                });
+
+                slotDiv.addEventListener('dragend', () => {
+                    slotDiv.style.opacity = '1';
+                    draggedPanel = null;
+                });
+
                 slotsContainer.appendChild(slotDiv);
 
                 // Create primitive instance based on type
