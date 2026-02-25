@@ -391,6 +391,10 @@
             box-shadow: none;
             position: relative;
             overflow: hidden;
+            word-break: break-all;
+            padding: 0 4px;
+            text-align: center;
+            line-height: 1.1;
         }
 
         .array-box::before {
@@ -2642,8 +2646,9 @@
             data: [], // Array backing
             type: 'min', // 'min' or 'max'
 
-            init(vals, type = 'min') {
+            init(vals, type = 'min', key = null) {
                 this.type = type;
+                this.key = key; // Optional property key to extract for comparisons
                 this.data = [...vals];
                 // Heapify
                 for (let i = Math.floor(this.data.length / 2) - 1; i >= 0; i--) {
@@ -2679,6 +2684,18 @@
                 return this.data[0];
             },
 
+            getValues() {
+                return [...this.data];
+            },
+
+            size() {
+                return this.data.length;
+            },
+
+            isEmpty() {
+                return this.data.length === 0;
+            },
+
             // Helpers for internal use
             heapifyUp(idx) {
                 if (idx === 0) return;
@@ -2709,8 +2726,29 @@
             },
 
             compare(a, b) {
-                if (this.type === 'min') return a < b;
-                return a > b;
+                let valA = a;
+                let valB = b;
+
+                // Extract values if elements are objects or arrays
+                const extract = (item) => {
+                    if (item === null || item === undefined) return item;
+                    if (this.key && typeof item === 'object' && this.key in item) return item[this.key];
+                    if (Array.isArray(item)) return item[0];
+                    if (typeof item === 'object') {
+                        if ('val' in item) return item.val;
+                        if ('weight' in item) return item.weight;
+                        if ('dist' in item) return item.dist;
+                        if ('count' in item) return item.count;
+                        if ('priority' in item) return item.priority;
+                    }
+                    return item;
+                };
+
+                valA = extract(a);
+                valB = extract(b);
+
+                if (this.type === 'min') return valA < valB;
+                return valA > valB;
             },
 
             // Visualization Helpers
@@ -2872,6 +2910,28 @@
                     if (!node) return '';
                     const bg = '#1e293b';
                     const border = '#64748b';
+                    let displayVal = node.val;
+                    if (displayVal !== null && typeof displayVal === 'object') {
+                        if (Array.isArray(displayVal)) {
+                            // Trim arrays slightly without excessive truncation immediately
+                            displayVal = `[${displayVal.map(v => typeof v === 'object' ? '..' : String(v).substring(0, 5)).join(',')}]`;
+                        } else {
+                            // Extract a clean string representation for objects prioritizing common keys
+                            if ('word' in displayVal && 'freq' in displayVal) displayVal = `${displayVal.word}:${displayVal.freq}`;
+                            else if ('val' in displayVal && 'priority' in displayVal) displayVal = `${displayVal.val}:${displayVal.priority}`;
+                            else {
+                                const keys = Object.keys(displayVal).slice(0, 2); // Show max 2 keys
+                                displayVal = keys.map(k => {
+                                    const v = displayVal[k];
+                                    return typeof v === 'object' ? '..' : String(v).substring(0, 4);
+                                }).join(',');
+                            }
+                        }
+                    }
+                    displayVal = String(displayVal);
+                    // Prevent massive overlap
+                    if (displayVal.length > 12) displayVal = displayVal.substring(0, 10) + '..';
+
                     return `<div class="heap-node" data-index="${node.index}" style="
                         position: absolute;
                         left: ${node.x + offsetX}px;
@@ -2887,12 +2947,14 @@
                         justify-content: center;
                         font-family: 'Fira Code', monospace;
                         font-weight: bold;
-                        font-size: 0.9rem;
+                        font-size: ${displayVal.length > 8 ? '0.6rem' : (displayVal.length > 4 ? '0.75rem' : '0.9rem')};
+                        white-space: nowrap;
+                        padding: 0 4px;
                         transform: translate(-50%, -50%);
                         transition: all 0.3s ease;
                         z-index: 2;
                         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-                    ">${node.val}</div>` + drawNode(node.left) + drawNode(node.right);
+                    ">${displayVal}</div>` + drawNode(node.left) + drawNode(node.right);
                 };
                 html += drawNode(nodes[0]);
 
@@ -2901,11 +2963,12 @@
                 if (window.makeDraggable && container.firstElementChild) window.makeDraggable(container.firstElementChild);
             },
 
-            clone() { return { data: [...this.data], type: this.type }; },
+            clone() { return { data: [...this.data], type: this.type, key: this.key }; },
 
             restore(state) {
                 this.data = [...state.data];
                 this.type = state.type;
+                this.key = state.key || null;
                 this.render();
             }
         });

@@ -1,41 +1,48 @@
 {
-  "id": "kth-smallest-min-heap",
-  "name": "Kth Smallest Element (Min Heap)",
+  "id": "top-k-frequent-words-heap",
+  "name": "Top K Frequent Words",
   "difficulty": "Medium",
-  "description": "<p>To find the <strong>Kth Smallest Element</strong> in an array using a <strong>Min Heap</strong>, we follow these steps:</p><ul><li><strong>Step 1:</strong> Build a Min Heap from all elements in the input array. This takes <code>O(N)</code> time.</li><li><strong>Step 2:</strong> Extract the minimum element from the heap <code>k-1</code> times. Each extraction takes <code>O(log N)</code> time.</li><li><strong>Step 3:</strong> After <code>k-1</code> extractions, the element at the top of the Min Heap is the Kth smallest element.</li></ul><p>The total time complexity is <code>O(N + K log N)</code>, and the space complexity is <code>O(N)</code> to store the heap.</p>",
+  "description": "<p>Given an array of strings <code>words</code> and an integer <code>k</code>, return the <code>k</code> most frequent strings.</p><p>The result must be sorted by:</p><ul><li>Highest frequency first.</li><li>If two words have the same frequency, sort them in <code>lexicographical (alphabetical)</code> order.</li></ul><p><b>Approach (Heap Based):</b></p><ul><li>Count word frequencies using a <code>HashMap</code>.</li><li>Insert each <code>[word, frequency]</code> pair into a <code>Min Heap</code> of size <code>k</code>.</li><li>Heap comparison rule: lower frequency has higher priority. If frequencies are equal, lexicographically larger word has higher priority (so it gets removed first).</li><li>If heap size exceeds <code>k</code>, remove the smallest element.</li><li>Finally, extract elements from heap and reverse to get correct order.</li></ul>",
   "tags": [
-    "Array",
+    "HashMap",
     "Heap",
-    "Priority Queue"
+    "Priority Queue",
+    "Sorting"
   ],
   "slots": [
     {
-      "id": "inputArray",
+      "id": "wordsArray",
       "type": "array",
-      "label": "Input Array"
+      "label": "Input Words"
+    },
+    {
+      "id": "frequencyMap",
+      "type": "hashmap",
+      "label": "Frequency Map"
     },
     {
       "id": "minHeap",
       "type": "heap",
-      "label": "Min Heap"
+      "label": "Min Heap (Top K)",
+      "key": "freq"
     },
     {
-      "id": "variables",
+      "id": "state",
       "type": "hashmap",
-      "label": "Variables & State"
+      "label": "Variables"
     }
   ],
   "inputs": [
     {
-      "label": "Array",
-      "default": "7, 10, 4, 3, 20, 15",
-      "placeholder": "Comma-separated integers"
+      "label": "Words (comma separated)",
+      "default": "i,love,leetcode,i,love,coding",
+      "placeholder": "word1,word2,word3"
     },
     {
-      "label": "K",
-      "default": "3",
-      "placeholder": "Value of k"
+      "label": "k",
+      "default": "2",
+      "placeholder": "Enter k"
     }
   ],
-  "code": "class Playground {\n    async run(inputs) {\n        // 1. Parse Inputs\n        const nums = inputs[0].split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));\n        const k = parseInt(inputs[1]);\n\n        if (isNaN(k) || k <= 0 || k > nums.length) {\n            this.log(\"Invalid value for K\");\n            return \"Invalid K\";\n        }\n\n        // 2. Initialize Visualizers\n        this.inputArray.init(nums);\n        this.minHeap.init([], 'min');\n        this.variables.init([\n            [\"k\", k],\n            [\"elements_extracted\", 0],\n            [\"current_min\", \"null\"]\n        ]);\n        this.log(`Finding the ${k}th smallest element...`);\n        await this.await();\n\n        // 3. Build the Min Heap\n        this.log(\"Building Min Heap by inserting all elements from the array.\");\n        for (let i = 0; i < nums.length; i++) {\n            const val = nums[i];\n            this.inputArray.highlight(i, \"#00e0ff\");\n            this.minHeap.push(val);\n            this.log(`Inserted ${val} into the Min Heap`);\n            await this.await();\n            this.inputArray.highlight(i, null);\n        }\n\n        // 4. Extract k-1 elements\n        this.log(`Now we extract the minimum element ${k - 1} times.`);\n        for (let i = 1; i < k; i++) {\n            const extracted = this.minHeap.pop();\n            this.variables.put(\"elements_extracted\", i);\n            this.variables.put(\"current_min\", extracted);\n            this.log(`Extraction ${i}: Popped ${extracted} (The current smallest)`);\n            await this.await();\n        }\n\n        // 5. Peek the result\n        const result = this.minHeap.peek();\n        this.variables.put(\"current_min\", result);\n        this.minHeap.highlight(0, \"#00f5a0\");\n        this.log(`The ${k}th smallest element is the root of the heap: ${result}`);\n        await this.await();\n\n        return result;\n    }\n}"
+  "code": "class Playground {\n    async run(inputs) {\n        const words = inputs[0].split(',').map(w => w.trim());\n        const k = parseInt(inputs[1]);\n\n        this.wordsArray.init(words);\n        this.frequencyMap.init([]);\n        this.minHeap.init([], 'min', 'freq');\n        this.state.init([]);\n\n        this.state.put('k', k);\n        this.log('Initialized input and variables');\n        await this.await();\n\n        // Step 1: Build Frequency Map\n        for (let i = 0; i < words.length; i++) {\n            const word = words[i];\n            this.wordsArray.highlight(i, '#ffb703');\n            this.log('Processing word: ' + word);\n            await this.await();\n\n            let count = 0;\n            if (this.frequencyMap.has(word)) {\n                count = this.frequencyMap.get(word);\n            }\n            this.frequencyMap.put(word, count + 1);\n            this.frequencyMap.highlight(word, '#00e0ff');\n            this.log('Updated frequency of ' + word + ' to ' + (count + 1));\n            await this.await();\n        }\n\n        this.log('Frequency map constructed. Now building Min Heap of size k');\n        await this.await();\n\n        // Step 2: Build Min Heap of size k\n        const entries = this.frequencyMap.getEntries();\n        for (let i = 0; i < entries.length; i++) {\n            const word = entries[i][0];\n            const freq = entries[i][1];\n\n            const node = { word: word, freq: freq };\n            this.minHeap.push(node);\n            this.log('Inserted into heap: ' + word + ' with freq ' + freq);\n            await this.await();\n\n            if (this.minHeap.size() > k) {\n                const removed = this.minHeap.pop();\n                this.log('Heap size exceeded k. Removed: ' + removed.word);\n                await this.await();\n            }\n        }\n\n        this.log('Heap constructed. Extracting top k elements');\n        await this.await();\n\n        // Step 3: Extract elements\n        const result = [];\n        while (!this.minHeap.isEmpty()) {\n            const node = this.minHeap.pop();\n            result.push(node.word);\n            this.log('Extracted: ' + node.word);\n            await this.await();\n        }\n\n        result.reverse();\n        this.log('Final result after reversing: ' + JSON.stringify(result));\n        await this.await();\n\n        return result;\n    }\n}\n"
 }

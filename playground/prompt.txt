@@ -93,8 +93,9 @@ Each slot is accessible via `this.slotId`. Global utilities: `this.log(msg)` and
     - `highlight(nodeOrId, color)`.
 
 11. **Heap**:
-    - `init(vals, type='min'|'max')`.
-    - `push(v)`, `pop()`, `peek()`.
+    - `init(vals, type='min'|'max', key?)`. Can seamlessly store numbers, arrays (e.g. `[dist, node]`), or objects (e.g. `{val: 5, id: 'A'}`). If storing objects/arrays, you can optionally pass a `key` string (e.g. `'dist'`) to compare by that property, or rely on the default which auto-extracts `[0]`, `.val`, `.weight`, `.dist`, `.count`, or `.priority`.
+    - `push(v)`, `pop()`, `peek()`, `isEmpty()`, `size()`.
+    - `getValues()`: Returns a copy of the heap array (always returns an array, never null).
     - `highlight(idx, color)`.
 
 12. **Union Find**:
