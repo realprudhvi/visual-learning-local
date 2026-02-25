@@ -1,5 +1,6 @@
 const express = require('express');
 const { GoogleGenAI } = require('@google/genai');
+const Groq = require('groq-sdk');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
@@ -16,10 +17,10 @@ app.use(express.static(path.join(__dirname)));
 
 app.post('/api/generate', async (req, res) => {
     try {
-        const { apiKey, problemDescription } = req.body;
+        const { apiKey, problemDescription, platform = 'gemini' } = req.body;
 
         if (!apiKey) {
-            return res.status(400).json({ error: 'Gemini API key is required.' });
+            return res.status(400).json({ error: 'API key is required.' });
         }
         if (!problemDescription) {
             return res.status(400).json({ error: 'Problem description is required.' });
@@ -30,17 +31,34 @@ app.post('/api/generate', async (req, res) => {
         const promptPath = path.join(__dirname, 'playground', 'prompt.txt');
         const systemPrompt = fs.readFileSync(promptPath, 'utf-8');
 
-        // Combine the system prompt and the user's problem description
-        const combinedPrompt = `${systemPrompt}\n\nUSER PROBLEM DESCRIPTION:\n${problemDescription}`;
-
-        const ai = new GoogleGenAI({ apiKey: apiKey });
-
-        const response = await ai.models.generateContent({
-            model: selectedModel,
-            contents: combinedPrompt,
-        });
-
-        const textResponse = response.text;
+        let textResponse = '';
+        if (platform === 'groq') {
+            const groq = new Groq({ apiKey: apiKey });
+            const completion = await groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: systemPrompt
+                    },
+                    {
+                        role: "user",
+                        content: `USER PROBLEM DESCRIPTION:\n${problemDescription}`
+                    }
+                ],
+                model: selectedModel,
+                temperature: 0.1,
+                response_format: { type: "json_object" },
+            });
+            textResponse = completion.choices[0]?.message?.content || '{}';
+        } else {
+            const combinedPrompt = `${systemPrompt}\n\nUSER PROBLEM DESCRIPTION:\n${problemDescription}`;
+            const ai = new GoogleGenAI({ apiKey: apiKey });
+            const response = await ai.models.generateContent({
+                model: selectedModel,
+                contents: combinedPrompt,
+            });
+            textResponse = response.text;
+        }
 
         // Try to extract JSON from markdown if it's wrapped in triple backticks
         let jsonStr = textResponse;
@@ -65,25 +83,38 @@ app.post('/api/generate', async (req, res) => {
 
 app.post('/api/models', async (req, res) => {
     try {
-        const { apiKey } = req.body;
+        const { apiKey, platform = 'gemini' } = req.body;
         if (!apiKey) {
-            return res.status(400).json({ error: 'Gemini API key is required.' });
+            return res.status(400).json({ error: 'API key is required.' });
         }
 
-        const ai = new GoogleGenAI({ apiKey: apiKey });
-
-        // Fetch models using the new SDK
-        const response = await ai.models.list();
-
-        // Filter to include only models that support content generation
         let availableModels = [];
-        for await (const model of response) {
-            if (model.supportedActions && model.supportedActions.includes('generateContent')) {
-                // Return the displayable name and the actual model payload id
+
+        if (platform === 'groq') {
+            const groq = new Groq({ apiKey: apiKey });
+            const response = await groq.models.list();
+            for (const model of response.data) {
+                // Return displayable name
                 availableModels.push({
-                    name: model.name,
-                    displayName: model.displayName || model.name
+                    name: model.id,
+                    displayName: model.id
                 });
+            }
+        } else {
+            const ai = new GoogleGenAI({ apiKey: apiKey });
+
+            // Fetch models using the new SDK
+            const response = await ai.models.list();
+
+            // Filter to include only models that support content generation
+            for await (const model of response) {
+                if (model.supportedActions && model.supportedActions.includes('generateContent')) {
+                    // Return the displayable name and the actual model payload id
+                    availableModels.push({
+                        name: model.name,
+                        displayName: model.displayName || model.name
+                    });
+                }
             }
         }
 

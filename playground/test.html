@@ -1094,7 +1094,15 @@
                 <div class="panel" id="ai-generator-panel">
                     <h3>✨ Generate Visualization</h3>
                     <div class="input-group">
-                        <label class="input-label" for="ai-api-key">Gemini API Key</label>
+                        <label class="input-label" for="ai-platform">API Platform</label>
+                        <select class="input-field" id="ai-platform" onchange="handlePlatformChange()"
+                            style="background: var(--bg-body); color: white; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif; padding: 10px; margin-bottom: 10px;">
+                            <option value="gemini" selected>Gemini</option>
+                            <option value="groq">Groq</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label" id="api-key-label" for="ai-api-key">Gemini API Key</label>
                         <input type="password" class="input-field" id="ai-api-key" placeholder="Enter your API key"
                             onblur="fetchModels()" style="padding: 10px;">
                     </div>
@@ -4731,17 +4739,60 @@
 
         // ============ AI GENERATOR ============
 
-        // Load API key from localStorage on load
+        // Load API key, platform, and model from localStorage on load
         document.addEventListener('DOMContentLoaded', () => {
-            const savedKey = localStorage.getItem('geminiApiKey');
+            const savedPlatform = localStorage.getItem('aiPlatform');
+            if (savedPlatform) {
+                const platformSelect = document.getElementById('ai-platform');
+                if (platformSelect) {
+                    platformSelect.value = savedPlatform;
+                }
+            }
+
+            const platform = document.getElementById('ai-platform') ? document.getElementById('ai-platform').value : 'gemini';
+            const savedKey = localStorage.getItem(platform === 'groq' ? 'groqApiKey' : 'geminiApiKey');
+
+            // Trigger UI update based on platform
+            handlePlatformChange(false); // pass false to avoid double fetching models
+
             if (savedKey) {
                 document.getElementById('ai-api-key').value = savedKey;
                 fetchModels();
             }
         });
 
+        function handlePlatformChange(shouldFetch = true) {
+            const platform = document.getElementById('ai-platform').value;
+            const keyLabel = document.getElementById('api-key-label');
+            const apiKeyInput = document.getElementById('ai-api-key');
+            const modelSelect = document.getElementById('ai-model');
+
+            // Save platform selection
+            localStorage.setItem('aiPlatform', platform);
+
+            if (platform === 'groq') {
+                keyLabel.textContent = 'Groq API Key';
+                const savedKey = localStorage.getItem('groqApiKey');
+                apiKeyInput.value = savedKey || '';
+            } else {
+                keyLabel.textContent = 'Gemini API Key';
+                const savedKey = localStorage.getItem('geminiApiKey');
+                apiKeyInput.value = savedKey || '';
+            }
+
+            if (shouldFetch) {
+                // Re-fetch models if key exists
+                if (apiKeyInput.value.trim()) {
+                    fetchModels();
+                } else {
+                    modelSelect.innerHTML = '<option value="">Enter API Key to load models...</option>';
+                }
+            }
+        }
+
         async function fetchModels() {
             const apiKey = document.getElementById('ai-api-key').value.trim();
+            const platform = document.getElementById('ai-platform') ? document.getElementById('ai-platform').value : 'gemini';
             const modelSelect = document.getElementById('ai-model');
             const statusEl = document.getElementById('ai-status');
 
@@ -4761,7 +4812,7 @@
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiKey: apiKey })
+                    body: JSON.stringify({ apiKey: apiKey, platform: platform })
                 });
 
                 let data;
@@ -4774,6 +4825,9 @@
                 if (response.ok) {
                     modelSelect.innerHTML = '';
                     if (data.models && data.models.length > 0) {
+                        const savedModel = localStorage.getItem('aiModel');
+                        let modelFound = false;
+
                         data.models.forEach(model => {
                             const option = document.createElement('option');
                             // Extract just the model name part if it has "models/" prefix
@@ -4781,13 +4835,29 @@
                             option.value = modelId;
                             option.textContent = model.displayName || modelId;
 
-                            // Select gemini-3-flash-preview, gemini-2.5-pro, or gemini-2.5-flash as default if available
-                            if (modelId === 'gemini-3-flash-preview' || modelId === 'gemini-2.5-pro' || modelId === 'gemini-2.5-flash') {
+                            if (savedModel && savedModel === modelId) {
                                 option.selected = true;
+                                modelFound = true;
                             }
 
                             modelSelect.appendChild(option);
                         });
+
+                        // If the saved model wasn't in the list, fallback to defaults
+                        if (!modelFound) {
+                            Array.from(modelSelect.options).forEach(option => {
+                                const modelId = option.value;
+                                if (platform === 'groq') {
+                                    if (modelId.includes('llama3-8b-8192') || modelId.includes('mixtral')) {
+                                        option.selected = true;
+                                    }
+                                } else {
+                                    if (modelId === 'gemini-3-flash-preview' || modelId === 'gemini-2.5-pro' || modelId === 'gemini-2.5-flash') {
+                                        option.selected = true;
+                                    }
+                                }
+                            });
+                        }
                         modelSelect.disabled = false;
                     } else {
                         modelSelect.innerHTML = '<option value="">No generating models found</option>';
@@ -4808,12 +4878,13 @@
 
         async function generateWithAI() {
             const apiKey = document.getElementById('ai-api-key').value.trim();
+            const platform = document.getElementById('ai-platform') ? document.getElementById('ai-platform').value : 'gemini';
             const selectedModel = document.getElementById('ai-model').value;
             const problemDesc = document.getElementById('ai-problem-desc').value.trim();
             const statusEl = document.getElementById('ai-status');
 
             if (!apiKey) {
-                alert('Please enter a Gemini API Key.');
+                alert(`Please enter a ${platform === 'groq' ? 'Groq' : 'Gemini'} API Key.`);
                 return;
             }
             if (!problemDesc) {
@@ -4822,7 +4893,13 @@
             }
 
             // Save key to localStorage
-            localStorage.setItem('geminiApiKey', apiKey);
+            if (platform === 'groq') {
+                localStorage.setItem('groqApiKey', apiKey);
+            } else {
+                localStorage.setItem('geminiApiKey', apiKey);
+            }
+            localStorage.setItem('aiPlatform', platform);
+            localStorage.setItem('aiModel', selectedModel);
 
             statusEl.style.display = 'block';
             statusEl.textContent = 'Generating... (this may take a few seconds)';
@@ -4841,6 +4918,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         apiKey: apiKey,
+                        platform: platform,
                         model: selectedModel,
                         problemDescription: problemDesc
                     })

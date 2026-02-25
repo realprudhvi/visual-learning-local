@@ -1,41 +1,41 @@
 {
-  "id": "subarray-sum-equals-k",
-  "name": "Subarray Sum Equals K",
+  "id": "kth-smallest-min-heap",
+  "name": "Kth Smallest Element (Min Heap)",
   "difficulty": "Medium",
-  "description": " <p>Given an array of integers <code>nums</code> and an integer <code>k</code>, return the total number of subarrays whose sum equals to <code>k</code>.</p><p>A <strong>subarray</strong> is a contiguous non-empty sequence of elements within an array.</p><ul><li>Example 1: <code>nums = [1,1,1], k = 2</code> → Output: <code>2</code></li><li>Example 2: <code>nums = [1,2,3], k = 3</code> → Output: <code>2</code></li></ul><p>The optimal approach uses a <b>Prefix Sum</b> logic combined with a <b>Hash Map</b> to store the frequency of prefix sums encountered so far.</p>",
+  "description": "<p>To find the <strong>Kth Smallest Element</strong> in an array using a <strong>Min Heap</strong>, we follow these steps:</p><ul><li><strong>Step 1:</strong> Build a Min Heap from all elements in the input array. This takes <code>O(N)</code> time.</li><li><strong>Step 2:</strong> Extract the minimum element from the heap <code>k-1</code> times. Each extraction takes <code>O(log N)</code> time.</li><li><strong>Step 3:</strong> After <code>k-1</code> extractions, the element at the top of the Min Heap is the Kth smallest element.</li></ul><p>The total time complexity is <code>O(N + K log N)</code>, and the space complexity is <code>O(N)</code> to store the heap.</p>",
   "tags": [
     "Array",
-    "Hashmap",
-    "Prefix Sum"
+    "Heap",
+    "Priority Queue"
   ],
   "slots": [
     {
-      "id": "numsArray",
+      "id": "inputArray",
       "type": "array",
       "label": "Input Array"
     },
     {
-      "id": "prefixSumMap",
-      "type": "hashmap",
-      "label": "Prefix Sum Frequencies"
+      "id": "minHeap",
+      "type": "heap",
+      "label": "Min Heap"
     },
     {
-      "id": "state",
+      "id": "variables",
       "type": "hashmap",
-      "label": "Variables"
+      "label": "Variables & State"
     }
   ],
   "inputs": [
     {
-      "label": "Numbers (comma-separated)",
-      "default": "1,2,1,2,1",
-      "placeholder": "1,2,3"
+      "label": "Array",
+      "default": "7, 10, 4, 3, 20, 15",
+      "placeholder": "Comma-separated integers"
     },
     {
-      "label": "Target Sum (k)",
+      "label": "K",
       "default": "3",
-      "placeholder": "3"
+      "placeholder": "Value of k"
     }
   ],
-  "code": "class Playground {\n    async run(inputs) {\n        const nums = inputs[0].split(',').map(Number);\n        const k = parseInt(inputs[1]);\n\n        // 1. Initialize Visualizations\n        await this.numsArray.init(nums);\n        // We initialize the map with {0: 1} to handle cases where (currentSum === k)\n        await this.prefixSumMap.init([[0, 1]]);\n        await this.state.init([\n            [\"count\", 0],\n            [\"currentSum\", 0],\n            [\"targetToFind\", \"-\"]\n        ]);\n\n        this.log(\"Initialized map with {0: 1} to account for subarrays starting from index 0.\");\n        await this.await();\n\n        let count = 0;\n        let currentSum = 0;\n\n        for (let i = 0; i < nums.length; i++) {\n            // Reset highlights and focus on current element\n            this.numsArray.highlight(i, \"#00e0ff\");\n            currentSum += nums[i];\n            \n            const targetToFind = currentSum - k;\n            \n            this.state.put(\"currentSum\", currentSum);\n            this.state.put(\"targetToFind\", targetToFind);\n            this.state.highlight(\"targetToFind\", \"#ffb703\");\n            \n            this.log(`Index ${i}: val=${nums[i]}, sum=${currentSum}. Looking for prefix sum (sum - k) = ${targetToFind}`);\n            await this.await();\n\n            // Check if the target prefix sum exists in our map\n            if (this.prefixSumMap.has(targetToFind)) {\n                const frequency = this.prefixSumMap.get(targetToFind);\n                count += frequency;\n                \n                this.prefixSumMap.highlight(targetToFind, \"#00f5a0\");\n                this.state.put(\"count\", count);\n                this.state.highlight(\"count\", \"#00f5a0\");\n                \n                this.log(`Found! Prefix sum ${targetToFind} occurred ${frequency} time(s). Total subarrays updated to ${count}.`);\n                await this.await();\n            } else {\n                this.log(`Prefix sum ${targetToFind} not found in map.`);\n                await this.await();\n            }\n\n            // Update the frequency of the current prefix sum in the map\n            const currentFreq = this.prefixSumMap.has(currentSum) ? this.prefixSumMap.get(currentSum) : 0;\n            this.prefixSumMap.put(currentSum, currentFreq + 1);\n            this.prefixSumMap.highlight(currentSum, \"#6c8cff\");\n            \n            this.log(`Updated map: freq of sum ${currentSum} is now ${currentFreq + 1}`);\n            await this.await();\n\n            // Clean up highlights for next iteration\n            this.numsArray.highlight(i, null);\n            this.prefixSumMap.highlight(targetToFind, null);\n            this.prefixSumMap.highlight(currentSum, null);\n            this.state.highlight(\"count\", null);\n            this.state.highlight(\"targetToFind\", null);\n        }\n\n        this.log(`Finished! Total subarrays with sum ${k} is ${count}`);\n        return count;\n    }\n}"
+  "code": "class Playground {\n    async run(inputs) {\n        // 1. Parse Inputs\n        const nums = inputs[0].split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));\n        const k = parseInt(inputs[1]);\n\n        if (isNaN(k) || k <= 0 || k > nums.length) {\n            this.log(\"Invalid value for K\");\n            return \"Invalid K\";\n        }\n\n        // 2. Initialize Visualizers\n        this.inputArray.init(nums);\n        this.minHeap.init([], 'min');\n        this.variables.init([\n            [\"k\", k],\n            [\"elements_extracted\", 0],\n            [\"current_min\", \"null\"]\n        ]);\n        this.log(`Finding the ${k}th smallest element...`);\n        await this.await();\n\n        // 3. Build the Min Heap\n        this.log(\"Building Min Heap by inserting all elements from the array.\");\n        for (let i = 0; i < nums.length; i++) {\n            const val = nums[i];\n            this.inputArray.highlight(i, \"#00e0ff\");\n            this.minHeap.push(val);\n            this.log(`Inserted ${val} into the Min Heap`);\n            await this.await();\n            this.inputArray.highlight(i, null);\n        }\n\n        // 4. Extract k-1 elements\n        this.log(`Now we extract the minimum element ${k - 1} times.`);\n        for (let i = 1; i < k; i++) {\n            const extracted = this.minHeap.pop();\n            this.variables.put(\"elements_extracted\", i);\n            this.variables.put(\"current_min\", extracted);\n            this.log(`Extraction ${i}: Popped ${extracted} (The current smallest)`);\n            await this.await();\n        }\n\n        // 5. Peek the result\n        const result = this.minHeap.peek();\n        this.variables.put(\"current_min\", result);\n        this.minHeap.highlight(0, \"#00f5a0\");\n        this.log(`The ${k}th smallest element is the root of the heap: ${result}`);\n        await this.await();\n\n        return result;\n    }\n}"
 }
