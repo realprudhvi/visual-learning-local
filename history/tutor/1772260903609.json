@@ -1,0 +1,25 @@
+{
+  "name": "The Big O Complexity Hierarchy",
+  "difficulty": "Beginner",
+  "chatResponse": "I'll guide you through the fundamental concept of Time Complexity, illustrating how algorithm efficiency changes as input size grows. We will visualize the 'Big O' spectrum from constant time to quadratic growth.",
+  "steps": [
+    {
+      "title": "Defining the Metric",
+      "content": "Time complexity isn't about measuring actual seconds; it's about **growth rate**. Big O notation ($O(n)$) describes the upper bound of an algorithm's execution time relative to the input size $n$. As $n$ grows, which algorithms remain fast, and which ones explode in execution time?"
+    },
+    {
+      "title": "The Efficient Zone",
+      "content": "- **$O(1)$ (Constant):** Time remains the same regardless of input size (e.g., accessing an array index).\n- **$O(\\log n)$ (Logarithmic):** Time increases slowly (e.g., Binary Search). Even with a billion elements, it only takes about 30 steps."
+    },
+    {
+      "title": "The Scalable Zone",
+      "content": "- **$O(n)$ (Linear):** Time grows proportionally to input (e.g., simple loop through a list).\n- **$O(n \\log n)$ (Quasilinear):** The standard for efficient sorting algorithms like Merge Sort or Quick Sort."
+    },
+    {
+      "title": "The Danger Zone",
+      "content": "- **$O(n^2)$ (Quadratic):** Performance degrades quickly; common in nested loops. Doubling the input quadruples the work.\n- **$O(2^n)$ and $O(n!)$:** These are exponential and factorial complexities. They become practically impossible to compute for even small inputs."
+    }
+  ],
+  "visualType": "chartjs",
+  "visualCode": "{\"type\":\"line\",\"data\":{\"labels\":[2,4,8,16,32,64,128],\"datasets\":[{\"label\":\"O(1)\",\"data\":[1,1,1,1,1,1,1],\"borderColor\":\"#94a3b8\",\"borderDash\":[5,5],\"fill\":false},{\"label\":\"O(log n)\",\"data\":[1,2,3,4,5,6,7],\"borderColor\":\"#10b981\",\"fill\":false},{\"label\":\"O(n)\",\"data\":[2,4,8,16,32,64,128],\"borderColor\":\"#3b82f6\",\"fill\":false},{\"label\":\"O(n log n)\",\"data\":[2,8,24,64,160,384,896],\"borderColor\":\"#f59e0b\",\"fill\":false},{\"label\":\"O(n^2)\",\"data\":[4,16,64,256,1024,4096,16384],\"borderColor\":\"#ef4444\",\"fill\":false}]},\"options\":{\"responsive\":true,\"maintainAspectRatio\":false,\"scales\":{\"y\":{\"type\":\"logarithmic\",\"title\":{\"display\":true,\"text\":\"Operations (Log Scale)\",\"color\":\"#f8fafc\"},\"grid\":{\"color\":\"#334155\"},\"ticks\":{\"color\":\"#94a3b8\"}},\"x\":{\"title\":{\"display\":true,\"text\":\"Input Size (n)\",\"color\":\"#f8fafc\"},\"grid\":{\"color\":\"#334155\"},\"ticks\":{\"color\":\"#94a3b8\"}}},\"plugins\":{\"legend\":{\"labels\":{\"color\":\"#f8fafc\"}},\"title\":{\"display\":true,\"text\":\"Growth Comparison of Big O Complexities\",\"color\":\"#f8fafc\",\"font\":{\"size\":16}}}}}"
+}

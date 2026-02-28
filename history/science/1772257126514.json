@@ -1,0 +1,50 @@
+{
+  "id": "deep-neural-network-viz",
+  "name": "Neural Network Architecture: Single Hidden Layer",
+  "difficulty": "Medium",
+  "description": "This simulation visualizes a **Feedforward Neural Network** with one hidden layer. It demonstrates how a network transforms 2D input space into a non-linear decision boundary.\n\n### Core Concepts\n\n1. **Forward Propagation**: Input signals $x_1, x_2$ are multiplied by weights $w$, summed with a bias $b$, and passed through an activation function $\\sigma$.\n2. **Hidden Layer**: The intermediate layer allows the network to learn feature representations. Increasing the number of neurons increases the capacity of the model to learn complex shapes.\n3. **Activation Functions**: \n   - **ReLU**: $f(x) = \\max(0, x)$ (Efficient, reduces vanishing gradient).\n   - **Sigmoid**: $f(x) = \\frac{1}{1 + e^{-x}}$ (Maps output to $(0, 1)$).\n   - **Tanh**: $f(x) = \\tanh(x)$ (Maps output to $(-1, 1)$).\n\n### Visualization\n- **Left Side**: The physical topology of the network. The thickness of the connections (synapses) represents weight magnitude, and color represents sign (Blue for positive, Red for negative).\n- **Right Side**: The **Decision Landscape**. This shows the output value for every possible coordinate in the 2D input space, visualizing how the network 'sees' the world.",
+  "tags": [
+    "machine-learning",
+    "ai",
+    "mathematics",
+    "neural-networks"
+  ],
+  "inputs": [
+    {
+      "id": "neuronCount",
+      "label": "Hidden Neurons",
+      "type": "range",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "value": 6
+    },
+    {
+      "id": "activation",
+      "label": "Activation Function",
+      "type": "select",
+      "options": [
+        "relu",
+        "sigmoid",
+        "tanh"
+      ],
+      "value": "relu"
+    },
+    {
+      "id": "weightScale",
+      "label": "Weight Intensity",
+      "type": "range",
+      "min": 0.1,
+      "max": 5,
+      "step": 0.1,
+      "value": 1.5
+    },
+    {
+      "id": "showGrid",
+      "label": "Show Decision Landscape",
+      "type": "checkbox",
+      "value": true
+    }
+  ],
+  "renderingCode": "class ScienceSimulation {\n    constructor(container, initialInputs) {\n        this.container = container;\n        this.canvas = document.createElement('canvas');\n        this.ctx = this.canvas.getContext('2d');\n        this.container.appendChild(this.canvas);\n        this.weights1 = [];\n        this.weights2 = [];\n        this.biases1 = [];\n        this.bias2 = 0.5;\n        this.lastNeuronCount = 0;\n        this.initWeights(initialInputs.neuronCount);\n        this.resize();\n        window.addEventListener('resize', () => this.resize());\n    }\n\n    initWeights(count) {\n        this.weights1 = [];\n        this.weights2 = [];\n        this.biases1 = [];\n        for (let i = 0; i < count; i++) {\n            this.weights1.push([Math.sin(i * 1.5) * 2, Math.cos(i * 2.1) * 2]);\n            this.biases1.push(Math.sin(i * 0.7));\n            this.weights2.push(Math.cos(i * 1.1) * 2);\n        }\n        this.lastNeuronCount = count;\n    }\n\n    resize() {\n        this.width = this.container.clientWidth;\n        this.height = this.container.clientHeight;\n        this.canvas.width = this.width * window.devicePixelRatio;\n        this.canvas.height = this.height * window.devicePixelRatio;\n        this.canvas.style.width = this.width + 'px';\n        this.canvas.style.height = this.height + 'px';\n        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);\n    }\n\n    activate(x, type) {\n        if (type === 'relu') return Math.max(0, x);\n        if (type === 'sigmoid') return 1 / (1 + Math.exp(-x));\n        if (type === 'tanh') return Math.tanh(x);\n        return x;\n    }\n\n    forward(ins, inputs) {\n        let hidden = [];\n        for (let i = 0; i < inputs.neuronCount; i++) {\n            let sum = ins[0] * this.weights1[i][0] * inputs.weightScale + ins[1] * this.weights1[i][1] * inputs.weightScale + this.biases1[i];\n            hidden.push(this.activate(sum, inputs.activation));\n        }\n        let outSum = 0;\n        for (let i = 0; i < inputs.neuronCount; i++) {\n            outSum += hidden[i] * this.weights2[i] * inputs.weightScale;\n        }\n        return this.activate(outSum + this.bias2, 'sigmoid');\n    }\n\n    update(inputs) {\n        if (inputs.neuronCount !== this.lastNeuronCount) {\n            this.initWeights(inputs.neuronCount);\n        }\n\n        const ctx = this.ctx;\n        ctx.clearRect(0, 0, this.width, this.height);\n\n        const halfW = this.width / 2;\n        \n        if (inputs.showGrid) {\n            const gridSize = 40;\n            const stepX = (this.width / 2) / gridSize;\n            const stepY = this.height / gridSize;\n            for (let i = 0; i < gridSize; i++) {\n                for (let j = 0; j < gridSize; j++) {\n                    const nx = (i / gridSize) * 2 - 1;\n                    const ny = (j / gridSize) * 2 - 1;\n                    const val = this.forward([nx, ny], inputs);\n                    ctx.fillStyle = `rgba(59, 130, 246, ${val})`;\n                    ctx.fillRect(halfW + i * stepX, j * stepY, stepX + 1, stepY + 1);\n                    ctx.fillStyle = `rgba(239, 68, 68, ${1 - val})`;\n                    ctx.fillRect(halfW + i * stepX, j * stepY, stepX + 1, stepY + 1);\n                }\n            }\n        }\n\n        const layers = [2, inputs.neuronCount, 1];\n        const layerX = [halfW * 0.15, halfW * 0.5, halfW * 0.85];\n        const nodeRadius = 12;\n\n        layers.forEach((count, lIdx) => {\n            const x = layerX[lIdx];\n            const spacing = (this.height - 100) / (count + 1);\n            for (let i = 0; i < count; i++) {\n                const y = 50 + (i + 1) * spacing;\n\n                if (lIdx < layers.length - 1) {\n                    const nextCount = layers[lIdx + 1];\n                    const nextSpacing = (this.height - 100) / (nextCount + 1);\n                    for (let j = 0; j < nextCount; j++) {\n                        const nextY = 50 + (j + 1) * nextSpacing;\n                        let w = 0;\n                        if (lIdx === 0) w = this.weights1[j][i];\n                        else w = this.weights2[i];\n                        \n                        ctx.beginPath();\n                        ctx.moveTo(x, y);\n                        ctx.lineTo(layerX[lIdx + 1], nextY);\n                        ctx.lineWidth = Math.abs(w) * inputs.weightScale * 1.5;\n                        ctx.strokeStyle = w > 0 ? '#3b82f6' : '#ef4444';\n                        ctx.globalAlpha = 0.4;\n                        ctx.stroke();\n                        ctx.globalAlpha = 1.0;\n                    }\n                }\n\n                ctx.beginPath();\n                ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);\n                ctx.fillStyle = '#ffffff';\n                ctx.fill();\n                ctx.strokeStyle = '#1e293b';\n                ctx.lineWidth = 2;\n                ctx.stroke();\n            }\n        });\n\n        ctx.fillStyle = '#1e293b';\n        ctx.font = 'bold 14px sans-serif';\n        ctx.textAlign = 'center';\n        ctx.fillText('INPUT LAYER', layerX[0], 30);\n        ctx.fillText('HIDDEN LAYER', layerX[1], 30);\n        ctx.fillText('OUTPUT', layerX[2], 30);\n        ctx.fillText('DECISION LANDSCAPE', halfW + halfW/2, 30);\n    }\n}"
+}

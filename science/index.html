@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scientific Interactive Visualizer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Plotly & ChartJS for AI to use inside eval() if needed -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Markdown Rendering & Sanitization -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        /* Shared variables */
+        :root {
+            --bg-body: #0f172a;
+            --bg-panel: #1e293b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: #334155;
+        }
+
+        /* Box Model Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Base styles mirrored from charts/architecture */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px 24px;
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px;
+            display: block;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+            height: calc(100vh - 100px);
+            width: 100%;
+            transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-layout.collapsed {
+            grid-template-columns: 0px 1fr;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 100%;
+            overflow-y: auto;
+            padding-right: 8px;
+            width: 350px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .main-layout.collapsed .left-column {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-20px);
+        }
+
+        .left-column::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .left-column::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .left-column::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .panel {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            backdrop-filter: blur(12px);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-top: 0;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3::before {
+            content: '';
+            width: 4px;
+            height: 14px;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+
+        /* Markdown Styles for description panel */
+        #architecture-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #94a3b8;
+        }
+
+        #architecture-description h1,
+        #architecture-description h2,
+        #architecture-description h3 {
+            color: #f8fafc;
+            margin-top: 1.2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        #architecture-description p {
+            margin-bottom: 1rem;
+        }
+
+        #architecture-description ul,
+        #architecture-description ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .tag {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* General Inputs */
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+            font-family: "Inter", sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--text-sub);
+        }
+
+        /* Dynamic Simulator Inputs */
+        .dyn-input-group {
+            margin-bottom: 16px;
+            background: rgba(15, 23, 42, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dyn-input-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .dyn-input-val {
+            color: #60a5fa;
+            font-family: 'Fira Code', monospace;
+        }
+
+        input[type=range] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+
+        button.btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: 1px solid #60a5fa;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        button.btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Right Column Output */
+        .right-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            overflow: visible;
+            position: relative;
+        }
+
+        .output-panel {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex: 1;
+            overflow: visible;
+            min-height: 600px;
+        }
+
+        /* Toggle Button */
+        .toggle-sidebar-btn {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            color: var(--text-sub);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-sidebar-btn:hover {
+            color: #f8fafc;
+            border-color: #64748b;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .toggle-sidebar-btn svg {
+            transition: transform 0.4s ease;
+        }
+
+        .main-layout.collapsed .toggle-sidebar-btn svg {
+            transform: rotate(180deg);
+        }
+
+        #simulation-container {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Header UI (Copy of charts) */
+        .header-flex {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            max-width: 1600px;
+            margin: 0 auto 24px auto;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--bg-panel);
+            min-width: 260px;
+            max-height: 60vh;
+            box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            z-index: 50;
+            overflow-y: auto;
+            top: 100%;
+            margin-top: 8px;
+        }
+
+        .dropdown-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .dropdown-content a {
+            color: var(--text-main);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #60a5fa;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 20px;
+            margin-bottom: -20px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .right-content {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-flex">
+        <!-- Column 1: Back Button -->
+        <div style="justify-self: start;">
+            <a href="../index.html" class="home-btn" title="Back to Modules"
+                style="text-decoration: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-sub); transition: all 0.25s ease;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Column 2: Centered Title -->
+        <h1 style="margin-bottom: 0; justify-self: center;">Science & Math Simulations</h1>
+
+        <!-- Column 3: History Controls -->
+        <div class="history-controls" style="display: flex; gap: 12px; align-items: center; justify-self: end;">
+            <button id="delete-visual-btn" title="Delete Current Visual" onclick="deleteCurrentHistory()"
+                style="display: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); transition: all 0.2s; cursor: pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6V20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+
+            <a href="?config=placeholder.json" title="New Blank Simulation"
+                style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); transition: all 0.2s; cursor: pointer;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </a>
+
+            <div class="dropdown" style="position: relative; display: inline-block;">
+                <button class="dropbtn"
+                    style="display: flex; align-items: center; gap: 8px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; color: var(--text-main); font-size: 0.9rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.2s;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    History
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="dropdown-content" id="history-dropdown">
+                    <div style="padding: 12px 16px; color: var(--text-sub); font-size: 0.8rem; font-style: italic;">
+                        Loading history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-layout" id="main-layout">
+        <!-- Left Panel: Context & Simulation Controls -->
+        <div class="left-column">
+            <div class="panel">
+                <h2><span class="icon">🔬</span> <span id="architecture-title">Loading...</span></h2>
+                <div class="description-content" id="architecture-description">
+                    <p>Fetching simulation context...</p>
+                </div>
+                <div class="tags" id="architecture-tags"></div>
+            </div>
+
+            <div class="panel" id="dynamic-controls-panel" style="display: none;">
+                <h3 style="margin-bottom: 20px;"><span style="color: #60a5fa; margin-right: 6px;">⚙</span> Simulation
+                    Controls</h3>
+                <div id="dynamic-inputs-container">
+                    <!-- Sliders and Inputs generated here automatically -->
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>✨ Generate Simulation</h3>
+
+                <div class="input-group">
+                    <label class="input-label">Describe a Science or Math concept to simulate dynamically</label>
+                    <textarea id="ai-prompt" class="input-field" rows="3"
+                        placeholder="e.g. 'A Free Body Diagram of a block sliding down an inclined plane where I can adjust the angle.'"
+                        style="resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label">AI Platform</label>
+                        <select id="ai-platform" class="input-field" onchange="updateModelOptions()">
+                            <option value="gemini" selected>Google Gemini</option>
+                            <option value="groq">Groq (Llama 3)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label class="input-label">Model</label>
+                        <select id="ai-model" class="input-field">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <label class="input-label">API Key (Stored only in browser)</label>
+                    <input type="password" id="ai-api-key" class="input-field" placeholder="Enter your API Key"
+                        onblur="updateModelOptions()">
+                </div>
+
+                <button id="btn-generate" class="btn-primary" onclick="generateSimulation()">Generate
+                    Simulation</button>
+                <div id="ai-status" style="margin-top: 12px; font-size: 0.85rem; color: #94a3b8; text-align: center;">
+                </div>
+            </div>
+        </div> <!-- End of Left Panel -->
+
+        <!-- Right Panel: Canvas rendering node -->
+        <div class="right-content">
+            <div class="output-panel">
+                <!-- Sidebar Toggle Button -->
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+
+                <div id="simulation-container">
+                    <!-- Javascript will mount charts/canvas here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let currentSimulationInstance = null;
+        let currentInputState = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Retrieve stored keys
+            const savedGemini = localStorage.getItem('gemini_api_key');
+            if (savedGemini) {
+                document.getElementById('ai-api-key').value = savedGemini;
+                document.getElementById('ai-platform').value = 'gemini';
+                updateModelOptions();
+            }
+
+            // Initial Data Load
+            const urlParams = new URLSearchParams(window.location.search);
+            const configFile = urlParams.get('config') || 'placeholder.json';
+
+            // Show delete button on history files
+            if (configFile !== 'placeholder.json') {
+                document.getElementById('delete-visual-btn').style.display = 'flex';
+            }
+
+            loadConfiguration(configFile);
+            loadHistoryDropdown();
+        });
+
+        function updateModelOptions() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const platform = document.getElementById('ai-platform').value;
+            const modelSelect = document.getElementById('ai-model');
+
+            if (!apiKey) {
+                modelSelect.innerHTML = '<option value="">Enter API Key to load models...</option>';
+                return;
+            }
+
+            modelSelect.innerHTML = '<option value="">Loading models...</option>';
+            modelSelect.disabled = true;
+
+            fetch('/api/models', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey: apiKey, platform: platform })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    modelSelect.innerHTML = '';
+                    if (data.models && data.models.length > 0) {
+                        let modelFound = false;
+                        const savedModel = localStorage.getItem('aiModelScience');
+
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            const modelId = model.name.replace('models/', '');
+                            option.value = modelId;
+                            option.textContent = model.displayName || modelId;
+
+                            if (savedModel && savedModel === modelId) {
+                                option.selected = true;
+                                modelFound = true;
+                            }
+
+                            modelSelect.appendChild(option);
+                        });
+
+                        if (!modelFound) {
+                            Array.from(modelSelect.options).forEach(option => {
+                                const modelId = option.value;
+                                if (platform === 'groq' && (modelId.includes('llama3-8b') || modelId.includes('mixtral'))) {
+                                    option.selected = true;
+                                } else if (platform !== 'groq' && (modelId === 'gemini-3-flash-preview' || modelId === 'gemini-2.5-pro' || modelId === 'gemini-2.5-flash')) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                        modelSelect.disabled = false;
+                    } else {
+                        modelSelect.innerHTML = '<option value="">No generating models found</option>';
+                        modelSelect.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    modelSelect.innerHTML = '<option value="">Error loading models</option>';
+                    modelSelect.disabled = false;
+                });
+
+            // Restore key if switching platforms
+            if (platform === 'gemini') {
+                document.getElementById('ai-api-key').value = localStorage.getItem('gemini_api_key') || '';
+            } else {
+                document.getElementById('ai-api-key').value = localStorage.getItem('groq_api_key') || '';
+            }
+        }
+
+        function toggleSidebar() {
+            const layout = document.getElementById('main-layout');
+            layout.classList.toggle('collapsed');
+        }
+
+        async function loadConfiguration(configFile) {
+            try {
+                const response = await fetch(configFile);
+                if (!response.ok) throw new Error(`Failed to load ${configFile}`);
+                const data = await response.json();
+                hydrateUI(data);
+            } catch (error) {
+                console.error("Configuration load error:", error);
+                document.getElementById('architecture-title').textContent = "Error";
+                document.getElementById('architecture-description').innerHTML = `<p style="color: #ef4444;">${error.message}</p>`;
+            }
+        }
+
+        function hydrateUI(data) {
+            // Text Content
+            document.getElementById('architecture-title').textContent = data.name || "Untitled Simulation";
+
+            if (data.description) {
+                try {
+                    const rawHtml = marked.parse(data.description);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml);
+                    document.getElementById('architecture-description').innerHTML = cleanHtml;
+
+                    if (window.renderMathInElement) {
+                        renderMathInElement(document.getElementById('architecture-description'), {
+                            delimiters: [
+                                { left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false },
+                                { left: "\\(", right: "\\)", display: false }, { left: "\\[", right: "\\]", display: true }
+                            ], throwOnError: false
+                        });
+                    }
+                } catch (e) { document.getElementById('architecture-description').innerHTML = data.description; }
+            } else {
+                document.getElementById('architecture-description').innerHTML = "<p>No description provided.</p>";
+            }
+
+            if (data.tags) {
+                document.getElementById('architecture-tags').innerHTML = data.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            }
+
+            // Build Dynamic Controls
+            const controlsContainer = document.getElementById('dynamic-inputs-container');
+            const controlsPanel = document.getElementById('dynamic-controls-panel');
+            controlsContainer.innerHTML = '';
+            currentInputState = {};
+
+            if (data.inputs && Array.isArray(data.inputs) && data.inputs.length > 0) {
+                controlsPanel.style.display = 'block';
+
+                data.inputs.forEach(inputDef => {
+                    // Define state
+                    currentInputState[inputDef.id] = Number(inputDef.value || 0);
+
+                    // Build UI wrapper
+                    const wrap = document.createElement('div');
+                    wrap.className = 'dyn-input-group';
+
+                    const header = document.createElement('div');
+                    header.className = 'dyn-input-header';
+                    header.innerHTML = `<span>${inputDef.label}</span><span class="dyn-input-val" id="val-${inputDef.id}">${currentInputState[inputDef.id]}</span>`;
+
+                    let inputEl;
+                    if (inputDef.type === 'range') {
+                        inputEl = document.createElement('input');
+                        inputEl.type = 'range';
+                        inputEl.min = inputDef.min;
+                        inputEl.max = inputDef.max;
+                        inputEl.step = inputDef.step || 1;
+                        inputEl.value = currentInputState[inputDef.id];
+
+                        inputEl.addEventListener('input', (e) => {
+                            const val = Number(e.target.value);
+                            document.getElementById(`val-${inputDef.id}`).textContent = val;
+                            triggerSimulationUpdate(inputDef.id, val);
+                        });
+                    } else if (inputDef.type === 'number') {
+                        inputEl = document.createElement('input');
+                        inputEl.type = 'number';
+                        inputEl.className = 'input-field';
+                        inputEl.style.padding = '8px';
+                        inputEl.value = currentInputState[inputDef.id];
+
+                        inputEl.addEventListener('change', (e) => {
+                            const val = Number(e.target.value);
+                            document.getElementById(`val-${inputDef.id}`).textContent = val !== null && !isNaN(val) ? val : 0;
+                            triggerSimulationUpdate(inputDef.id, val);
+                        });
+                    }
+
+                    if (inputEl) {
+                        wrap.appendChild(header);
+                        wrap.appendChild(inputEl);
+                        controlsContainer.appendChild(wrap);
+                    }
+                });
+            } else {
+                controlsPanel.style.display = 'none';
+            }
+
+            // Instantiate Class dynamically
+            const simContainer = document.getElementById('simulation-container');
+            simContainer.innerHTML = '';
+
+            if (data.renderingCode) {
+                try {
+                    // Use new Function to safely scope the eval as an execution frame returning the class definition
+                    const classFactory = new Function(`
+                        ${data.renderingCode}
+                        return ScienceSimulation;
+                    `);
+
+                    const ScienceSimulationClass = classFactory();
+                    currentSimulationInstance = new ScienceSimulationClass(simContainer, currentInputState);
+                } catch (err) {
+                    console.error("Failed to execute rendering code", err);
+                    simContainer.innerHTML = `<div style="padding:20px; color:#f87171;">Compilation Error: ${err.message}</div>`;
+                }
+            }
+        }
+
+        // Bridge UI inputs directly into class update()
+        function triggerSimulationUpdate(inputId, newValue) {
+            currentInputState[inputId] = newValue;
+            if (currentSimulationInstance && typeof currentSimulationInstance.update === 'function') {
+                try {
+                    // Re-render frame 60fps local reactiveness without API calls!
+                    currentSimulationInstance.update(currentInputState);
+                } catch (err) {
+                    console.error("Simulation update error:", err);
+                }
+            }
+        }
+
+        async function generateSimulation() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const platform = document.getElementById('ai-platform').value;
+            const selectedModel = document.getElementById('ai-model').value;
+            const promptDesc = document.getElementById('ai-prompt').value.trim();
+            const statusEl = document.getElementById('ai-status');
+            const btn = document.getElementById('btn-generate');
+
+            if (!apiKey) {
+                statusEl.textContent = 'Error: Please provide an API key.';
+                statusEl.style.color = '#ef4444';
+                return;
+            }
+            if (!promptDesc) {
+                statusEl.textContent = 'Error: Please provide a description to simulate.';
+                statusEl.style.color = '#ef4444';
+                return;
+            }
+
+            // Save key
+            if (platform === 'gemini') {
+                localStorage.setItem('gemini_api_key', apiKey);
+            } else {
+                localStorage.setItem('groq_api_key', apiKey);
+            }
+            localStorage.setItem('aiModelScience', selectedModel);
+
+            statusEl.textContent = 'Generating scientific configuration... This may take up to 20 seconds.';
+            statusEl.style.color = '#60a5fa';
+            btn.disabled = true;
+            btn.textContent = 'Synthesizing...';
+
+            try {
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        apiKey: apiKey,
+                        problemDescription: promptDesc,
+                        platform: platform,
+                        model: selectedModel,
+                        section: 'science' // Key component mapping to /history/science and science/prompt.txt
+                    })
+                });
+
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(`Server returned ${res.status}: ${errText}`);
+                }
+
+                const jsonResp = await res.json();
+
+                if (jsonResp.error) {
+                    throw new Error(jsonResp.error);
+                }
+
+                // If the backend saved via the new history persistence route, redirect to it
+                if (jsonResp.historyPath) {
+                    window.location.href = `?config=../${jsonResp.historyPath}`;
+                    return;
+                }
+
+                statusEl.textContent = 'Success! Simulation generated.';
+                statusEl.style.color = '#10b981';
+
+                // fallback direct hydration
+                if (jsonResp.data) {
+                    hydrateUI(jsonResp.data);
+                }
+
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = `Generation Failed: ${err.message}`;
+                statusEl.style.color = '#ef4444';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Simulation';
+            }
+        }
+
+        async function loadHistoryDropdown() {
+            try {
+                const historyRes = await fetch('/api/history?section=science');
+                if (historyRes.ok) {
+                    const historyData = await historyRes.json();
+                    const dropdown = document.getElementById('history-dropdown');
+
+                    if (historyData.success && historyData.history.length > 0) {
+                        dropdown.innerHTML = '';
+                        historyData.history.forEach(item => {
+                            const date = new Date(item.timestamp).toLocaleString();
+                            const a = document.createElement('a');
+                            a.href = `?config=../${item.path}`;
+                            a.innerHTML = `
+                                <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8;">${date}</div>
+                            `;
+                            dropdown.appendChild(a);
+                        });
+                    } else {
+                        dropdown.innerHTML = '<div style="padding: 12px 16px; color: var(--text-sub); font-size: 0.8rem; font-style: italic;">No history yet.</div>';
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load history:", err);
+            }
+        }
+
+        async function deleteCurrentHistory() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const configPath = urlParams.get('config');
+
+            if (!configPath || configPath === 'placeholder.json') {
+                return;
+            }
+
+            if (confirm("Are you sure you want to permanently delete this visual from your history?")) {
+                try {
+                    // Since path comes back as "../history/X/Y.json", clean the "../" prefix
+                    const cleanPath = configPath.replace('../', '');
+
+                    const res = await fetch('/api/history', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ path: cleanPath })
+                    });
+
+                    if (res.ok) {
+                        window.location.href = '?config=placeholder.json';
+                    } else {
+                        const err = await res.json();
+                        alert("Failed to delete: " + err.error);
+                    }
+                } catch (e) {
+                    alert("Error deleting file: " + e.message);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

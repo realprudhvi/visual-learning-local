@@ -1,0 +1,25 @@
+{
+  "name": "Hadoop 2.x Ecosystem Architecture",
+  "difficulty": "Intermediate",
+  "chatResponse": "I'll guide you through the Hadoop 2.x architecture, highlighting how YARN transformed Hadoop from a MapReduce-only framework into a multi-purpose distributed operating system.",
+  "steps": [
+    {
+      "title": "Decoupling with YARN",
+      "content": "In Hadoop 1.x, the **JobTracker** handled both resource management and job monitoring, creating a bottleneck. Hadoop 2.x introduced **YARN (Yet Another Resource Negotiator)**, which splits these duties. The **ResourceManager (RM)** acts as the ultimate authority for resource allocation, while the **ApplicationMaster (AM)** manages the lifecycle of a specific application instance."
+    },
+    {
+      "title": "The Storage Foundation: HDFS",
+      "content": "The **Hadoop Distributed File System (HDFS)** remains the storage layer but gained significant improvements in 2.x, such as **HDFS Federation** (multiple NameNodes for scalability) and **High Availability** (Active/Standby NameNodes to prevent single points of failure). The **NameNode** manages metadata, while **DataNodes** store the actual blocks of data."
+    },
+    {
+      "title": "Node-Level Execution",
+      "content": "Each worker node runs a **NodeManager (NM)**. Its job is to monitor resource usage (CPU, Memory) within **Containers** and report back to the ResourceManager. When a job runs, the RM allocates a container for the ApplicationMaster, which then requests additional containers for the actual tasks (MapReduce, Spark, etc.) across the cluster."
+    },
+    {
+      "title": "Multi-Tenant Processing",
+      "content": "Because YARN is a general-purpose resource manager, Hadoop 2.x allows multiple processing engines to run simultaneously on the same data in HDFS. You can run **MapReduce** for batch processing, **Tez** for interactive queries, and **Spark** for streaming, all sharing the same cluster resources efficiently."
+    }
+  ],
+  "visualType": "mermaid",
+  "visualCode": "graph TD\n    Client[Client Machine] -->|Submit Job| RM[YARN ResourceManager]\n    Client -->|Metadata Request| NN[HDFS NameNode]\n\n    subgraph Slave_Node_A [Worker Node 1]\n        NM1[NodeManager]\n        DN1[DataNode]\n        AM[App Master Container]\n        T1[Task Container]\n    end\n\n    subgraph Slave_Node_B [Worker Node 2]\n        NM2[NodeManager]\n        DN2[DataNode]\n        T2[Task Container]\n    end\n\n    RM <-->|Heartbeat/Status| NM1\n    RM <-->|Heartbeat/Status| NM2\n    NM1 --- DN1\n    NM2 --- DN2\n    NN -.->|Block Reports| DN1\n    NN -.->|Block Reports| DN2\n    AM -->|Request Resources| RM\n    AM -->|Launch Tasks| NM2\n\n    style RM fill:#0f172a,stroke:#06b6d4,stroke-width:3px,color:#fff\n    style NN fill:#0f172a,stroke:#ec4899,stroke-width:3px,color:#fff\n    style AM fill:#1e293b,stroke:#10b981,stroke-width:2px,color:#fff\n    style Default fill:none,stroke:#64748b,stroke-width:2px,stroke-dasharray: 5 5"
+}

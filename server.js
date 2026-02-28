@@ -67,8 +67,15 @@ app.post('/api/generate', async (req, res) => {
             jsonStr = jsonMatch[1].trim();
         }
 
-        // Validate that it's parseable JSON
-        const parsedJson = JSON.parse(jsonStr);
+        // Validate that it's parseable JSON, but allow Javascript-style loose objects
+        let parsedJson;
+        try {
+            parsedJson = JSON.parse(jsonStr);
+        } catch (parseErr) {
+            console.warn("Strict JSON parsing failed, attempting loose eval fallback...", parseErr.message);
+            // Fallback for LLMs outputting raw unescaped newlines inside strings
+            parsedJson = eval('(' + jsonStr + ')');
+        }
 
         // Save History
         const historyDir = path.join(__dirname, 'history', section);

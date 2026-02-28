@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor - Unified Visual Learning</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Unified Imports: Architecture, Science, Charts, Math -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-panel: #1e293b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: rgba(100, 116, 139, 0.3);
+            --border-hover: rgba(148, 163, 184, 0.4);
+
+            /* Gradient Accents */
+            --accent-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            --accent-subtle: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px 24px;
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-flex {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            margin-bottom: 24px;
+            max-width: 1800px;
+            margin: 0 auto 24px auto;
+            width: 100%;
+        }
+
+        .home-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        .home-btn:hover {
+            color: #f8fafc;
+            border-color: #64748b;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .tutor-layout {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 24px;
+            flex: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+            height: calc(100vh - 100px);
+        }
+
+        /* LEFT: CHAT PANEL */
+        .chat-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+        }
+
+        .prompt-container {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+
+        .prompt-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .prompt-input::placeholder {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .btn-send {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-send:hover {
+            filter: brightness(1.1);
+        }
+
+        .chat-history {
+            flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            /* Softer outer border */
+            background: rgba(15, 23, 42, 0.4);
+            /* Deeper background */
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chat-bubble {
+            border-radius: 12px;
+            padding: 18px 22px;
+            color: #e2e8f0;
+            /* Softer text color */
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .chat-bubble.ai-response {
+            background: rgba(30, 41, 59, 0.6);
+            /* Muted slate background */
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #a855f7;
+            /* Very subtle thin purple strip */
+            align-self: flex-start;
+            max-width: 90%;
+        }
+
+        .chat-bubble.user-msg {
+            background: rgba(59, 130, 246, 0.15);
+            /* Very muted blue tint */
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            /* Subtle blue border */
+            align-self: flex-end;
+            max-width: 85%;
+        }
+
+        .step-block {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            /* Replace bright purple with subtle light-grey line */
+        }
+
+        .step-block h4 {
+            color: #f8fafc;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .step-block pre {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            /* Neutral color instead of bright purple */
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* RIGHT: VISUAL PANEL */
+        .visual-column {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(8, 11, 18, 0.9);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .visual-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            padding: 20px;
+            position: relative;
+
+            /* Crucial fix for the charts expanding to infinite heights */
+            min-height: 0;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        /* Ensure specific injected containers don't break layout */
+        #tutor-chart-container,
+        #mermaid-target {
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* Critical for charts and diagrams */
+        }
+
+        #tutor-chart-container canvas {
+            display: block;
+            box-sizing: border-box;
+            max-height: 100% !important;
+            max-width: 100% !important;
+        }
+
+        #mermaid-target svg {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+        }
+
+        .visual-overlay-text {
+            text-align: center;
+            max-width: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Controls / Options inside Chat Panel */
+        .tutor-controls {
+            display: grid;
+            grid-template-columns: 140px minmax(0, 1fr);
+            gap: 12px;
+            margin-top: -10px;
+            /* pull up due to border-bottom padding of input */
+            width: 100%;
+        }
+
+        .tutor-select {
+            background: rgba(15, 23, 42, 0.9);
+            /* Darker native background to fix bright dropdowns on some OS */
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 100%;
+
+            /* Prevent overflow */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #tutor-provider {
+            flex: 0 0 140px;
+            /* Fixed width for provider */
+        }
+
+        #tutor-model {
+            flex: 1;
+            /* Take remaining space */
+            min-width: 0;
+            /* Critical for flex child truncation */
+        }
+
+        /* Target the <option> elements to ensure they are readable on dark mode */
+        .tutor-select option {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            /* In standard select elements, options can't easily be truncated via CSS,
+               so we rely on the parent container's width bounds. */
+        }
+
+        .tutor-select:hover {
+            border-color: var(--border-hover);
+        }
+
+        .tutor-select:focus {
+            border-color: #a855f7;
+        }
+
+        /* Markdown styling inside chat */
+        .chat-bubble p {
+            margin-bottom: 1em;
+        }
+
+        .chat-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .chat-bubble code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .chat-bubble pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Keyframes */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-flex">
+        <div style="justify-self: start;">
+            <a href="../index.html" class="home-btn" title="Back to Modules">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </a>
+        </div>
+        <h1 style="margin-bottom: 0; justify-self: center;">Unified Visual Tutor</h1>
+        <div style="justify-self: end; display: flex; gap: 8px;">
+            <button class="home-btn" onclick="clearHistory()" title="Clear Chat">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6V20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="tutor-layout">
+        <!-- Chat Interaction Panel -->
+        <div class="chat-column">
+
+            <div class="prompt-container">
+                <textarea id="tutor-prompt" class="prompt-input" rows="2"
+                    placeholder="Explain me a Simplex problem..."></textarea>
+
+                <div class="tutor-controls">
+                    <select id="tutor-provider" class="tutor-select" onchange="updateModelOptions()">
+                        <option value="gemini" selected>Google Gemini</option>
+                        <option value="groq">Groq (Llama 3)</option>
+                    </select>
+                    <select id="tutor-model" class="tutor-select"
+                        onchange="localStorage.setItem('aiModelTutor', this.value)">
+                        <option value="">Loading models...</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between;">
+                    <input type="password" id="tutor-api-key" placeholder="API Key..." class="tutor-select"
+                        style="min-width: 150px;" onblur="updateModelOptions()">
+                    <button class="btn-send" onclick="sendPrompt()">Send Request</button>
+                </div>
+            </div>
+
+            <div class="chat-history" id="chat-history">
+                <!-- Mockup starting state -->
+                <div class="chat-bubble ai-response">
+                    <p><strong>AI Tutor</strong></p>
+                    <p>I am your Unified Visual Tutor. I can help visualize any topic spanning Science, Math,
+                        Architecture, system flows, and interactive charts! Describe a problem, and I will generate a
+                        step-by-step textual explanation followed by a dynamic visual solution.</p>
+                </div>
+
+                <!-- Mockup example of a targeted response -->
+                <div class="chat-bubble user-msg" style="display: none;" id="mockup-user">
+                    Explain me a Simplex problem
+                </div>
+
+                <div class="chat-bubble ai-response" style="display: none;" id="mockup-ai">
+                    <p>Sure, Here is your problem step by step explanation followed by the visual solution:</p>
+                    <div class="step-block">
+                        <h4>&lt;Step 1&gt;:</h4>
+                        <pre>Table: | x1 | x2 | S1 ...</pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Unified Visual Panel -->
+        <div class="visual-column">
+            <div class="visual-container" id="visual-render-target">
+                <div class="visual-overlay-text" id="visual-placeholder-text">
+                    The visual graph or something like that will render here based on the chat context.
+                </div>
+                <!-- Dynamic canvases, SVGs, or divs will be injected here during generation -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup keys and auto-fetch logic similar to science/architecture
+            const savedGemini = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
+            if (savedGemini) {
+                document.getElementById('tutor-api-key').value = savedGemini;
+                document.getElementById('tutor-provider').value = 'gemini';
+                updateModelOptions();
+            }
+
+            // Demo logic to show mockup
+            document.getElementById('tutor-prompt').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendPrompt();
+                }
+            });
+        });
+
+        function updateModelOptions() {
+            const apiKey = document.getElementById('tutor-api-key').value.trim();
+            const platform = document.getElementById('tutor-provider').value;
+            const modelSelect = document.getElementById('tutor-model');
+
+            if (!apiKey) {
+                modelSelect.innerHTML = '<option value="">Enter API Key to load models...</option>';
+                return;
+            }
+
+            modelSelect.innerHTML = '<option value="">Loading models...</option>';
+            modelSelect.disabled = true;
+
+            fetch('/api/models', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey: apiKey, platform: platform })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    modelSelect.innerHTML = '';
+                    if (data.models && data.models.length > 0) {
+                        let modelFound = false;
+                        const savedModel = localStorage.getItem('aiModelTutor');
+
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            const modelId = model.name.replace('models/', '');
+                            option.value = modelId;
+                            option.textContent = model.displayName || modelId;
+
+                            if (savedModel && savedModel === modelId) {
+                                option.selected = true;
+                                modelFound = true;
+                            }
+
+                            modelSelect.appendChild(option);
+                        });
+
+                        if (!modelFound) {
+                            Array.from(modelSelect.options).forEach(option => {
+                                const modelId = option.value;
+                                if (platform === 'groq' && (modelId.includes('llama3-8b') || modelId.includes('mixtral'))) {
+                                    option.selected = true;
+                                } else if (platform !== 'groq' && (modelId === 'gemini-3-flash-preview' || modelId === 'gemini-2.5-pro' || modelId === 'gemini-2.5-flash')) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                        modelSelect.disabled = false;
+                    } else {
+                        modelSelect.innerHTML = '<option value="">No generating models found</option>';
+                        modelSelect.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    modelSelect.innerHTML = '<option value="">Error loading models</option>';
+                    modelSelect.disabled = false;
+                });
+
+            // Save the valid key that was just used to fetch models
+            if (apiKey) {
+                if (platform === 'gemini') {
+                    localStorage.setItem('gemini_api_key', apiKey);
+                } else {
+                    localStorage.setItem('groq_api_key', apiKey);
+                }
+            } else {
+                // Only restore if input is blank
+                if (platform === 'gemini') {
+                    document.getElementById('tutor-api-key').value = localStorage.getItem('gemini_api_key') || '';
+                } else {
+                    document.getElementById('tutor-api-key').value = localStorage.getItem('groq_api_key') || '';
+                }
+            }
+        }
+
+        async function sendPrompt() {
+            const input = document.getElementById('tutor-prompt');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const apiKey = document.getElementById('tutor-api-key').value.trim();
+            const platform = document.getElementById('tutor-provider').value;
+            const model = document.getElementById('tutor-model').value;
+
+            if (!apiKey) {
+                alert("Please enter your API key first.");
+                return;
+            }
+
+            // Append User msg
+            appendUserMsg(val);
+            input.value = '';
+
+            // Add Loading Bubble
+            const history = document.getElementById('chat-history');
+            const loadDiv = document.createElement('div');
+            loadDiv.className = 'chat-bubble ai-response';
+            loadDiv.id = 'loading-bubble';
+            loadDiv.innerHTML = `<p><strong>AI Tutor</strong></p><p>Generating dynamic visualization...</p>`;
+            history.appendChild(loadDiv);
+            scrollToBottom();
+
+            document.getElementById('visual-render-target').innerHTML = `
+                <div class="visual-overlay-text" id="visual-placeholder-text">
+                    <div style="font-size:2rem; animation: pulse 1s infinite alternate;">⚙️</div>
+                    <div>Processing Unified Output...</div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        apiKey: apiKey,
+                        platform: platform,
+                        model: model,
+                        problemDescription: val,
+                        section: 'tutor'
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('loading-bubble').remove();
+
+                if (data.success && data.historyPath) {
+                    const fileResponse = await fetch(`../${data.historyPath}`);
+                    const json = await fileResponse.json();
+
+                    renderAIResponse(json);
+                    renderVisual(json.visualType, json.visualCode);
+                } else {
+                    appendSystemMsg("Error generating response: " + (data.error || "Unknown error"));
+                }
+            } catch (err) {
+                if (document.getElementById('loading-bubble')) document.getElementById('loading-bubble').remove();
+                appendSystemMsg("Network error connecting to AI backend.");
+            }
+        }
+
+        function renderAIResponse(json) {
+            const history = document.getElementById('chat-history');
+            const div = document.createElement('div');
+            div.className = 'chat-bubble ai-response';
+
+            let html = `<p><strong>AI Tutor</strong></p>`;
+            html += `<p>${marked.parseInline(json.chatResponse || "Here is your explanation:")}</p>`;
+
+            if (json.steps && json.steps.length > 0) {
+                json.steps.forEach(step => {
+                    html += `
+                    <div class="step-block">
+                        <h4>${step.title}</h4>
+                        <div style="font-size:0.9rem; color:#cbd5e1;">${DOMPurify.sanitize(marked.parse(step.content))}</div>
+                    </div>`;
+                });
+            }
+
+            div.innerHTML = html;
+            history.appendChild(div);
+
+            // Re-render math in chat if applicable
+            try {
+                renderMathInElement(div, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }] });
+            } catch (e) { }
+
+            scrollToBottom();
+        }
+
+        function renderVisual(type, code) {
+            const target = document.getElementById('visual-render-target');
+            target.innerHTML = ''; // Clear
+
+            try {
+                if (!type || !code) {
+                    target.innerHTML = `<div class="visual-overlay-text">No visual data returned.</div>`;
+                    return;
+                }
+
+                if (type === 'mermaid') {
+                    // Mermaid Render
+                    target.innerHTML = `<div class="mermaid" id="mermaid-target"></div>`;
+
+                    mermaid.render('mermaid-svg', code).then(({ svg }) => {
+                        document.getElementById('mermaid-target').innerHTML = svg;
+                    }).catch(err => {
+                        console.error("Mermaid Render Error:", err);
+                        target.innerHTML = `<div class="visual-overlay-text" style="color:#ef4444;">Mermaid Error: ${err.message}</div>`;
+                    });
+                } else if (type === 'html') {
+                    // Raw HTML Render (Tables, Grids)
+                    target.innerHTML = `<div style="width:100%; height:100%; overflow:auto;">${DOMPurify.sanitize(code, { ALLOWED_TAGS: ['table', 'tr', 'td', 'th', 'tbody', 'thead', 'div', 'span', 'b', 'i', 'u', 'strong', 'br', 'hr'], ALLOWED_ATTR: ['style', 'class', 'id'] })}</div>`;
+                } else if (type === 'chartjs') {
+                    // ChartJS JSON instantiation 
+                    // CRITICAL FIX: To maintain aspect ratio and prevent height explosion in flex layouts,
+                    // Chart.js requires a relatively positioned bounded div wrapper.
+                    target.innerHTML = `
+                        <div id="tutor-chart-container">
+                            <canvas id="tutor-chart"></canvas>
+                        </div>
+                    `;
+                    const ctx = document.getElementById('tutor-chart').getContext('2d');
+                    const config = JSON.parse(code);
+
+                    // Force text to be legible on dark bg and ensure it maintains aspect ratio correctly
+                    Chart.defaults.color = '#e2e8f0';
+                    config.options = config.options || {};
+                    config.options.maintainAspectRatio = false; // Key for fitting inside the visual-container dynamically
+                    new Chart(ctx, config);
+                } else if (type === 'latex') {
+                    // Raw LaTeX block
+                    target.innerHTML = `<div id="latex-target" style="font-size:2rem; padding: 40px;"></div>`;
+                    katex.render(code, document.getElementById('latex-target'), {
+                        displayMode: true,
+                        throwOnError: false
+                    });
+                } else {
+                    target.innerHTML = `<div class="visual-overlay-text">Unsupported visualType: ${type}</div>`;
+                }
+            } catch (err) {
+                console.error("Visual Render Error:", err, "Code:", code);
+                target.innerHTML = `<div class="visual-overlay-text" style="color:#ef4444;">Error rendering visual code: ${err.message}</div>`;
+            }
+        }
+
+        function appendUserMsg(text) {
+            const history = document.getElementById('chat-history');
+            const div = document.createElement('div');
+            div.className = 'chat-bubble user-msg';
+            div.textContent = text;
+            history.appendChild(div);
+        }
+
+        function appendSystemMsg(text) {
+            const history = document.getElementById('chat-history');
+            const div = document.createElement('div');
+            div.className = 'chat-bubble ai-response';
+            div.innerHTML = `<p><strong>AI Tutor</strong></p><p>${text}</p>`;
+            history.appendChild(div);
+        }
+
+        function scrollToBottom() {
+            const history = document.getElementById('chat-history');
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function clearHistory() {
+            document.getElementById('chat-history').innerHTML = `
+                <div class="chat-bubble ai-response">
+                    <p><strong>AI Tutor</strong></p>
+                    <p>Chat history cleared. What would you like to explore next?</p>
+                </div>
+            `;
+            document.getElementById('visual-render-target').innerHTML = `
+                <div class="visual-overlay-text" id="visual-placeholder-text">
+                    The visual graph or something like that will render here based on the chat context.
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>

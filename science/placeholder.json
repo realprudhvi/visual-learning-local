@@ -1,0 +1,22 @@
+{
+    "id": "science-placeholder",
+    "name": "Waiting for Generation...",
+    "difficulty": "New",
+    "description": "Describe a scientific concept or mathematical equation you'd like to visualize in the prompt below. For example: *Free Body Diagram of a block on an incline*.",
+    "tags": [
+        "Science",
+        "Interactive"
+    ],
+    "inputs": [
+        {
+            "id": "demo",
+            "label": "Demo Slider",
+            "type": "range",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "value": 50
+        }
+    ],
+    "renderingCode": "class ScienceSimulation {\n    constructor(container, inputs) {\n        this.container = container;\n        this.container.innerHTML = '<div style=\"display:flex; height:100%; width:100%; align-items:center; justify-content:center; color:#94a3b8; font-size:1.2rem; flex-direction:column;\"><div style=\"font-size:3rem; margin-bottom:1rem;\">⚛️</div><div>Awaiting Scientific Generation</div></div>';\n    }\n    \n    update(inputs) {\n        // Placeholder\n    }\n}\n"
+}
