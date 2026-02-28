@@ -1,0 +1,59 @@
+{
+  "id": "algebraic-identity-expansion",
+  "name": "Geometric Proof: (a+b)² = a² + 2ab + b²",
+  "difficulty": "Algebra / Geometry",
+  "description": "<p>The identity <b>(a+b)² = a² + 2ab + b²</b> represents the area of a square with side length <code>(a+b)</code>. Geometrically, this large square can be partitioned into four distinct sections:</p><ul><li><b>a²</b>: A square with side length <i>a</i>.</li><li><b>b²</b>: A square with side length <i>b</i>.</li><li><b>ab (x2)</b>: Two identical rectangles with sides <i>a</i> and <i>b</i>.</li></ul><p>Summing these areas gives the total area: <code>a² + ab + ab + b²</code>, which simplifies to <code>a² + 2ab + b²</code>. This interactive 3D surface visualizes the growth of the total area as the variables <i>a</i> and <i>b</i> change. Note how the slope increases quadratically in both directions, forming a parabolic surface known as a quadric.</p>",
+  "tags": [
+    "Algebra",
+    "Polynomials",
+    "Calculus",
+    "3D Visualization"
+  ],
+  "dataGenerationCode": "const size = 40;\nconst a_range = [];\nconst b_range = [];\nconst z_surface = [];\n\nfor (let i = 0; i <= size; i++) {\n  const a = i * 0.25;\n  a_range.push(a);\n  const row = [];\n  for (let j = 0; j <= size; j++) {\n    const b = j * 0.25;\n    if (i === 0) b_range.push(b);\n    // The identity (a+b)^2\n    row.push(Math.pow(a + b, 2));\n  }\n  z_surface.push(row);\n}\n\n// Create a trace for the surface\nconst surfaceTrace = {\n  z: z_surface,\n  x: a_range,\n  y: b_range,\n  type: 'surface',\n  colorscale: 'Viridis',\n  showscale: true,\n  name: '(a+b)²',\n  contours: {\n    z: { show: true, usecolormap: true, highlightcolor: '#ef4444', project: { z: true } }\n  },\n  colorbar: {\n    title: 'Area',\n    titlefont: { color: '#cbd5e1' },\n    tickfont: { color: '#cbd5e1' }\n  }\n};\n\n// Trace to highlight a specific point, e.g., a=5, b=5\nconst pointTrace = {\n  x: [5],\n  y: [5],\n  z: [Math.pow(5+5, 2)],\n  mode: 'markers+text',\n  type: 'scatter3d',\n  marker: { size: 8, color: '#ef4444' },\n  text: ['(5+5)² = 100'],\n  textposition: 'top center',\n  name: 'Sample Point',\n  font: { color: '#ffffff' }\n};\n\nreturn [surfaceTrace, pointTrace];",
+  "plotLayout": {
+    "title": "Expansion of (a + b)² in 3D Space",
+    "autosize": true,
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {
+      "color": "#cbd5e1",
+      "family": "Inter, sans-serif"
+    },
+    "margin": {
+      "l": 0,
+      "r": 0,
+      "b": 0,
+      "t": 50
+    },
+    "scene": {
+      "xaxis": {
+        "title": "Side a",
+        "gridcolor": "#334155",
+        "backgroundcolor": "#0f172a",
+        "showbackground": true,
+        "zerolinecolor": "#475569"
+      },
+      "yaxis": {
+        "title": "Side b",
+        "gridcolor": "#334155",
+        "backgroundcolor": "#0f172a",
+        "showbackground": true,
+        "zerolinecolor": "#475569"
+      },
+      "zaxis": {
+        "title": "Total Area",
+        "gridcolor": "#334155",
+        "backgroundcolor": "#0f172a",
+        "showbackground": true,
+        "zerolinecolor": "#475569"
+      },
+      "camera": {
+        "eye": {
+          "x": 1.5,
+          "y": 1.5,
+          "z": 1.2
+        }
+      }
+    }
+  }
+}

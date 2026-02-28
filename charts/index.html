@@ -8,7 +8,18 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <!-- Markdown Rendering & Sanitization -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* Shared variables */
@@ -179,6 +190,74 @@
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 500;
+        }
+
+        /* Markdown Styles for description panel */
+        #architecture-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        #architecture-description h1,
+        #architecture-description h2,
+        #architecture-description h3 {
+            color: #f8fafc;
+            margin-top: 1.2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        #architecture-description h1 {
+            font-size: 1.4rem;
+        }
+
+        #architecture-description h2 {
+            font-size: 1.2rem;
+        }
+
+        #architecture-description h3 {
+            font-size: 1.1rem;
+        }
+
+        #architecture-description p {
+            margin-bottom: 1rem;
+        }
+
+        #architecture-description ul,
+        #architecture-description ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #architecture-description li {
+            margin-bottom: 0.4rem;
+        }
+
+        #architecture-description code {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+        }
+
+        #architecture-description pre {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        #architecture-description pre code {
+            background: transparent;
+            color: #cbd5e1;
+            padding: 0;
+        }
+
+        #architecture-description strong {
+            color: #f1f5f9;
         }
 
         /* Inputs */
@@ -743,7 +822,30 @@
                 document.getElementById('architecture-title').textContent = data.name || "Untitled Chart";
             }
             if (document.getElementById('architecture-description')) {
-                document.getElementById('architecture-description').innerHTML = data.description || "<p>No description provided.</p>";
+                if (data.description) {
+                    try {
+                        const rawHtml = marked.parse(data.description);
+                        const cleanHtml = DOMPurify.sanitize(rawHtml);
+                        document.getElementById('architecture-description').innerHTML = cleanHtml;
+
+                        // Render Math with KaTeX if available
+                        if (window.renderMathInElement) {
+                            renderMathInElement(document.getElementById('architecture-description'), {
+                                delimiters: [
+                                    { left: "$$", right: "$$", display: true },
+                                    { left: "$", right: "$", display: false },
+                                    { left: "\\(", right: "\\)", display: false },
+                                    { left: "\\[", right: "\\]", display: true }
+                                ],
+                                throwOnError: false
+                            });
+                        }
+                    } catch (e) {
+                        document.getElementById('architecture-description').innerHTML = data.description;
+                    }
+                } else {
+                    document.getElementById('architecture-description').innerHTML = "<p>No description provided.</p>";
+                }
             }
             if (document.getElementById('architecture-tags') && data.tags) {
                 document.getElementById('architecture-tags').innerHTML = data.tags.map(tag => `<span class="tag">${tag}</span>`).join('');

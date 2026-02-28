@@ -17,18 +17,29 @@ The required JSON schema is:
     "paper_bgcolor": "rgba(0,0,0,0)",
     "plot_bgcolor": "rgba(0,0,0,0)",
     "font": { "color": "#cbd5e1" },
-    "xaxis": { "title": "string", "gridcolor": "#334155", "zerolinecolor": "#475569" },
-    "yaxis": { "title": "string", "gridcolor": "#334155", "zerolinecolor": "#475569" },
+    "xaxis": { "title": "string", "gridcolor": "#334155", "zerolinecolor": "#475569", "showgrid": true, "zeroline": true, "showticklabels": true },
+    "yaxis": { "title": "string", "gridcolor": "#334155", "zerolinecolor": "#475569", "showgrid": true, "zeroline": true, "showticklabels": true },
+    "shapes": [
+      { "type": "rect/circle/line/path", "x0": 0, "y0": 0, "x1": 1, "y1": 1, "fillcolor": "rgba(59, 130, 246, 0.5)", "line": {"color": "#60a5fa"} }
+    ],
+    "annotations": [
+      { "x": 0.5, "y": 0.5, "text": "Label", "showarrow": false, "font": { "size": 16, "color": "white" } }
+    ],
     "scene": {
        "xaxis": { "title": "string", "gridcolor": "#334155", "backgroundcolor": "#0f172a", "showbackground": true },
        "yaxis": { "title": "string", "gridcolor": "#334155", "backgroundcolor": "#0f172a", "showbackground": true },
-       "zaxis": { "title": "string", "gridcolor": "#334155", "backgroundcolor": "#0f172a", "showbackground": true }
+       "zaxis": { "title": "string", "backgroundcolor": "#0f172a", "showbackground": true }
     }
   }
 }
 
 Notes:
-1. Provide a raw Javascript snippet in `dataGenerationCode` that returns valid Plotly data array. This allows you to generate massive datasets dynamically using loops and functions (e.g., sine waves, 3D paraboloids) without maxing out the text token limits!
+1. Provide a raw Javascript snippet in `dataGenerationCode` that returns valid Plotly data array. This allows you to generate massive datasets dynamically using loops and functions.
+2. If the user asks for a VISUAL PROOF (e.g., Pythagoras, (a+b)^2, geometric identities): 
+   - Set `xaxis` and `yaxis` properties `showgrid`, `zeroline`, and `showticklabels` to `false` to create a blank canvas. 
+   - Use `plotLayout.shapes` (rectangles, polygons) heavily to draw the physical geometry. 
+   - Use `plotLayout.annotations` to label sides (a, b, c, a^2, etc) directly on top of the shapes.
+   - Return an empty trace `[{x: [], y: []}]` if no conventional data line is needed.
 2. Color code your charts beautifully using Tailwind-like values (blue: #3b82f6, red: #ef4444, emerald: #10b981) or colorscales for 3D surfaces (e.g., 'Viridis', 'Plasma').
 3. You are HIGHLY RECOMMENDED to generate 3D charts (`surface` or `scatter3d`) if the user requests it. If generating a 3D surface plot, build a 2D matrix for `z` inside the javascript logic.
 4. Set `paper_bgcolor` and `plot_bgcolor` to transparent so the website's dark mode shines through.

@@ -1,0 +1,182 @@
+{
+  "id": "geometric-proof-a-plus-b-squared",
+  "name": "Geometric Proof of (a + b)²",
+  "difficulty": "Algebraic Geometry",
+  "description": "This visualization provides a geometric proof for the algebraic identity <b>(a + b)² = a² + 2ab + b²</b>. <br><br>The large square represents the total area of <b>(a + b)²</b>, where the side length is the sum of segments <i>a</i> and <i>b</i>. This area is decomposed into four distinct parts:<br><ul><li>A blue square with area <b>a²</b> (side length <i>a</i>).</li><li>A green square with area <b>b²</b> (side length <i>b</i>).</li><li>Two orange rectangles, each with area <b>ab</b> (sides <i>a</i> and <i>b</i>).</li></ul>By summing these component areas, we visually confirm that (a+b)² = a² + ab + ab + b², which simplifies to the standard quadratic expansion.",
+  "tags": [
+    "Algebra",
+    "Geometry",
+    "Visual Proof",
+    "Identities"
+  ],
+  "dataGenerationCode": "return [{\n  x: [0, 10],\n  y: [0, 10],\n  mode: 'markers',\n  marker: { color: 'transparent' },\n  showlegend: false,\n  hoverinfo: 'none'\n}];",
+  "plotLayout": {
+    "title": "Geometric Expansion: (a + b)² = a² + 2ab + b²",
+    "autosize": true,
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 40,
+      "r": 40,
+      "t": 60,
+      "b": 40
+    },
+    "font": {
+      "color": "#cbd5e1"
+    },
+    "xaxis": {
+      "range": [
+        -1,
+        11
+      ],
+      "showgrid": false,
+      "zeroline": false,
+      "showticklabels": false,
+      "fixedrange": true
+    },
+    "yaxis": {
+      "range": [
+        -1,
+        11
+      ],
+      "showgrid": false,
+      "zeroline": false,
+      "showticklabels": false,
+      "scaleanchor": "x",
+      "fixedrange": true
+    },
+    "shapes": [
+      {
+        "type": "rect",
+        "x0": 0,
+        "y0": 0,
+        "x1": 7,
+        "y1": 7,
+        "fillcolor": "rgba(59, 130, 246, 0.7)",
+        "line": {
+          "color": "#3b82f6",
+          "width": 2
+        }
+      },
+      {
+        "type": "rect",
+        "x0": 7,
+        "y0": 7,
+        "x1": 10,
+        "y1": 10,
+        "fillcolor": "rgba(16, 185, 129, 0.7)",
+        "line": {
+          "color": "#10b981",
+          "width": 2
+        }
+      },
+      {
+        "type": "rect",
+        "x0": 7,
+        "y0": 0,
+        "x1": 10,
+        "y1": 7,
+        "fillcolor": "rgba(245, 158, 11, 0.7)",
+        "line": {
+          "color": "#f59e0b",
+          "width": 2
+        }
+      },
+      {
+        "type": "rect",
+        "x0": 0,
+        "y0": 7,
+        "x1": 7,
+        "y1": 10,
+        "fillcolor": "rgba(245, 158, 11, 0.7)",
+        "line": {
+          "color": "#f59e0b",
+          "width": 2
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "x": 3.5,
+        "y": 3.5,
+        "text": "a²",
+        "showarrow": false,
+        "font": {
+          "size": 24,
+          "color": "white",
+          "weight": "bold"
+        }
+      },
+      {
+        "x": 8.5,
+        "y": 8.5,
+        "text": "b²",
+        "showarrow": false,
+        "font": {
+          "size": 18,
+          "color": "white"
+        }
+      },
+      {
+        "x": 8.5,
+        "y": 3.5,
+        "text": "ab",
+        "showarrow": false,
+        "font": {
+          "size": 18,
+          "color": "white"
+        }
+      },
+      {
+        "x": 3.5,
+        "y": 8.5,
+        "text": "ab",
+        "showarrow": false,
+        "font": {
+          "size": 18,
+          "color": "white"
+        }
+      },
+      {
+        "x": 3.5,
+        "y": -0.5,
+        "text": "a",
+        "showarrow": false,
+        "font": {
+          "size": 16,
+          "color": "#94a3b8"
+        }
+      },
+      {
+        "x": 8.5,
+        "y": -0.5,
+        "text": "b",
+        "showarrow": false,
+        "font": {
+          "size": 16,
+          "color": "#94a3b8"
+        }
+      },
+      {
+        "x": -0.5,
+        "y": 3.5,
+        "text": "a",
+        "showarrow": false,
+        "font": {
+          "size": 16,
+          "color": "#94a3b8"
+        }
+      },
+      {
+        "x": -0.5,
+        "y": 8.5,
+        "text": "b",
+        "showarrow": false,
+        "font": {
+          "size": 16,
+          "color": "#94a3b8"
+        }
+      }
+    ]
+  }
+}

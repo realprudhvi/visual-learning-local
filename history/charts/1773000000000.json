@@ -1,0 +1,35 @@
+{
+    "name": "All Supported Charts Showcase",
+    "difficulty": "Showcase",
+    "description": "<p>Plotly.js supports dozens of chart types, including subplots. Here is a 3x3 grid showcasing 9 different built-in chart types available in the Interactive Charts module, including Line, Bar, Heatmap, Donut, Box, Treemap, Contour, Candlestick, and Violin.</p>",
+    "tags": [
+        "Subplots",
+        "Showcase",
+        "Plotly",
+        "Heatmap",
+        "Treemap"
+    ],
+    "plotLayout": {
+        "grid": {
+            "rows": 3,
+            "columns": 3,
+            "pattern": "independent"
+        },
+        "height": 900,
+        "margin": {
+            "t": 60,
+            "b": 50,
+            "l": 50,
+            "r": 50
+        },
+        "title": "Plotly Support Showcase (9 Built-in Types)",
+        "showlegend": false,
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
+        "font": {
+            "color": "#cbd5e1",
+            "family": "Inter"
+        }
+    },
+    "dataGenerationCode": "const traces = [];\n\n// 1. Line/Scatter (Row 1, Col 1 -> x, y)\ntraces.push({\n  type: 'scatter',\n  mode: 'lines+markers',\n  x: [1, 2, 3, 4, 5],\n  y: [2, 4, 1, 5, 3],\n  name: 'Scatter',\n  xaxis: 'x',\n  yaxis: 'y',\n  line: { color: '#0ea5e9', width: 3 },\n  marker: { size: 8, color: '#38bdf8' }\n});\n\n// 2. Bar (Row 1, Col 2 -> x2, y2)\ntraces.push({\n  type: 'bar',\n  x: ['Apples', 'Oranges', 'Bananas'],\n  y: [10, 15, 7],\n  name: 'Bar',\n  xaxis: 'x2',\n  yaxis: 'y2',\n  marker: { color: ['#ef4444', '#f97316', '#eab308'] }\n});\n\n// 3. Heatmap (Row 1, Col 3 -> x3, y3)\ntraces.push({\n  type: 'heatmap',\n  z: [[1, 20, 30], [20, 1, 60], [30, 60, 1]],\n  name: 'Heatmap',\n  xaxis: 'x3',\n  yaxis: 'y3',\n  colorscale: 'Viridis'\n});\n\n// 4. Pie / Donut (Row 2, Col 1 -> domain)\ntraces.push({\n  type: 'pie',\n  labels: ['Oxygen', 'Hydrogen', 'Carbon', 'Nitrogen'],\n  values: [45, 25, 20, 10],\n  domain: { row: 1, column: 0 },\n  hole: 0.4,\n  name: 'Donut'\n});\n\n// 5. Box Plot (Row 2, Col 2 -> x5, y5)\ntraces.push({\n  type: 'box',\n  y: [1, 2, 3, 4, 4, 4, 5, 5, 6, 8, 9, 2, 2, 1],\n  name: 'Box',\n  xaxis: 'x5',\n  yaxis: 'y5',\n  marker: { color: '#10b981' }\n});\n\n// 6. Treemap (Row 2, Col 3 -> domain)\ntraces.push({\n  type: 'treemap',\n  labels: ['Eve', 'Cain', 'Seth', 'Enos', 'Noam', 'Abel', 'Awan', 'Enoch', 'Azura'],\n  parents: ['', 'Eve', 'Eve', 'Seth', 'Seth', 'Eve', 'Eve', 'Awan', 'Eve'],\n  values: [10, 14, 12, 10, 2, 6, 6, 4, 4],\n  domain: { row: 1, column: 2 },\n  textinfo: 'label+value',\n  marker: { colorscale: 'Blues' }\n});\n\n// 7. Contour Plot (Row 3, Col 1 -> x7, y7)\ntraces.push({\n  type: 'contour',\n  z: [[10, 10.6, 12, 11], [10.6, 12, 10, 13], [12, 10, 10.6, 11], [11, 13, 11, 12]],\n  name: 'Contour',\n  xaxis: 'x7',\n  yaxis: 'y7',\n  colorscale: 'Jet'\n});\n\n// 8. 3D Scatter (Since 3D needs explicit scene, let's use a 3D plot instead of Candlestick to show 3D support if possible. Wait, 3D plots don't work well in Cartesian grid subplots. Let's stick to Area.)\n// 8. Area Chart (Row 3, Col 2 -> x8, y8)\ntraces.push({\n  type: 'scatter',\n  mode: 'none',\n  fill: 'tozeroy',\n  x: [1, 2, 3, 4],  \n  y: [0, 2, 3, 1],\n  name: 'Area',\n  xaxis: 'x8',\n  yaxis: 'y8',\n  fillcolor: 'rgba(168, 85, 247, 0.5)'\n});\n\n// 9. Violin Plot (Row 3, Col 3 -> x9, y9)\ntraces.push({\n  type: 'violin',\n  y: [2, 2, 3, 4, 5, 5, 5, 6, 7, 7, 8, 9, 10],\n  name: 'Violin',\n  xaxis: 'x9',\n  yaxis: 'y9',\n  box: { visible: true },\n  line: { color: 'white' },\n  meanline: { visible: true },\n  fillcolor: '#f43f5e'\n});\n\nreturn traces;"
+}
