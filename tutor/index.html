@@ -64,9 +64,10 @@
             background-color: var(--bg-body);
             color: var(--text-main);
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
+            padding: 0;
         }
 
         /* Subtle animated background grain */
@@ -167,26 +168,44 @@
         }
 
         /* ═══════════════════════════════════════════════
-           MAIN LAYOUT
+           MAIN LAYOUT (mirroring science/index.html)
            ═══════════════════════════════════════════════ */
         .tutor-layout {
             display: grid;
             grid-template-columns: var(--chat-width) 1fr;
-            flex: 1;
-            overflow: hidden;
+            gap: 0;
+            max-width: 100%;
+            margin: 0 auto;
+            height: calc(100vh - 56px);
+            /* viewport minus header */
+            width: 100%;
+            transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             z-index: 1;
         }
 
+        .tutor-layout.collapsed {
+            grid-template-columns: 0px 1fr;
+        }
+
         /* ═══════════════════════════════════════════════
-           CHAT COLUMN
+           CHAT COLUMN (left side — independently scrollable)
            ═══════════════════════════════════════════════ */
         .chat-column {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            border-right: 1px solid var(--border);
+            max-height: 100%;
+            overflow: hidden;
             background: rgba(17, 24, 39, 0.5);
+            border-right: 1px solid var(--border);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .tutor-layout.collapsed .chat-column {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-20px);
+            overflow: hidden;
         }
 
         /* ── Settings Toggle Bar ── */
@@ -662,17 +681,68 @@
         }
 
         /* ═══════════════════════════════════════════════
-           VISUAL COLUMN
+           VISUAL COLUMN (right side — fixed, no scroll coupling)
            ═══════════════════════════════════════════════ */
         .visual-column {
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            position: relative;
+            flex: 1;
+            border-radius: 0;
             background: var(--bg-body);
+            overflow: visible;
+            position: relative;
+        }
+
+        .visual-panel-inner {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex: 1;
+            overflow: visible;
+            margin: 12px;
+            min-height: 0;
+        }
+
+        /* Toggle sidebar button (science-style) */
+        .toggle-sidebar-btn {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            color: var(--text-sub);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-sidebar-btn:hover {
+            color: #f8fafc;
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .toggle-sidebar-btn svg {
+            transition: transform 0.4s ease;
+        }
+
+        .tutor-layout.collapsed .toggle-sidebar-btn svg {
+            transform: rotate(180deg);
         }
 
         .visual-container {
+            width: 100%;
             flex: 1;
             display: flex;
             align-items: center;
@@ -682,8 +752,7 @@
             padding: 24px;
             position: relative;
             min-height: 0;
-            max-height: 100%;
-            overflow: hidden;
+            overflow: auto;
         }
 
         /* Ensure specific injected containers don't break layout */
@@ -777,12 +846,15 @@
         @media (max-width: 900px) {
             .tutor-layout {
                 grid-template-columns: 1fr;
-                grid-template-rows: 1fr 300px;
+                height: auto;
             }
 
-            .chat-column {
-                border-right: none;
-                border-bottom: 1px solid var(--border);
+            .visual-column {
+                min-height: 400px;
+            }
+
+            .toggle-sidebar-btn {
+                display: none;
             }
         }
     </style>
@@ -895,12 +967,22 @@
 
         <!-- ═══ VISUAL PANEL ═══ -->
         <div class="visual-column">
-            <div class="visual-container" id="visual-render-target">
-                <div class="visual-placeholder" id="visual-placeholder-text">
-                    <div class="visual-placeholder-icon">📊</div>
-                    <div class="visual-placeholder-title">Visual Output</div>
-                    <div class="visual-placeholder-desc">
-                        Charts, diagrams, graphs, and simulations will appear here based on your conversation.
+            <div class="visual-panel-inner">
+                <!-- Sidebar Toggle Button (science-style) -->
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Chat Panel">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+
+                <div class="visual-container" id="visual-render-target">
+                    <div class="visual-placeholder" id="visual-placeholder-text">
+                        <div class="visual-placeholder-icon">📊</div>
+                        <div class="visual-placeholder-title">Visual Output</div>
+                        <div class="visual-placeholder-desc">
+                            Charts, diagrams, graphs, and simulations will appear here based on your conversation.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -934,6 +1016,14 @@
             const el = document.getElementById('tutor-prompt');
             el.style.height = 'auto';
             el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+        }
+
+        // ═══════════════════════════════════════════════
+        // TOGGLE SIDEBAR (science-style)
+        // ═══════════════════════════════════════════════
+        function toggleSidebar() {
+            const layout = document.querySelector('.tutor-layout');
+            layout.classList.toggle('collapsed');
         }
 
         // ═══════════════════════════════════════════════
