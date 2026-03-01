@@ -1640,17 +1640,72 @@
                 return;
             }
 
+            const isWhite = backgroundType === 'white';
+            const darkColor = '#1e293b';
+            const lightColor = '#e2e8f0';
+            let chartInstance = null;
+            let originalChartColors = null;
+            let svgOriginals = [];
+
             // Set background class
-            if (backgroundType === 'white') {
-                container.classList.add('export-white');
-            } else {
-                container.classList.add('export-transparent');
+            container.classList.add(isWhite ? 'export-white' : 'export-transparent');
+
+            // If exporting to white, switch all text/grid colors to dark
+            if (isWhite) {
+                // Handle Chart.js — find the active chart instance
+                const chartCanvas = container.querySelector('canvas');
+                if (chartCanvas) {
+                    // Get the Chart.js instance from the canvas
+                    chartInstance = Chart.getChart(chartCanvas);
+                    if (chartInstance) {
+                        // Save originals and switch to dark
+                        originalChartColors = JSON.parse(JSON.stringify({
+                            defaultColor: Chart.defaults.color,
+                            borderColor: Chart.defaults.borderColor
+                        }));
+                        Chart.defaults.color = darkColor;
+                        Chart.defaults.borderColor = 'rgba(0,0,0,0.15)';
+
+                        // Override each scale's ticks, title, and grid
+                        const scales = chartInstance.options.scales || {};
+                        for (const key of Object.keys(scales)) {
+                            const scale = scales[key];
+                            if (scale.ticks) scale.ticks.color = darkColor;
+                            if (scale.title) scale.title.color = darkColor;
+                            if (scale.grid) scale.grid.color = 'rgba(0,0,0,0.1)';
+                        }
+                        // Override legend text
+                        if (chartInstance.options.plugins?.legend?.labels) {
+                            chartInstance.options.plugins.legend.labels.color = darkColor;
+                        }
+                        if (chartInstance.options.plugins?.title) {
+                            chartInstance.options.plugins.title.color = darkColor;
+                        }
+                        chartInstance.update('none');
+                    }
+                }
+
+                // Handle Mermaid SVG — switch text fills and line strokes to dark
+                const svgEl = container.querySelector('svg');
+                if (svgEl) {
+                    // Switch text elements
+                    svgEl.querySelectorAll('text, tspan, .nodeLabel, .edgeLabel, .label').forEach(el => {
+                        svgOriginals.push({ el, attr: 'fill', original: el.getAttribute('fill') || el.style.fill });
+                        el.setAttribute('fill', darkColor);
+                        el.style.fill = darkColor;
+                    });
+                    // Switch lines/paths (edges) to darker
+                    svgEl.querySelectorAll('.edge path, .flowchart-link, line').forEach(el => {
+                        svgOriginals.push({ el, attr: 'stroke', original: el.getAttribute('stroke') });
+                        el.setAttribute('stroke', '#475569');
+                    });
+                }
             }
 
             try {
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 150));
                 const canvas = await html2canvas(container, {
-                    backgroundColor: backgroundType === 'white' ? '#ffffff' : null,
+                    backgroundColor: isWhite ? '#ffffff' : null,
                     scale: 2,
                     logging: false,
                     useCORS: true
@@ -1665,8 +1720,37 @@
                 console.error('Export failed:', err);
                 alert('Failed to export: ' + err.message);
             } finally {
+                // Restore everything
                 container.classList.remove('export-white');
                 container.classList.remove('export-transparent');
+
+                // Restore Chart.js colors
+                if (chartInstance && originalChartColors) {
+                    Chart.defaults.color = lightColor;
+                    Chart.defaults.borderColor = originalChartColors.borderColor;
+                    const scales = chartInstance.options.scales || {};
+                    for (const key of Object.keys(scales)) {
+                        const scale = scales[key];
+                        if (scale.ticks) scale.ticks.color = lightColor;
+                        if (scale.title) scale.title.color = lightColor;
+                        if (scale.grid) scale.grid.color = 'rgba(255,255,255,0.08)';
+                    }
+                    if (chartInstance.options.plugins?.legend?.labels) {
+                        chartInstance.options.plugins.legend.labels.color = lightColor;
+                    }
+                    if (chartInstance.options.plugins?.title) {
+                        chartInstance.options.plugins.title.color = lightColor;
+                    }
+                    chartInstance.update('none');
+                }
+
+                // Restore Mermaid SVG colors
+                svgOriginals.forEach(({ el, attr, original }) => {
+                    if (original) {
+                        el.setAttribute(attr, original);
+                        if (attr === 'fill') el.style.fill = original;
+                    }
+                });
             }
         }
     </script>

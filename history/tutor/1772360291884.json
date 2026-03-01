@@ -1,0 +1,25 @@
+{
+  "name": "Java Collections Framework Hierarchy",
+  "difficulty": "Intermediate",
+  "chatResponse": "I'll guide you through the structural hierarchy of the Java Collections Framework, illustrating how core interfaces relate to their concrete implementations.",
+  "steps": [
+    {
+      "title": "The Root Interfaces",
+      "content": "The framework is divided into two main branches: the `Collection` hierarchy and the `Map` hierarchy. Everything begins with the `Iterable` interface, which allows objects to be the target of the 'for-each' loop statement."
+    },
+    {
+      "title": "The Collection Branch",
+      "content": "The `Collection` interface is the parent of three major sub-interfaces:\n- **List**: Ordered collections that allow duplicates (e.g., `ArrayList`, `LinkedList`).\n- **Set**: Unordered collections that prohibit duplicates (e.g., `HashSet`, `TreeSet`).\n- **Queue**: Designed for holding elements prior to processing, usually in FIFO order (e.g., `PriorityQueue`, `ArrayDeque`)."
+    },
+    {
+      "title": "The Map Hierarchy",
+      "content": "Unlike other collections, `Map` does not extend `Collection`. It stores data as **Key-Value pairs**. Common implementations include `HashMap` (using hashing) and `TreeMap` (sorted by keys)."
+    },
+    {
+      "title": "Choosing the Right Implementation",
+      "content": "Performance varies by structure:\n| Interface | Implementation | Access | Search | Insert |\n| :--- | :--- | :--- | :--- | :--- |\n| List | ArrayList | O(1) | O(n) | O(n) |\n| Set | HashSet | N/A | O(1) | O(1) |\n| Map | HashMap | O(1) | O(1) | O(1) |"
+    }
+  ],
+  "visualType": "mermaid",
+  "visualCode": "graph TD\n    Iterable[\"Iterable (Interface)\"] --> Collection[\"Collection (Interface)\"]\n    \n    Collection --> List[\"List (Interface)\"]\n    Collection --> Set[\"Set (Interface)\"]\n    Collection --> Queue[\"Queue (Interface)\"]\n    \n    List --> ArrayList[\"ArrayList (Class)\"]\n    List --> LinkedList[\"LinkedList (Class)\"]\n    List --> Vector[\"Vector (Class)\"]\n    \n    Set --> HashSet[\"HashSet (Class)\"]\n    Set --> LinkedHashSet[\"LinkedHashSet (Class)\"]\n    Set --> SortedSet[\"SortedSet (Interface)\"]\n    SortedSet --> TreeSet[\"TreeSet (Class)\"]\n    \n    Queue --> PriorityQueue[\"PriorityQueue (Class)\"]\n    Queue --> Deque[\"Deque (Interface)\"]\n    Deque --> ArrayDeque[\"ArrayDeque (Class)\"]\n    \n    Map[\"Map (Interface)\"] --> HashMap[\"HashMap (Class)\"]\n    Map --> Hashtable[\"Hashtable (Class)\"]\n    Map --> LinkedHashMap[\"LinkedHashMap (Class)\"]\n    Map --> SortedMap[\"SortedMap (Interface)\"]\n    SortedMap --> TreeMap[\"TreeMap (Class)\"]"
+}
