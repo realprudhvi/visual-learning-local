@@ -142,8 +142,9 @@
             letter-spacing: 1px;
             padding: 3px 8px;
             border-radius: 6px;
-            background: var(--accent-gradient);
-            color: #fff;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--text-sub);
+            border: 1px solid rgba(99, 102, 241, 0.2);
             margin-left: 10px;
         }
 
@@ -173,7 +174,7 @@
            ═══════════════════════════════════════════════ */
         .tutor-layout {
             display: grid;
-            grid-template-columns: var(--chat-width) 1fr;
+            grid-template-columns: var(--chat-width) 6px 1fr;
             gap: 0;
             max-width: 100%;
             margin: 0 auto;
@@ -186,7 +187,7 @@
         }
 
         .tutor-layout.collapsed {
-            grid-template-columns: 0px 1fr;
+            grid-template-columns: 0px 0px 1fr;
         }
 
         /* ═══════════════════════════════════════════════
@@ -207,6 +208,45 @@
             pointer-events: none;
             transform: translateX(-20px);
             overflow: hidden;
+        }
+
+        /* ── Resize Handle (between chat and visual) ── */
+        .resize-handle {
+            width: 6px;
+            cursor: col-resize;
+            background: transparent;
+            position: relative;
+            z-index: 10;
+            transition: background 0.15s ease;
+        }
+
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 40px;
+            border-radius: 4px;
+            background: rgba(100, 116, 139, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .resize-handle:hover::after,
+        .resize-handle.active::after {
+            background: var(--accent-primary);
+            height: 60px;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .resize-handle:hover,
+        .resize-handle.active {
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .tutor-layout.collapsed .resize-handle {
+            visibility: hidden;
         }
 
         /* ── Settings Toggle Bar ── */
@@ -339,12 +379,12 @@
             width: 64px;
             height: 64px;
             border-radius: 20px;
-            background: var(--accent-gradient);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.8rem;
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.25);
         }
 
         .welcome-title {
@@ -425,23 +465,24 @@
         }
 
         .msg-avatar.ai {
-            background: var(--accent-gradient);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
             color: #fff;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
 
         .msg-avatar.user {
-            background: var(--user-gradient);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            background: var(--bg-elevated);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #94a3b8;
         }
 
         .msg-content {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            max-width: 85%;
+            max-width: 95%;
             min-width: 0;
+            flex: 1;
         }
 
         .msg-meta {
@@ -512,6 +553,60 @@
             font-size: 0.8rem;
             color: var(--text-sub);
             border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        /* ── Tables (chat + visual) ── */
+        .msg-bubble table,
+        .visual-container table,
+        #visual-render-target table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            overflow: hidden;
+            display: block;
+            overflow-x: auto;
+        }
+
+        .msg-bubble th,
+        .visual-container th,
+        #visual-render-target th {
+            background: rgba(99, 102, 241, 0.15);
+            color: #c7d2fe;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.25);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .msg-bubble td,
+        .visual-container td,
+        #visual-render-target td {
+            padding: 9px 14px;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.12);
+            color: var(--text-sub);
+        }
+
+        .msg-bubble tr:last-child td,
+        .visual-container tr:last-child td,
+        #visual-render-target tr:last-child td {
+            border-bottom: none;
+        }
+
+        .msg-bubble tr:nth-child(even),
+        .visual-container tr:nth-child(even),
+        #visual-render-target tr:nth-child(even) {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .msg-bubble tr:hover td,
+        .visual-container tr:hover td,
+        #visual-render-target tr:hover td {
+            background: rgba(99, 102, 241, 0.06);
         }
 
         /* Markdown inside bubbles */
@@ -649,7 +744,7 @@
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            background: var(--accent-gradient);
+            background: var(--accent-primary);
             border: none;
             color: #fff;
             cursor: pointer;
@@ -662,7 +757,7 @@
 
         .btn-send:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            background: #5558e6;
         }
 
         .btn-send:active {
@@ -913,6 +1008,10 @@
             .toggle-sidebar-btn {
                 display: none;
             }
+
+            .resize-handle {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -1075,6 +1174,9 @@
             </div>
         </div>
 
+        <!-- ═══ RESIZE HANDLE ═══ -->
+        <div class="resize-handle" id="resize-handle"></div>
+
         <!-- ═══ VISUAL PANEL ═══ -->
         <div class="visual-column">
             <div class="visual-panel-inner">
@@ -1131,6 +1233,16 @@
                 document.getElementById('delete-visual-btn').style.display = 'flex';
                 loadFromConfig(configFile);
             }
+
+            // Initialize resize handle
+            initResizeHandle();
+
+            // Restore saved chat width
+            const savedWidth = localStorage.getItem('tutorChatWidth');
+            if (savedWidth) {
+                const layout = document.querySelector('.tutor-layout');
+                layout.style.gridTemplateColumns = `${savedWidth}px 6px 1fr`;
+            }
         });
 
         function autoResize() {
@@ -1144,7 +1256,56 @@
         // ═══════════════════════════════════════════════
         function toggleSidebar() {
             const layout = document.querySelector('.tutor-layout');
-            layout.classList.toggle('collapsed');
+            const isCollapsing = !layout.classList.contains('collapsed');
+
+            if (isCollapsing) {
+                // Save current width before collapsing
+                const chatCol = document.querySelector('.chat-column');
+                if (chatCol) layout.dataset.savedWidth = chatCol.offsetWidth;
+                // Force collapsed grid (override any inline style from resize)
+                layout.style.gridTemplateColumns = '0px 0px 1fr';
+                layout.classList.add('collapsed');
+            } else {
+                // Restore saved width
+                const savedWidth = layout.dataset.savedWidth || localStorage.getItem('tutorChatWidth') || 480;
+                layout.style.gridTemplateColumns = `${savedWidth}px 6px 1fr`;
+                layout.classList.remove('collapsed');
+            }
+        }
+
+        // ═══════════════════════════════════════════════
+        // RESIZE HANDLE (drag to adjust chat width)
+        // ═══════════════════════════════════════════════
+        function initResizeHandle() {
+            const handle = document.getElementById('resize-handle');
+            const layout = document.querySelector('.tutor-layout');
+            let isDragging = false;
+
+            handle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                handle.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const layoutRect = layout.getBoundingClientRect();
+                const newWidth = Math.max(280, Math.min(e.clientX - layoutRect.left, window.innerWidth * 0.65));
+                layout.style.gridTemplateColumns = `${newWidth}px 6px 1fr`;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                handle.classList.remove('active');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                // Save width
+                const chatCol = document.querySelector('.chat-column');
+                if (chatCol) localStorage.setItem('tutorChatWidth', chatCol.offsetWidth);
+            });
         }
 
         // ═══════════════════════════════════════════════
