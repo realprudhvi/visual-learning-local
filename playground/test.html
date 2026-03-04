@@ -4684,12 +4684,17 @@
         }
 
         function toggleAutoPlay() {
+            if (!isAutoPlaying && currentStepIndex === maxStepReached && algorithmComplete) {
+                // Already at the end, cannot play
+                return;
+            }
+
             isAutoPlaying = !isAutoPlaying;
             const btn = document.getElementById('btn-play');
 
             if (isAutoPlaying) {
                 btn.textContent = '⏸';
-                if (resolveStep) {
+                if (resolveStep || currentStepIndex < maxStepReached) {
                     triggerNextStep();
                 }
             } else {

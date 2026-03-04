@@ -1,0 +1,32 @@
+{
+  "id": "container-with-most-water",
+  "name": "Container with Most Water",
+  "difficulty": "Medium",
+  "description": "<p>Given <code>n</code> non-negative integers <code>height[i]</code>, where each represents a point at coordinate <code>(i, height[i])</code>. <code>n</code> vertical lines are drawn such that the two endpoints of the line <code>i</code> are at <code>(i, height[i])</code> and <code>(i, 0)</code>.</p><p>Find two lines, which, together with the x-axis forms a container, such that the container contains the most water.</p><ul><li>The width of the container is the distance between the two indices.</li><li>The height of the container is the minimum of the two heights.</li><li>Area = width * min(height1, height2).</li></ul>",
+  "tags": [
+    "Array",
+    "Two Pointers",
+    "Greedy"
+  ],
+  "slots": [
+    {
+      "id": "heights",
+      "type": "array",
+      "label": "Wall Heights",
+      "display": "bar"
+    },
+    {
+      "id": "vars",
+      "type": "hashmap",
+      "label": "Variables"
+    }
+  ],
+  "inputs": [
+    {
+      "label": "Heights (comma separated)",
+      "default": "1,8,6,2,5,4,8,3,7",
+      "placeholder": "1,8,6,2,5,4,8,3,7"
+    }
+  ],
+  "code": "class Playground {\n    async run(inputs) {\n        // 1. Initialize data structures\n        const heightArray = inputs[0].split(',').map(num => parseInt(num.trim()));\n        if (heightArray.some(isNaN)) {\n            this.log(\"Invalid input: Please provide a list of numbers.\");\n            return 0;\n        }\n\n        await this.heights.init(heightArray);\n        await this.vars.init([\n            [\"left\", 0],\n            [\"right\", heightArray.length - 1],\n            [\"maxArea\", 0],\n            [\"currentArea\", 0]\n        ]);\n\n        let left = 0;\n        let right = heightArray.length - 1;\n        let maxArea = 0;\n\n        this.log(\"Starting two-pointer approach from both ends.\");\n        await this.await();\n\n        while (left < right) {\n            // Highlight the current pointers\n            this.heights.highlight(left, \"#00e0ff\"); // Cyan for left\n            this.heights.highlight(right, \"#ffb703\"); // Orange for right\n\n            const hL = this.heights.get(left);\n            const hR = this.heights.get(right);\n            const width = right - left;\n            const currentHeight = Math.min(hL, hR);\n            const area = width * currentHeight;\n\n            // Update variables for visualization\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            this.vars.put(\"currentArea\", area);\n\n            if (area > maxArea) {\n                maxArea = area;\n                this.vars.put(\"maxArea\", maxArea);\n                this.log(`New max area found: min(${hL}, ${hR}) * ${width} = ${area}`);\n            } else {\n                this.log(`Calculating area: min(${hL}, ${hR}) * ${width} = ${area}`);\n            }\n\n            await this.await();\n\n            // Decide which pointer to move\n            if (hL < hR) {\n                this.log(`Left height (${hL}) is smaller than right height (${hR}). Moving left pointer inward.`);\n                this.heights.highlight(left, null);\n                left++;\n            } else {\n                this.log(`Right height (${hR}) is smaller than or equal to left height (${hL}). Moving right pointer inward.`);\n                this.heights.highlight(right, null);\n                right--;\n            }\n            \n            await this.await();\n        }\n\n        // Final cleanup\n        this.heights.highlight(left, null);\n        this.heights.highlight(right, null);\n        this.log(`Algorithm finished. Maximum water container area is ${maxArea}.`);\n        return maxArea;\n    }\n}"
+}
