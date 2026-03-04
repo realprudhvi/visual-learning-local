@@ -432,6 +432,14 @@
         </div>
     </div>
 
+    <!-- Inline script to prevent blinking on landing->dsa navigation -->
+    <script>
+        if (window.location.search.includes('section=dsa')) {
+            document.getElementById('landing-view').classList.add('hidden');
+            document.getElementById('home-view').classList.remove('hidden');
+        }
+    </script>
+
     <!-- APP VIEW (Hidden by default) -->
     <div id="app-container" class="hidden">
         <div id="sidebar">
