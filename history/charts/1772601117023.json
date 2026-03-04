@@ -1,0 +1,63 @@
+{
+  "id": "object-detection-benchmark-comparison",
+  "name": "Object Detection Model Performance Trade-offs",
+  "difficulty": "Data Analytics",
+  "description": "This visualization compares state-of-the-art object detection models across three critical dimensions: <b>Accuracy (mAP@0.5:0.95)</b>, <b>Inference Latency (ms)</b>, and <b>Model Size (MB)</b>. <br><br>The chart highlights the <i>Pareto Frontier</i> of computer vision—the boundary where you cannot improve one metric without sacrificing another. High-performance models like <b>RT-DETR</b> and <b>YOLOv8</b> aim for the bottom-right corner (High Accuracy, Low Latency), while older architectures like <b>Faster R-CNN</b> show higher latency for similar accuracy levels. The marker size represents the computational complexity (FLOPs), illustrating the resource intensity required for specific architectures.",
+  "tags": [
+    "Computer Vision",
+    "Machine Learning",
+    "Model Evaluation",
+    "Efficiency"
+  ],
+  "dataGenerationCode": "const models = [\n  { name: 'YOLOv8n', map: 37.3, latency: 1.1, size: 6.2, flops: 8.7, family: 'YOLO' },\n  { name: 'YOLOv8s', map: 44.9, latency: 2.0, size: 22.5, flops: 28.6, family: 'YOLO' },\n  { name: 'YOLOv8m', map: 50.2, latency: 4.5, size: 52.1, flops: 79.0, family: 'YOLO' },\n  { name: 'YOLOv8l', map: 52.9, latency: 8.4, size: 87.7, flops: 165.2, family: 'YOLO' },\n  { name: 'YOLOv8x', map: 53.9, latency: 13.5, size: 136.7, flops: 257.8, family: 'YOLO' },\n  { name: 'Faster R-CNN (R50)', map: 37.0, latency: 50.0, size: 108.0, flops: 180.0, family: 'Two-Stage' },\n  { name: 'SSD (ResNet50)', map: 30.5, latency: 22.0, size: 95.0, flops: 90.0, family: 'Single-Stage' },\n  { name: 'EfficientDet-D0', map: 34.6, latency: 10.2, size: 15.0, flops: 2.5, family: 'Scalable' },\n  { name: 'EfficientDet-D4', map: 49.7, latency: 45.0, size: 84.0, flops: 34.0, family: 'Scalable' },\n  { name: 'DETR-R50', map: 42.0, latency: 28.0, size: 167.0, flops: 86.0, family: 'Transformer' },\n  { name: 'RT-DETR-L', map: 53.0, latency: 1.5, size: 114.0, flops: 110.0, family: 'Transformer' },\n  { name: 'RT-DETR-X', map: 54.8, latency: 2.1, size: 262.0, flops: 221.0, family: 'Transformer' }\n];\n\nconst families = [...new Set(models.map(m => m.family))];\nconst colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];\n\nreturn families.map((family, i) => {\n  const filtered = models.filter(m => m.family === family);\n  return {\n    x: filtered.map(m => m.map),\n    y: filtered.map(m => m.latency),\n    z: filtered.map(m => m.size),\n    text: filtered.map(m => `${m.name}<br>FLOPs: ${m.flops}G`),\n    name: family,\n    mode: 'markers',\n    type: 'scatter3d',\n    marker: {\n      size: filtered.map(m => Math.sqrt(m.flops) * 3 + 2),\n      color: colors[i % colors.length],\n      opacity: 0.8,\n      line: { color: '#ffffff', width: 0.5 }\n    }\n  };\n});",
+  "plotLayout": {
+    "title": "mAP vs. Latency vs. Model Size Benchmarking",
+    "autosize": true,
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {
+      "color": "#cbd5e1",
+      "family": "Inter, system-ui, sans-serif"
+    },
+    "margin": {
+      "l": 0,
+      "r": 0,
+      "b": 0,
+      "t": 40
+    },
+    "scene": {
+      "xaxis": {
+        "title": "Accuracy (mAP@.5:.95)",
+        "gridcolor": "#334155",
+        "backgroundcolor": "rgba(15, 23, 42, 0.5)",
+        "showbackground": true,
+        "zerolinecolor": "#475569"
+      },
+      "yaxis": {
+        "title": "Latency (ms)",
+        "gridcolor": "#334155",
+        "backgroundcolor": "rgba(15, 23, 42, 0.5)",
+        "showbackground": true,
+        "zerolinecolor": "#475569"
+      },
+      "zaxis": {
+        "title": "Weight Size (MB)",
+        "gridcolor": "#334155",
+        "backgroundcolor": "rgba(15, 23, 42, 0.5)",
+        "showbackground": true,
+        "zerolinecolor": "#475569"
+      },
+      "camera": {
+        "eye": {
+          "x": 1.5,
+          "y": 1.5,
+          "z": 1.2
+        }
+      }
+    },
+    "legend": {
+      "orientation": "h",
+      "y": 0.9
+    }
+  }
+}
