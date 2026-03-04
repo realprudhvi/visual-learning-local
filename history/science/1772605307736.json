@@ -1,0 +1,51 @@
+{
+  "id": "mlp-backprop-walkthrough",
+  "name": "MLP: Feedforward & Backpropagation Solved Example",
+  "difficulty": "Hard",
+  "description": "Explore the inner workings of a Multi-Layer Perceptron (MLP). This simulation provides a step-by-step solved example of the **Forward Pass** and **Backpropagation** algorithms.\n\n### Mathematical Foundations\n\n1. **Forward Pass**:\nEach neuron calculates a weighted sum of its inputs plus a bias: \n$$z = \\sum (w_i \\cdot x_i) + b$$\nThen applies an activation function (Sigmoid): \n$$\\sigma(z) = \\frac{1}{1 + e^{-z}}$$\n\n2. **Loss Function** (Mean Squared Error):\n$$E = \\frac{1}{2}(target - output)^2$$\n\n3. **Backpropagation** (Gradient Descent):\nWe calculate how much each weight contributed to the error using the Chain Rule:\n$$\\frac{\\partial E}{\\partial w} = \\frac{\\partial E}{\\partial out} \\cdot \\frac{\\partial out}{\\partial z} \\cdot \\frac{\\partial z}{\\partial w}$$\n\nAdjust the weights and inputs to see the math update in real-time.",
+  "tags": [
+    "machine-learning",
+    "neural-networks",
+    "backpropagation",
+    "calculus"
+  ],
+  "inputs": [
+    {
+      "id": "x1",
+      "label": "Input x1",
+      "type": "range",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "value": 0.5
+    },
+    {
+      "id": "x2",
+      "label": "Input x2",
+      "type": "range",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "value": 0.1
+    },
+    {
+      "id": "target",
+      "label": "Target Output (y)",
+      "type": "range",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "value": 0.7
+    },
+    {
+      "id": "lr",
+      "label": "Learning Rate (η)",
+      "type": "range",
+      "min": 0.01,
+      "max": 1,
+      "step": 0.01,
+      "value": 0.5
+    }
+  ],
+  "renderingCode": "class ScienceSimulation {\n    constructor(container, initialInputs) {\n        this.container = container;\n        this.canvas = document.createElement('canvas');\n        this.ctx = this.canvas.getContext('2d');\n        this.container.appendChild(this.canvas);\n        this.resize();\n        window.addEventListener('resize', () => this.resize());\n\n        // Fixed Initial weights for the 'Solved Example' logic\n        this.weights = {\n            w11: 0.15, w21: 0.20, b1: 0.35,\n            w12: 0.25, w22: 0.30,\n            v1: 0.40, v2: 0.45, b2: 0.60\n        };\n    }\n\n    resize() {\n        this.canvas.width = this.container.clientWidth;\n        this.canvas.height = this.container.clientHeight || 500;\n    }\n\n    sigmoid(z) { return 1 / (1 + Math.exp(-z)); }\n    sigmoidDeriv(a) { return a * (1 - a); }\n\n    calculate(inputs) {\n        const { x1, x2, target } = inputs;\n        const { w11, w21, b1, w12, w22, v1, v2, b2 } = this.weights;\n\n        // Hidden Layer\n        const zh1 = x1 * w11 + x2 * w21 + b1;\n        const h1 = this.sigmoid(zh1);\n        const zh2 = x1 * w12 + x2 * w22 + b1;\n        const h2 = this.sigmoid(zh2);\n\n        // Output Layer\n        const zo = h1 * v1 + h2 * v2 + b2;\n        const out = this.sigmoid(zo);\n\n        // Error\n        const error = 0.5 * Math.pow(target - out, 2);\n\n        // Backprop - Output Layer\n        const dE_dout = -(target - out);\n        const dout_dzo = this.sigmoidDeriv(out);\n        const dE_dzo = dE_dout * dout_dzo;\n\n        const dE_dv1 = dE_dzo * h1;\n        const dE_dv2 = dE_dzo * h2;\n        const dE_db2 = dE_dzo;\n\n        // Backprop - Hidden Layer\n        const dE_dh1 = dE_dzo * v1;\n        const dh1_dzh1 = this.sigmoidDeriv(h1);\n        const dE_dw11 = dE_dh1 * dh1_dzh1 * x1;\n        const dE_dw21 = dE_dh1 * dh1_dzh1 * x2;\n\n        return { zh1, h1, zh2, h2, zo, out, error, dE_dzo, dE_dv1, dE_dv2, dE_dw11, dE_dw21 };\n    }\n\n    getSteps(inputs) {\n        const calc = this.calculate(inputs);\n        return [\n            {\n                title: \"Step 1: Network Architecture\",\n                description: \"We have a simple 2-2-1 MLP. Inputs: $x_1=\" + inputs.x1 + \"$, $x_2=\" + inputs.x2 + \"$. Target: $y=\" + inputs.target + \"$. Weights are initialized to small values.\"\n            },\n            {\n                title: \"Step 2: Forward Pass (Hidden Layer)\",\n                description: \"Calculate hidden neuron $h_1$ value:\\\\n $z_{h1} = (w_{11}x_1 + w_{21}x_2 + b_1) = \" + calc.zh1.toFixed(3) + \"$\\\\n $a_{h1} = \\\\sigma(z_{h1}) = \" + calc.h1.toFixed(3) + \"$. Same for $h_2$.\"\n            },\n            {\n                title: \"Step 3: Forward Pass (Output Layer)\",\n                description: \"Calculate final output:\\\\n $z_{o} = (v_1h_1 + v_2h_2 + b_2) = \" + calc.zo.toFixed(3) + \"$\\\\n $Output = \\\\sigma(z_{o}) = \" + calc.out.toFixed(3) + \"$.\"\n            },\n            {\n                title: \"Step 4: Error Calculation\",\n                description: \"Using Mean Squared Error:\\\\n $E = \\\\frac{1}{2}(target - output)^2 = \" + calc.error.toFixed(5) + \"$. This is what we want to minimize.\"\n            },\n            {\n                title: \"Step 5: Backprop (Output Gradients)\",\n                description: \"Using chain rule, find gradient for weight $v_1$:\\\\n $\\\\frac{\\\\partial E}{\\\\partial v_1} = (out - target) \\\\cdot out(1-out) \\\\cdot h_1 = \" + calc.dE_dv1.toFixed(4) + \"$.\"\n            },\n            {\n                title: \"Step 6: Backprop (Hidden Gradients)\",\n                description: \"Propagate error back to hidden weights:\\\\n $\\\\frac{\\\\partial E}{\\\\partial w_{11}} = \\\\frac{\\\\partial E}{\\\\partial h_1} \\\\cdot \\\\frac{\\\\partial h_1}{\\\\partial z_{h1}} \\\\cdot x_1 = \" + calc.dE_dw11.toFixed(4) + \"$.\"\n            },\n            {\n                title: \"Step 7: Weight Update\",\n                description: \"Update weights using learning rate $\\\\eta = \" + inputs.lr + \"$:\\\\n $w_{new} = w_{old} - \\\\eta \\\\cdot \\\\frac{\\\\partial E}{\\\\partial w}$.\"\n            }\n        ];\n    }\n\n    render(inputs, stepIndex) {\n        const { ctx, canvas } = this;\n        const calc = this.calculate(inputs);\n        ctx.clearRect(0, 0, canvas.width, canvas.height);\n\n        const nodeRadius = 25;\n        const xPos = [canvas.width * 0.2, canvas.width * 0.5, canvas.width * 0.8];\n        const yPosIn = [canvas.height * 0.35, canvas.height * 0.65];\n        const yPosHid = [canvas.height * 0.35, canvas.height * 0.65];\n        const yPosOut = [canvas.height * 0.5];\n\n        // Draw Connections\n        const drawEdge = (x1, y1, x2, y2, color, weightVal, isActive) => {\n            ctx.beginPath();\n            ctx.moveTo(x1, y1);\n            ctx.lineTo(x2, y2);\n            ctx.strokeStyle = isActive ? '#3b82f6' : '#cbd5e1';\n            ctx.lineWidth = isActive ? 4 : 1.5;\n            ctx.stroke();\n            \n            if (isActive) {\n                ctx.fillStyle = '#1e293b';\n                ctx.font = 'bold 12px Arial';\n                ctx.fillText(weightVal, (x1 + x2) / 2, (y1 + y2) / 2 - 5);\n            }\n        };\n\n        // Step logic for highlighting\n        const showInToHid = stepIndex >= 1;\n        const showHidToOut = stepIndex >= 2;\n        const showBackOut = stepIndex >= 4;\n        const showBackHid = stepIndex >= 5;\n\n        // Edges: Input to Hidden\n        drawEdge(xPos[0], yPosIn[0], xPos[1], yPosHid[0], '', this.weights.w11, showInToHid);\n        drawEdge(xPos[0], yPosIn[1], xPos[1], yPosHid[0], '', this.weights.w21, showInToHid);\n        drawEdge(xPos[0], yPosIn[0], xPos[1], yPosHid[1], '', this.weights.w12, showInToHid);\n        drawEdge(xPos[0], yPosIn[1], xPos[1], yPosHid[1], '', this.weights.w22, showInToHid);\n\n        // Edges: Hidden to Output\n        drawEdge(xPos[1], yPosHid[0], xPos[2], yPosOut[0], '', this.weights.v1, showHidToOut);\n        drawEdge(xPos[1], yPosHid[1], xPos[2], yPosOut[0], '', this.weights.v2, showHidToOut);\n\n        // Draw Nodes\n        const drawNode = (x, y, label, sublabel, color) => {\n            ctx.beginPath();\n            ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);\n            ctx.fillStyle = color;\n            ctx.fill();\n            ctx.strokeStyle = '#1e293b';\n            ctx.lineWidth = 2;\n            ctx.stroke();\n            \n            ctx.fillStyle = '#ffffff';\n            ctx.textAlign = 'center';\n            ctx.font = '14px Arial';\n            ctx.fillText(label, x, y + 5);\n            \n            ctx.fillStyle = '#334155';\n            ctx.font = '12px Arial';\n            ctx.fillText(sublabel, x, y + nodeRadius + 15);\n        };\n\n        // Inputs\n        drawNode(xPos[0], yPosIn[0], 'x1', inputs.x1.toString(), '#64748b');\n        drawNode(xPos[0], yPosIn[1], 'x2', inputs.x2.toString(), '#64748b');\n\n        // Hidden\n        drawNode(xPos[1], yPosHid[0], 'H1', stepIndex >= 2 ? calc.h1.toFixed(3) : '?', '#3b82f6');\n        drawNode(xPos[1], yPosHid[1], 'H2', stepIndex >= 2 ? calc.h2.toFixed(3) : '?', '#3b82f6');\n\n        // Output\n        drawNode(xPos[2], yPosOut[0], 'Out', stepIndex >= 3 ? calc.out.toFixed(3) : '?', '#ef4444');\n\n        // Gradients visualization\n        if (showBackOut) {\n            ctx.fillStyle = '#ef4444';\n            ctx.font = 'bold 12px Arial';\n            ctx.fillText('∂E/∂v1: ' + calc.dE_dv1.toFixed(4), xPos[2] - 100, yPosOut[0] - 40);\n        }\n\n        if (showBackHid) {\n            ctx.fillStyle = '#ef4444';\n            ctx.fillText('∂E/∂w11: ' + calc.dE_dw11.toFixed(4), xPos[1] - 100, yPosHid[0] - 40);\n        }\n    }\n}"
+}

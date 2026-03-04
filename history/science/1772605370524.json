@@ -1,0 +1,78 @@
+{
+  "id": "perceptron-backpropagation-solver",
+  "name": "Single Layer Perceptron: Feedforward & Backpropagation",
+  "difficulty": "Medium",
+  "description": "Visualizing the inner workings of a Single Layer Perceptron. This simulation walks through the **Feedforward** pass to compute an output and the **Backpropagation** pass to update weights using Gradient Descent.\n\n### Mathematical Concepts\n1. **Weighted Sum ($z$):** The linear combination of inputs and weights: $$z = (x_1 \\cdot w_1) + (x_2 \\cdot w_2) + b$$\n2. **Activation Function (Sigmoid $\\sigma$):** Squashes the sum into a range (0, 1): $$\\sigma(z) = \\frac{1}{1 + e^{-z}}$$\n3. **Loss Function (MSE):** Measures the error: $$L = \\frac{1}{2}(\\hat{y} - y_{target})^2$$\n4. **Gradient Descent:** We update weights in the opposite direction of the gradient: $$w_{new} = w_{old} - \\eta \\cdot \\frac{\\partial L}{\\partial w}$$",
+  "tags": [
+    "machine learning",
+    "neural networks",
+    "calculus",
+    "backpropagation"
+  ],
+  "inputs": [
+    {
+      "id": "x1",
+      "label": "Input x1",
+      "type": "range",
+      "min": -1,
+      "max": 1,
+      "step": 0.1,
+      "value": 0.5
+    },
+    {
+      "id": "x2",
+      "label": "Input x2",
+      "type": "range",
+      "min": -1,
+      "max": 1,
+      "step": 0.1,
+      "value": -0.2
+    },
+    {
+      "id": "w1",
+      "label": "Weight w1",
+      "type": "range",
+      "min": -2,
+      "max": 2,
+      "step": 0.1,
+      "value": 0.8
+    },
+    {
+      "id": "w2",
+      "label": "Weight w2",
+      "type": "range",
+      "min": -2,
+      "max": 2,
+      "step": 0.1,
+      "value": 0.4
+    },
+    {
+      "id": "bias",
+      "label": "Bias (b)",
+      "type": "range",
+      "min": -2,
+      "max": 2,
+      "step": 0.1,
+      "value": -0.5
+    },
+    {
+      "id": "target",
+      "label": "Target Output (y)",
+      "type": "range",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "value": 0.7
+    },
+    {
+      "id": "lr",
+      "label": "Learning Rate (η)",
+      "type": "range",
+      "min": 0.01,
+      "max": 1,
+      "step": 0.01,
+      "value": 0.5
+    }
+  ],
+  "renderingCode": "class ScienceSimulation {\n    constructor(container, initialInputs) {\n        this.container = container;\n        this.canvas = document.createElement('canvas');\n        this.ctx = this.canvas.getContext('2d');\n        this.container.appendChild(this.canvas);\n        this.resize();\n        window.addEventListener('resize', () => this.resize());\n    }\n\n    resize() {\n        this.width = this.container.clientWidth;\n        this.height = this.container.clientHeight || 400;\n        this.canvas.width = this.width * window.devicePixelRatio;\n        this.canvas.height = this.height * window.devicePixelRatio;\n        this.canvas.style.width = `${this.width}px`;\n        this.canvas.style.height = `${this.height}px`;\n        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);\n    }\n\n    getSteps(inputs) {\n        const z = inputs.x1 * inputs.w1 + inputs.x2 * inputs.w2 + inputs.bias;\n        const activation = 1 / (1 + Math.exp(-z));\n        const error = 0.5 * Math.pow(activation - inputs.target, 2);\n        const dL_da = activation - inputs.target;\n        const da_dz = activation * (1 - activation);\n        const delta = dL_da * da_dz;\n        const dw1 = delta * inputs.x1;\n        const dw2 = delta * inputs.x2;\n        const db = delta;\n\n        return [\n            {\n                title: \"Step 1: Feedforward - Weighted Sum\",\n                description: `Calculate the linear sum $z$ from inputs and weights:\\n\\n$z = (${inputs.x1} \\\\cdot ${inputs.w1}) + (${inputs.x2} \\\\cdot ${inputs.w2}) + (${inputs.bias}) = ${z.toFixed(4)}$`\n            },\n            {\n                title: \"Step 2: Feedforward - Activation\",\n                description: `Pass $z$ through the Sigmoid activation function to get predicted output $\\\\hat{y}$:\\n\\n$\\\\hat{y} = \\\\sigma(${z.toFixed(4)}) = \\\\frac{1}{1 + e^{-${z.toFixed(4)}}} = ${activation.toFixed(4)}$`\n            },\n            {\n                title: \"Step 3: Compute Loss\",\n                description: `Compare prediction $\\\\hat{y} = ${activation.toFixed(4)}$ to target $y = ${inputs.target}$.\\n\\n$Loss = \\\\frac{1}{2}(${activation.toFixed(4)} - ${inputs.target})^2 = ${error.toFixed(6)}$`\n            },\n            {\n                title: \"Step 4: Backpropagation - Gradients\",\n                description: `Using Chain Rule, calculate how the loss changes with respect to weights:\\n\\n$\\\\frac{\\\\partial L}{\\\\partial z} = (\\\\hat{y} - y) \\\\cdot \\\\sigma'(z) = ${delta.toFixed(4)}$\\n\\n$\\\\nabla w_1 = ${dw1.toFixed(4)}, \\\\nabla w_2 = ${dw2.toFixed(4)}, \\\\nabla b = ${db.toFixed(4)}$`\n            },\n            {\n                title: \"Step 5: Weight Update\",\n                description: `Update parameters using Learning Rate $\\\\eta = ${inputs.lr}$:\\n\\n$w_1 \\\\leftarrow ${inputs.w1} - (${inputs.lr} \\\\cdot ${dw1.toFixed(4)}) = ${(inputs.w1 - inputs.lr * dw1).toFixed(4)}$\\n\\n$w_2 \\\\leftarrow ${inputs.w2} - (${inputs.lr} \\\\cdot ${dw2.toFixed(4)}) = ${(inputs.w2 - inputs.lr * dw2).toFixed(4)}$`\n            }\n        ];\n    }\n\n    drawNode(x, y, label, value, color, isActive) {\n        const ctx = this.ctx;\n        ctx.beginPath();\n        ctx.arc(x, y, 30, 0, Math.PI * 2);\n        ctx.fillStyle = isActive ? color : '#e2e8f0';\n        ctx.fill();\n        ctx.strokeStyle = isActive ? '#1e293b' : '#94a3b8';\n        ctx.lineWidth = 2;\n        ctx.stroke();\n\n        ctx.fillStyle = isActive ? 'white' : '#64748b';\n        ctx.font = 'bold 14px Inter, sans-serif';\n        ctx.textAlign = 'center';\n        ctx.fillText(label, x, y - 5);\n        ctx.font = '12px Inter, sans-serif';\n        ctx.fillText(value, x, y + 15);\n    }\n\n    drawConnection(x1, y1, x2, y2, label, isActive, color, weight) {\n        const ctx = this.ctx;\n        ctx.beginPath();\n        ctx.moveTo(x1, y1);\n        ctx.lineTo(x2, y2);\n        ctx.strokeStyle = isActive ? color : '#cbd5e1';\n        ctx.lineWidth = isActive ? 4 : 2;\n        ctx.stroke();\n\n        // Label\n        const midX = (x1 + x2) / 2;\n        const midY = (x1 + x2) / 2;\n        ctx.fillStyle = isActive ? '#1e293b' : '#94a3b8';\n        ctx.font = 'italic 12px serif';\n        ctx.fillText(label + ': ' + weight, midX, (y1 + y2) / 2 - 10);\n    }\n\n    render(inputs, stepIndex) {\n        const ctx = this.ctx;\n        ctx.clearRect(0, 0, this.width, this.height);\n\n        const z = inputs.x1 * inputs.w1 + inputs.x2 * inputs.w2 + inputs.bias;\n        const activation = 1 / (1 + Math.exp(-z));\n        \n        const colors = {\n            input: '#3b82f6',\n            neuron: '#8b5cf6',\n            output: '#10b981',\n            error: '#ef4444'\n        };\n\n        const nodeX1 = 100;\n        const nodeX2 = 400;\n        const nodeY1 = 100;\n        const nodeY2 = 300;\n        const neuronY = 200;\n\n        // Draw Connections\n        this.drawConnection(nodeX1, nodeY1, nodeX2, neuronY, 'w1', stepIndex === 0 || stepIndex === 3 || stepIndex === 4, colors.input, inputs.w1);\n        this.drawConnection(nodeX1, nodeY2, nodeX2, neuronY, 'w2', stepIndex === 0 || stepIndex === 3 || stepIndex === 4, colors.input, inputs.w2);\n        \n        // Draw Input Nodes\n        this.drawNode(nodeX1, nodeY1, 'x1', inputs.x1, colors.input, stepIndex >= 0);\n        this.drawNode(nodeX1, nodeY2, 'x2', inputs.x2, colors.input, stepIndex >= 0);\n\n        // Draw Perceptron Node\n        this.drawNode(nodeX2, neuronY, 'Σ, σ', `z=${z.toFixed(2)}`, colors.neuron, stepIndex >= 1);\n\n        // Draw Output\n        ctx.beginPath();\n        ctx.moveTo(nodeX2 + 30, neuronY);\n        ctx.lineTo(nodeX2 + 100, neuronY);\n        ctx.strokeStyle = stepIndex >= 2 ? colors.output : '#cbd5e1';\n        ctx.stroke();\n        \n        ctx.fillStyle = stepIndex >= 2 ? colors.output : '#94a3b8';\n        ctx.font = 'bold 16px Inter, sans-serif';\n        ctx.fillText(`ŷ = ${activation.toFixed(3)}`, nodeX2 + 140, neuronY + 5);\n        \n        if (stepIndex >= 2) {\n            ctx.fillStyle = colors.error;\n            ctx.font = '12px Inter, sans-serif';\n            ctx.fillText(`Target: ${inputs.target}`, nodeX2 + 140, neuronY + 25);\n        }\n\n        // Backprop Arrows\n        if (stepIndex >= 3) {\n            ctx.strokeStyle = colors.error;\n            ctx.setLineDash([5, 5]);\n            ctx.beginPath();\n            ctx.moveTo(nodeX2, neuronY + 40);\n            ctx.lineTo(nodeX1 + 40, nodeY1 + 40);\n            ctx.stroke();\n            ctx.beginPath();\n            ctx.moveTo(nodeX2, neuronY + 40);\n            ctx.lineTo(nodeX1 + 40, nodeY2 - 40);\n            ctx.stroke();\n            ctx.setLineDash([]);\n            ctx.fillStyle = colors.error;\n            ctx.fillText(\"Update Δw\", (nodeX1 + nodeX2) / 2, neuronY + 60);\n        }\n    }\n}"
+}

@@ -13,12 +13,16 @@ DO NOT use blockquotes or markdown formatting like ```json in the output! Return
   "description": "string (Markdown format. Explain the science/math concepts being visualized here beautifully. You can use $a^2$ or $$a^2$$ for KaTeX Math rendering)",
   "tags": ["physics", "forces", "mechanics"],
   "inputs": [
-    { "id": "mass", "label": "Mass (kg)", "type": "range", "min": 1, "max": 100, "step": 1, "value": 10 },
+    { "id": "mass", "label": "Mass (kg)", "type": "number", "value": 10 },
     { "id": "angle", "label": "Incline Angle (deg)", "type": "range", "min": 0, "max": 90, "step": 1, "value": 30 },
     { "id": "gravity", "label": "Gravity (m/s²)", "type": "number", "value": 9.8 }
   ],
   "renderingCode": "string (Standalone JS Class definition text)"
 }
+
+### Input Configuration Guidelines
+- **Use `type: "number"`** (text boxes) for almost all variables (e.g., mass, velocity, learning rate, target output). This allows the user to enter precise or unbounded values.
+- **Use `type: "range"`** (sliders) ONLY when a variable has a strict, intuitive physical or mathematical UI bound (e.g., an angle between $0$ and $360$, or a percentage between $0$ and $100$). Provide `min`, `max`, and `step` for sliders.
 
 ### renderingCode Specifications
 
@@ -87,5 +91,8 @@ class ScienceSimulation {
 Notes:
 1. Make your visual simulation beautiful and perfectly reactive to the `inputs` variables changing.
 2. In `render()`, you should completely clear your canvas/Plotly instance and redraw it entirely according to the `stepIndex` requested.
-3. Keep the visual centered and responsive to window resizing if drawing on raw Canvas. 
-4. **CRITICAL JSON ESCAPING**: Remember that the output must be valid JSON parsed by `JSON.parse()`. The `renderingCode` is a SINGLE STRING property. You MUST escape all inner quotes (`\"`), all backslashes (`\\\\`), and all newlines MUST be written as literal `\n` characters, NOT actual line breaks. DO NOT use template literals or actual multi-line strings for the `renderingCode` value.
+3. Keep the visual centered and responsive to window resizing if drawing on raw Canvas.
+4. **VISUAL CLARITY & LAYOUT**: Ensure that drawn elements (lines, vectors, text) do not overlap confusingly. If drawing text near lines, offset the text appropriately or draw a small background rectangle behind the text so it remains readable. Use high-contrast colors (e.g., white or bright colors on the dark `#0f172a` canvas). 
+5. **CRITICAL JSON ESCAPING**: Remember that the output must be valid JSON parsed by `JSON.parse()`. The `renderingCode` is a SINGLE STRING property. This means you CANNOT use literal newlines in the string. You MUST replace all physical line breaks with `\n`.
+6. **CRITICAL SYNTAX SAFETY**: All backticks or inner quotes used inside your JavaScript string MUST be escaped (`\"`, `\\'`). Be extremely careful with KaTeX logic inside template literals. 
+7. Do NOT write \`\`\`json or provide any markdown formatting outside the curly braces. Just the raw JSON object. Let the JSON parser handle it seamlessly.

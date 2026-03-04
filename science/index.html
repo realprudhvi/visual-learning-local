@@ -244,6 +244,17 @@
             font-family: 'Fira Code', monospace;
         }
 
+        /* Hide spin buttons for sleek number inputs */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
         input[type=range] {
             width: 100%;
             -webkit-appearance: none;
@@ -300,6 +311,35 @@
             border: 1px solid var(--border);
             overflow: visible;
             position: relative;
+        }
+
+        /* Step Navigation Buttons */
+        .step-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            font-size: 1.1rem;
+        }
+
+        .step-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .step-btn:disabled {
+            background: rgba(100, 116, 139, 0.3);
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.5;
         }
 
         .output-panel {
@@ -592,17 +632,11 @@
 
                 <div class="controls-area"
                     style="display: flex; align-items: center; gap: 16px; background: rgba(30, 41, 59, 0.6); padding: 8px 20px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <button id="btn-prev-step" class="step-btn" title="Previous Step"
-                        style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); font-size: 1.1rem; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='scale(1.1)'"
-                        onmouseout="this.style.transform='scale(1)'">⏮</button>
+                    <button id="btn-prev-step" class="step-btn" title="Previous Step">←</button>
                     <div id="step-indicator"
                         style="font-family: 'Fira Code', monospace; font-size: 0.9rem; color: #94a3b8; min-width: 60px; text-align: center;">
                         1 / 1</div>
-                    <button id="btn-next-step" class="step-btn" title="Next Step"
-                        style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); font-size: 1.1rem; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='scale(1.1)'"
-                        onmouseout="this.style.transform='scale(1)'">⏭</button>
+                    <button id="btn-next-step" class="step-btn" title="Next Step">→</button>
                 </div>
             </div>
         </div>
@@ -790,13 +824,35 @@
                         inputEl = document.createElement('input');
                         inputEl.type = 'number';
                         inputEl.className = 'input-field';
-                        inputEl.style.padding = '8px';
+                        // Premium sleek styling for number boxes
+                        inputEl.style.width = '100%';
+                        inputEl.style.padding = '10px 12px';
+                        inputEl.style.backgroundColor = 'rgba(15, 23, 42, 0.6)';
+                        inputEl.style.border = '1px solid rgba(100, 116, 139, 0.4)';
+                        inputEl.style.borderRadius = '8px';
+                        inputEl.style.color = '#60a5fa'; /* match the blue of slider thumbs/values */
+                        inputEl.style.fontFamily = "'Fira Code', monospace";
+                        inputEl.style.fontSize = '1rem';
+                        inputEl.style.marginTop = '8px';
+                        inputEl.style.boxSizing = 'border-box';
+                        inputEl.style.outline = 'none';
+                        inputEl.style.transition = 'border-color 0.2s';
+
+                        inputEl.onfocus = () => inputEl.style.borderColor = '#3b82f6';
+                        inputEl.onblur = () => inputEl.style.border = '1px solid rgba(100, 116, 139, 0.4)';
+
                         inputEl.value = currentInputState[inputDef.id];
 
-                        inputEl.addEventListener('change', (e) => {
-                            const val = Number(e.target.value);
-                            document.getElementById(`val-${inputDef.id}`).textContent = val !== null && !isNaN(val) ? val : 0;
-                            triggerSimulationUpdate(inputDef.id, val);
+                        // Hide the duplicate value span in the header since the box itself shows the value
+                        const valSpan = header.querySelector('.dyn-input-val');
+                        if (valSpan) valSpan.style.display = 'none';
+
+                        inputEl.addEventListener('input', (e) => {
+                            const val = e.target.value === '' ? null : Number(e.target.value);
+                            if (val !== null && !isNaN(val)) {
+                                if (valSpan) valSpan.textContent = val;
+                                triggerSimulationUpdate(inputDef.id, val);
+                            }
                         });
                     }
 
