@@ -646,7 +646,7 @@
                 </div>
 
                 <div id="render-container">
-                    <canvas id="molecule-canvas"></canvas>
+                    
 
                     <div class="empty-state" id="empty-state">
                         <div class="icon">
@@ -671,36 +671,11 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
-        // --- SmilesDrawer Initialization ---
-        let sd;
-        const canvas = document.getElementById('molecule-canvas');
-
-        function initSmilesDrawer() {
-            const container = document.getElementById('render-container');
-            sd = new SmiDrawer({
-                width: container.clientWidth - 40,
-                height: container.clientHeight - 40,
-                theme: 'dark'
-            });
-        }
-
-        function resizeCanvas() {
-            if (canvas) {
-                const container = document.getElementById('render-container');
-                canvas.width = container.clientWidth - 40;
-                canvas.height = container.clientHeight - 40;
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            initSmilesDrawer();
-        });
+        
 
         // --- Init & Restore Preferences ---
         document.addEventListener('DOMContentLoaded', async () => {
-            resizeCanvas();
-            initSmilesDrawer();
+            
 
             const savedGeminiKey = localStorage.getItem('geminiApiKey');
             const savedGroqKey = localStorage.getItem('groqApiKey');
@@ -926,9 +901,7 @@
             document.getElementById('explanation-panel').classList.remove('visible');
             document.getElementById('raw-smiles-container').style.display = 'none';
 
-            // Clear previous canvas
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const renderContainer = document.getElementById('render-container');
 
             try {
                 const response = await fetch('/api/generate', {
@@ -949,23 +922,44 @@
                 }
 
                 const result = await response.json();
-                let jsonString = result.response || '{}';
+                
+                // Server directly returns the parsed JSON in result.generatedResponse
+                const generatedData = result.generatedResponse;
 
-                // Parse result
-                jsonString = jsonString.replace(/```json/g, "").replace(/```/g, "").trim();
-                let generatedData;
-                try {
-                    generatedData = JSON.parse(jsonString);
-                } catch (e) {
-                    console.error("JSON Parse Error:", jsonString);
-                    throw new Error("AI returned invalid JSON syntax.");
+                if (!generatedData) {
+                    throw new Error("AI returned invalid JSON syntax or server failed to parse.");
                 }
 
-                const smilesKey = generatedData.renderCode;
-                if (!smilesKey) throw new Error("AI failed to provide a SMILES string.");
+                const latexCode = generatedData.renderCode;
+                if (!latexCode || !latexCode.includes("chemfig")) {
+                    throw new Error("AI failed to provide valid chemfig LaTeX format.");
+                }
 
-                // Draw to canvas
-                sd.draw(smilesKey, canvas, 'dark');
+                // --- Backend LaTeX Rendering ---
+                const renderResponse = await fetch('/api/render', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: latexCode })
+                });
+
+                if (!renderResponse.ok) {
+                    const errText = await renderResponse.text();
+                    throw new Error('LaTeX Compilation failed: ' + errText);
+                }
+
+                const svgData = await renderResponse.text();
+
+                // Insert the new SVG directly
+                renderContainer.innerHTML = svgData;
+                
+                // Adjust SVG styles
+                const svg = renderContainer.querySelector('svg');
+                if (svg) {
+                    svg.style.maxWidth = '100%';
+                    svg.style.height = 'auto';
+                }
+                
+                renderContainer.style.opacity = '1';
 
                 // Update UI
                 document.getElementById('molecule-title').textContent = generatedData.title;
@@ -1011,8 +1005,7 @@
             const layout = document.getElementById('main-layout');
             layout.classList.toggle('collapsed');
             setTimeout(() => {
-                resizeCanvas();
-                initSmilesDrawer();
+                
             }, 400);
         }
     </script>
