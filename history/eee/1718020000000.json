@@ -1,9 +1,0 @@
-{
-    "name": "RC Low-Pass Filter",
-    "difficulty": "Intermediate",
-    "timestamp": 1718020000000,
-    "type": "electrical",
-    "title": "RC Low-Pass Filter",
-    "explanation": "A low-pass filter (LPF) is a filter that passes signals with a frequency lower than a selected cutoff frequency and attenuates signals with frequencies higher than the cutoff frequency. \n\n### Working Principle\nThe circuit consists of a resistor ($R$) in series with a capacitor ($C$). The output is taken across the capacitor. At low frequencies, the capacitor has high reactance, acting almost like an open circuit, so most of the input voltage drops across it. At high frequencies, the capacitor has low reactance, acting almost like a short circuit, and the output voltage drops to near zero.\n\n### Cutoff Frequency\nThe cutoff frequency ($f_c$) is given by:\n$$f_c = \\frac{1}{2\\pi RC}$$\n\n### Applications\n* Smoothing the output of power supplies.\n* Audio crossovers to block high frequencies from subwoofers.\n* Anti-aliasing filters in analog-to-digital converters.",
-    "renderCode": "\\documentclass[tikz, border=2mm]{standalone}\n\\usepackage{circuitikz}\n\\begin{document}\n\\begin{circuitikz}[american]\n\\draw (0,0) to[V,v=$V_{in}$] (0,3) to[R, l=$R$, a=10$k\\Omega$] (3,3) to[short] (4,3);\n\\draw (3,3) to[C, l=$C$, a=1$\\mu F$] (3,0) -- (0,0);\n\\draw (4,3) to[open, v^=$V_{out}$] (4,0);\n\\draw (4,0) to[short] (3,0);\n\\draw (3,0) node[ground]{};\n\\end{circuitikz}\n\\end{document}"
-}

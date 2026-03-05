@@ -305,21 +305,24 @@ app.delete('/api/history', (req, res) => {
 app.post('/api/render', (req, res) => {
     let texCode = req.body.code;
 
+    // Force standalone document class with tight borders for perfect SVG cropping
+    texCode = texCode.replace(/\\documentclass(\s*\[.*?\]\s*)?\{.*?\}/, '\\documentclass[preview,border=2mm]{standalone}');
+
     const tempDir = path.join(__dirname, 'temp');
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
     const texFile = path.join(tempDir, 'circuit.tex');
-    const pdfFile = path.join(tempDir, 'circuit.pdf');
+    const dviFile = path.join(tempDir, 'circuit.dvi');
     const svgFile = path.join(tempDir, 'circuit.svg');
 
     fs.writeFileSync(texFile, texCode);
 
     try {
-        // Compile directly to PDF to support all document classes and packages
-        execSync(`pdflatex -interaction=nonstopmode -halt-on-error circuit.tex`, { cwd: tempDir, stdio: 'ignore' });
+        // Compile directly to DVI to support automatic exact bounding-box cropping with dvisvgm
+        execSync(`latex -interaction=nonstopmode -halt-on-error circuit.tex`, { cwd: tempDir, stdio: 'ignore' });
 
-        // Convert the resulting PDF to SVG
-        execSync(`dvisvgm --pdf --no-fonts -o circuit.svg circuit.pdf`, { cwd: tempDir, stdio: 'ignore' });
+        // Convert the resulting DVI to SVG
+        execSync(`dvisvgm --no-fonts -o circuit.svg circuit.dvi`, { cwd: tempDir, stdio: 'ignore' });
 
         if (fs.existsSync(svgFile)) {
             res.type('svg').send(fs.readFileSync(svgFile, 'utf8'));

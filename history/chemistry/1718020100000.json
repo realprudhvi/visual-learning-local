@@ -1,9 +1,0 @@
-{
-    "name": "Caffeine",
-    "difficulty": "Intermediate",
-    "timestamp": 1718020100000,
-    "type": "chemical",
-    "title": "Caffeine (C₈H₁₀N₄O₂)",
-    "explanation": "Caffeine is a central nervous system (CNS) stimulant of the methylxanthine class. It is the world's most widely consumed psychoactive drug.\n\n### Properties\n* **Molecular Formula:** C₈H₁₀N₄O₂\n* **Molar Mass:** 194.19 g/mol\n* **Appearance:** Odorless, white needles or powder\n\n### Mechanism of Action\nCaffeine primarily exerts its effects by reversibly blocking the action of adenosine on its receptor and consequently preventing the onset of drowsiness induced by adenosine. \n\n### Applications\n* Found naturally in coffee beans, tea leaves, and cocoa nuts.\n* Used as a mild stimulant to combat fatigue and drowsiness.\n* Often included in over-the-counter pain medications to enhance their efficacy.",
-    "renderCode": "\\documentclass[preview, border=2mm]{standalone}\n\\usepackage{chemfig}\n\\begin{document}\n\\chemfig{*6((=O)-N(-CH_3)-*5(-N=CN(-CH_3)-)-(=O)-N(-CH_3)-)}\n\\end{document}"
-}

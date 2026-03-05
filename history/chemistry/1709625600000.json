@@ -1,7 +1,0 @@
-{
-    "name": "Caffeine (C₈H₁₀N₄O₂)",
-    "type": "chemical",
-    "renderCode": "Cn1c(=O)c2c(ncn2C)n(C)c1=O",
-    "explanation": "## Caffeine\n\nCaffeine is a **central nervous system stimulant** of the methylxanthine class. It is the world's most widely consumed psychoactive drug.\n\n### Properties:\n- **Molecular Formula**: C₈H₁₀N₄O₂\n- **Molar Mass**: 194.19 g/mol\n- **Melting Point**: 235°C\n- **Solubility**: Freely soluble in hot water\n\n### Mechanism of Action:\nCaffeine works by blocking **adenosine receptors** in the brain, preventing the drowsiness-inducing effects of adenosine. This leads to:\n- Increased alertness and focus\n- Enhanced cognitive performance\n- Elevated heart rate\n- Diuretic effects\n\n### Natural Sources:\n- Coffee beans, tea leaves, cacao pods, kola nuts, guarana berries",
-    "timestamp": 1709625600000
-}
