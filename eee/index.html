@@ -976,23 +976,7 @@
                 statusEl.textContent = 'Circuit generated successfully!';
                 statusEl.style.color = '#34d399';
 
-                // Save to history
-                try {
-                    await fetch('/api/history/save', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            section: 'eee',
-                            data: {
-                                name: generatedData.title || 'Untitled Circuit',
-                                type: 'electrical',
-                                renderCode: latexCode,
-                                explanation: generatedData.explanation || '',
-                                timestamp: Date.now()
-                            }
-                        })
-                    });
-                } catch (e) { console.log('History save skipped:', e.message); }
+                // History is saved by the server directly in /api/generate
 
             } catch (error) {
                 console.error(error);

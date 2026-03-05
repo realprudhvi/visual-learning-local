@@ -111,7 +111,7 @@ app.post('/api/generate', async (req, res) => {
 
         const currentChatId = chatId || Date.now().toString();
         const historyPath = path.join(historyDir, `${currentChatId}.json`);
-        const nonThreadedSections = ['playground', 'architecture', 'charts', 'science'];
+        const nonThreadedSections = ['playground', 'architecture', 'charts', 'science', 'eee', 'chemistry'];
 
         let contentToSave;
         if (nonThreadedSections.includes(section)) {
