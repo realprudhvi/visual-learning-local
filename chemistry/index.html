@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chemistry Visualizer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Shared variables */
+        :root {
+            --bg-body: #0f172a;
+            --bg-panel: #1e293b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px 24px;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-sub);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
+        }
+
+        .home-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border-color: #3b82f6;
+            transform: scale(1.08);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        /* Two Column Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            align-items: start;
+            transition: grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-layout.collapsed {
+            grid-template-columns: 0px 1fr;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: sticky;
+            top: 20px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            width: 350px;
+        }
+
+        .main-layout.collapsed .left-column {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-20px);
+        }
+
+        /* Panels */
+        .panel {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            backdrop-filter: blur(12px);
+        }
+
+        .panel h2,
+        .panel h3 {
+            margin-bottom: 14px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel h2 {
+            font-size: 1.15rem;
+        }
+
+        .panel h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .panel h3::before {
+            content: '';
+            width: 4px;
+            height: 14px;
+            background: linear-gradient(180deg, #8b5cf6, #3b82f6);
+            border-radius: 2px;
+        }
+
+        .description-content {
+            color: var(--text-sub);
+            line-height: 1.6;
+            font-size: 0.88rem;
+        }
+
+        .description-content p {
+            margin-bottom: 10px;
+        }
+
+        /* Inputs */
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+            font-family: "Inter", sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--text-sub);
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #475569, #334155);
+            border: 1px solid #64748b;
+            padding: 12px;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s, background 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-color: #c4b5fd;
+        }
+
+        /* Right Column Output */
+        .right-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            position: relative;
+        }
+
+        .panel-header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title h3 {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 600;
+        }
+
+        .header-title span.indicator {
+            display: inline-block;
+            width: 4px;
+            height: 14px;
+            background: linear-gradient(180deg, #8b5cf6, #3b82f6);
+            border-radius: 2px;
+        }
+
+        .output-panel {
+            flex: 1;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            position: relative;
+        }
+
+        #render-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #f7f7f7;
+            padding: 20px;
+        }
+
+        #molecule-canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Toggle Button */
+        .toggle-sidebar-btn {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            color: var(--text-sub);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-sidebar-btn:hover {
+            color: #f8fafc;
+            border-color: #64748b;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .toggle-sidebar-btn svg {
+            transition: transform 0.4s ease;
+        }
+
+        .main-layout.collapsed .toggle-sidebar-btn svg {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 20px;
+            margin-bottom: -20px;
+        }
+
+        .dropbtn {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: auto;
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--bg-panel);
+            min-width: 260px;
+            max-height: 60vh;
+            box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            z-index: 50;
+            overflow-y: auto;
+            top: 100%;
+            margin-top: 8px;
+        }
+
+        .dropdown-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .dropdown-content a {
+            color: var(--text-main);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #60a5fa;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Explanation Panel */
+        .explanation-panel {
+            display: none;
+        }
+
+        .explanation-panel.visible {
+            display: block;
+        }
+
+        .explanation-content {
+            color: var(--text-sub);
+            line-height: 1.6;
+            font-size: 0.88rem;
+        }
+
+        .explanation-content h1,
+        .explanation-content h2,
+        .explanation-content h3 {
+            color: #f8fafc;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .explanation-content p {
+            margin-bottom: 0.8rem;
+        }
+
+        .explanation-content ul,
+        .explanation-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .explanation-content code {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c4b5fd;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+        }
+
+        .explanation-content pre {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        .explanation-content pre code {
+            background: transparent;
+            color: #34d399;
+            padding: 0;
+        }
+
+        .explanation-content strong {
+            color: #f1f5f9;
+        }
+
+        /* Raw SMILES Block */
+        .raw-code-block {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .raw-code-block label {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .raw-code-block code {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.85rem;
+            color: #34d399;
+            word-break: break-all;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: var(--text-sub);
+            pointer-events: none;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            opacity: 0.3;
+        }
+
+        .empty-state h2 {
+            margin: 0;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+
+        .empty-state p {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .main-layout.collapsed {
+                grid-template-columns: 1fr;
+            }
+
+            .left-column {
+                width: 100%;
+                position: static;
+            }
+
+            .toggle-sidebar-btn {
+                display: none;
+            }
+
+            .output-panel {
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-flex"
+        style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 24px; position: relative;">
+
+        <!-- Column 1: Back Button -->
+        <div style="justify-self: start;">
+            <a href="../index.html" class="home-btn" title="Back to Modules"
+                style="text-decoration: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-sub); transition: all 0.25s ease;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Column 2: Centered Title -->
+        <h1 style="margin-bottom: 0; justify-self: center;">AI Chemistry Visualizer</h1>
+
+        <!-- Column 3: History Controls -->
+        <div class="history-controls" style="display: flex; gap: 12px; align-items: center; justify-self: end;">
+            <div class="dropdown" style="position: relative; display: inline-block;">
+                <button class="dropbtn"
+                    style="display: flex; align-items: center; gap: 8px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; color: var(--text-main); font-size: 0.9rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.2s;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    History
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="dropdown-content" id="history-dropdown"
+                    style="position: absolute; right: 0; background-color: var(--bg-panel); min-width: 250px; max-height: 400px; overflow-y: auto; box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.5); border: 1px solid var(--border); border-radius: 8px; z-index: 20; top: 100%; margin-top: 4px;">
+                    <div style="padding: 12px 16px; color: var(--text-sub); font-size: 0.8rem; font-style: italic;">
+                        Loading history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-layout" id="main-layout">
+        <!-- Left Panel -->
+        <div class="left-column">
+            <div class="panel">
+                <h3>🧪 Generate Molecule</h3>
+                <div class="input-group">
+                    <label class="input-label" for="ai-platform">Provider</label>
+                    <select class="input-field" id="ai-platform" onchange="fetchModels()">
+                        <option value="gemini" selected>Gemini</option>
+                        <option value="groq">Groq</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="ai-api-key">API Key</label>
+                    <input type="password" class="input-field" id="ai-api-key" placeholder="Enter API key..."
+                        onblur="fetchModels()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="ai-model">Model Selection</label>
+                    <select class="input-field" id="ai-model">
+                        <option value="">Enter API Key to load models...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="ai-prompt">Molecule Prompt</label>
+                    <textarea class="input-field" id="ai-prompt" rows="3"
+                        placeholder="e.g. Generate the chemical structure of Caffeine and explain its properties..."
+                        style="resize: vertical;"></textarea>
+                </div>
+                <button id="btn-generate" class="btn-primary" onclick="generateMolecule()">Generate Molecule</button>
+                <div id="ai-status"
+                    style="margin-top: 10px; font-size: 0.85rem; color: #fbbf24; text-align: center; display: none;">
+                    Generating molecule...
+                </div>
+            </div>
+
+            <!-- Explanation Panel -->
+            <div class="panel explanation-panel" id="explanation-panel">
+                <h3>📖 Molecule Details</h3>
+                <h2 id="molecule-title" style="margin-bottom: 8px;"></h2>
+                <div class="explanation-content" id="molecule-explanation"></div>
+                <div class="raw-code-block" id="raw-smiles-container" style="display: none;">
+                    <label>Raw SMILES:</label>
+                    <code id="raw-smiles"></code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Visualizer Area -->
+        <div class="right-content">
+            <div class="output-panel">
+
+                <!-- Sidebar Toggle Button -->
+                <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+
+                <div class="panel-header-controls">
+                    <div class="header-title">
+                        <span class="indicator"></span>
+                        <h3>Molecule Visualization</h3>
+                    </div>
+                </div>
+
+                <div id="render-container">
+                    <canvas id="molecule-canvas"></canvas>
+
+                    <div class="empty-state" id="empty-state">
+                        <div class="icon">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+                                <path d="M9 3v2M12 3v2M15 3v2"></path>
+                                <path d="M8 9h8M6 21h12M10 21V9.5A2.5 2.5 0 0 1 12.5 7h0A2.5 2.5 0 0 1 15 9.5V21">
+                                </path>
+                                <path d="M8 15h8"></path>
+                            </svg>
+                        </div>
+                        <h2>Chemistry & Molecules</h2>
+                        <p>Describe a molecule and the AI will render its 2D structure.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Removed SmilesDrawer: Now using backend LaTeX rendering via /api/render -->
+    <!-- Include Marked for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        // --- SmilesDrawer Initialization ---
+        let sd;
+        const canvas = document.getElementById('molecule-canvas');
+
+        function initSmilesDrawer() {
+            const container = document.getElementById('render-container');
+            sd = new SmiDrawer({
+                width: container.clientWidth - 40,
+                height: container.clientHeight - 40,
+                theme: 'dark'
+            });
+        }
+
+        function resizeCanvas() {
+            if (canvas) {
+                const container = document.getElementById('render-container');
+                canvas.width = container.clientWidth - 40;
+                canvas.height = container.clientHeight - 40;
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initSmilesDrawer();
+        });
+
+        // --- Init & Restore Preferences ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            resizeCanvas();
+            initSmilesDrawer();
+
+            const savedGeminiKey = localStorage.getItem('geminiApiKey');
+            const savedGroqKey = localStorage.getItem('groqApiKey');
+            const savedPlatform = localStorage.getItem('aiPlatform') || 'gemini';
+
+            const platformSelect = document.getElementById('ai-platform');
+            const apiKeyInput = document.getElementById('ai-api-key');
+
+            if (platformSelect) platformSelect.value = savedPlatform;
+            if (apiKeyInput) apiKeyInput.value = savedPlatform === 'groq' ? (savedGroqKey || '') : (savedGeminiKey || '');
+
+            if (apiKeyInput.value.trim()) {
+                fetchModels();
+            }
+
+            platformSelect.addEventListener('change', () => {
+                const p = platformSelect.value;
+                apiKeyInput.value = p === 'groq' ? (localStorage.getItem('groqApiKey') || '') : (localStorage.getItem('geminiApiKey') || '');
+                fetchModels();
+            });
+
+            if (apiKeyInput) {
+                apiKeyInput.addEventListener('blur', fetchModels);
+            }
+
+            // Populate History Dropdown
+            try {
+                const historyRes = await fetch('/api/history?section=chemistry');
+                if (historyRes.ok) {
+                    const historyData = await historyRes.json();
+                    const dropdown = document.getElementById('history-dropdown');
+
+                    if (historyData.success && historyData.history.length > 0) {
+                        dropdown.innerHTML = '';
+                        historyData.history.forEach(item => {
+                            const date = new Date(item.timestamp).toLocaleString();
+                            const a = document.createElement('a');
+                            a.href = `?config=../${item.path}`;
+                            a.innerHTML = `
+                                <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8;">${date}</div>
+                            `;
+                            dropdown.appendChild(a);
+                        });
+                    } else {
+                        dropdown.innerHTML = '<div style="padding: 12px 16px; color: var(--text-sub); font-size: 0.8rem; font-style: italic;">No history yet.</div>';
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load history:", err);
+                const dropdown = document.getElementById('history-dropdown');
+                if (dropdown) dropdown.innerHTML = '<div style="padding: 12px 16px; color: #f87171; font-size: 0.8rem;">Failed to load history</div>';
+            }
+
+            // Load config from URL if present (e.g. history item)
+            await loadConfiguration();
+        });
+
+        // --- Dynamic Model Loading via Server API ---
+        async function fetchModels() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const platform = document.getElementById('ai-platform').value;
+            const modelSelect = document.getElementById('ai-model');
+
+            if (apiKey) {
+                if (platform === 'groq') localStorage.setItem('groqApiKey', apiKey);
+                else localStorage.setItem('geminiApiKey', apiKey);
+            }
+
+            if (!apiKey) {
+                modelSelect.innerHTML = '<option value="">Enter API Key to load models...</option>';
+                return;
+            }
+
+            modelSelect.innerHTML = '<option value="">Loading models...</option>';
+            modelSelect.disabled = true;
+
+            try {
+                const apiUrl = window.location.protocol === 'http:' && window.location.hostname === 'localhost' && window.location.port === '3000'
+                    ? '/api/models'
+                    : 'http://localhost:3000/api/models';
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey: apiKey, platform: platform })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    modelSelect.innerHTML = '';
+                    if (data.models && data.models.length > 0) {
+                        const savedModel = localStorage.getItem('aiModelChem');
+                        let modelFound = false;
+
+                        data.models.forEach(model => {
+                            const option = document.createElement('option');
+                            const modelId = model.name.replace('models/', '');
+                            option.value = modelId;
+                            option.textContent = model.displayName || modelId;
+
+                            if (savedModel && savedModel === modelId) {
+                                option.selected = true;
+                                modelFound = true;
+                            }
+                            modelSelect.appendChild(option);
+                        });
+
+                        if (!modelFound) {
+                            Array.from(modelSelect.options).forEach(option => {
+                                const modelId = option.value;
+                                if (platform === 'groq' && (modelId.includes('llama3-8b') || modelId.includes('mixtral'))) {
+                                    option.selected = true;
+                                } else if (platform !== 'groq' && (modelId === 'gemini-2.5-flash' || modelId === 'gemini-2.5-pro')) {
+                                    option.selected = true;
+                                }
+                            });
+                        }
+                        modelSelect.disabled = false;
+                    } else {
+                        modelSelect.innerHTML = '<option value="">No generating models found</option>';
+                    }
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Failed to fetch models');
+                }
+            } catch (error) {
+                console.error(error);
+                modelSelect.innerHTML = '<option value="">Error loading models</option>';
+                alert("Model Fetch Error: " + error.message);
+            }
+        }
+
+        // --- Load Configuration from ?config= URL param ---
+        async function loadConfiguration() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const configFile = urlParams.get('config') || 'placeholder.json';
+
+                const response = await fetch(`${configFile}?t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error(`Failed to load ${configFile}`);
+
+                const data = await response.json();
+                hydrateUI(data);
+            } catch (error) {
+                console.error("Configuration load error:", error);
+            }
+        }
+
+        async function hydrateUI(data) {
+            const renderContainer = document.getElementById('render-container');
+            const latexCode = data.renderCode;
+
+            if (latexCode && latexCode.includes('chemfig')) {
+                document.getElementById('empty-state').style.display = 'none';
+                renderContainer.innerHTML = '<div style="color:var(--text-sub);">Rendering...</div>';
+
+                try {
+                    const renderResponse = await fetch('/api/render', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: latexCode })
+                    });
+
+                    if (!renderResponse.ok) {
+                        const errText = await renderResponse.text();
+                        throw new Error(errText);
+                    }
+
+                    const svgData = await renderResponse.text();
+                    renderContainer.innerHTML = svgData;
+                    
+                    const svg = renderContainer.querySelector('svg');
+                    if (svg) {
+                        svg.style.maxWidth = '100%';
+                        svg.style.height = 'auto';
+                        
+                    }
+                    renderContainer.style.opacity = '1';
+                } catch(e) {
+                     renderContainer.innerHTML = `<div style="color:#ef4444; padding:20px;">Failed to render: ${Math.random()} ${e.message}</div>`;
+                }
+            }
+            
+            // Update title and explanation
+            if (data.name || data.title) {
+                document.getElementById('molecule-title').textContent = data.name || data.title;
+            }
+            if (data.explanation) {
+                document.getElementById('molecule-explanation').innerHTML = marked.parse(data.explanation);
+                document.getElementById('explanation-panel').classList.add('visible');
+            }
+            if (typeof latexCode !== "undefined" && latexCode) {
+                document.getElementById('raw-smiles').textContent = latexCode;
+                document.getElementById('raw-smiles-container').style.display = 'block';
+            }
+        }
+
+        // --- Molecule Generation (via /api/generate, using server-side chemistry/prompt.txt) ---
+        async function generateMolecule() {
+            const apiKey = document.getElementById('ai-api-key').value.trim();
+            const platform = document.getElementById('ai-platform').value;
+            const selectedModel = document.getElementById('ai-model').value;
+            const promptDesc = document.getElementById('ai-prompt').value.trim();
+            const statusEl = document.getElementById('ai-status');
+            const btn = document.getElementById('btn-generate');
+
+            if (!apiKey) { alert('Please enter an API Key.'); return; }
+            if (!promptDesc) { alert('Please describe a molecule to generate.'); return; }
+
+            if (platform === 'groq') localStorage.setItem('groqApiKey', apiKey);
+            else localStorage.setItem('geminiApiKey', apiKey);
+            localStorage.setItem('aiPlatform', platform);
+            localStorage.setItem('aiModelChem', selectedModel);
+
+            statusEl.style.display = 'block';
+            statusEl.textContent = 'Generating molecule... (this may take a few seconds)';
+            statusEl.style.color = '#fbbf24';
+            btn.disabled = true;
+
+            // Reset UI
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('explanation-panel').classList.remove('visible');
+            document.getElementById('raw-smiles-container').style.display = 'none';
+
+            // Clear previous canvas
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        apiKey: apiKey,
+                        platform: platform,
+                        model: selectedModel,
+                        problemDescription: promptDesc,
+                        section: 'chemistry'
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Server error: ' + response.statusText);
+                }
+
+                const result = await response.json();
+                let jsonString = result.response || '{}';
+
+                // Parse result
+                jsonString = jsonString.replace(/```json/g, "").replace(/```/g, "").trim();
+                let generatedData;
+                try {
+                    generatedData = JSON.parse(jsonString);
+                } catch (e) {
+                    console.error("JSON Parse Error:", jsonString);
+                    throw new Error("AI returned invalid JSON syntax.");
+                }
+
+                const smilesKey = generatedData.renderCode;
+                if (!smilesKey) throw new Error("AI failed to provide a SMILES string.");
+
+                // Draw to canvas
+                sd.draw(smilesKey, canvas, 'dark');
+
+                // Update UI
+                document.getElementById('molecule-title').textContent = generatedData.title;
+                document.getElementById('molecule-explanation').innerHTML = marked.parse(generatedData.explanation || "");
+                document.getElementById('raw-smiles').textContent = latexCode;
+
+                document.getElementById('explanation-panel').classList.add('visible');
+                document.getElementById('raw-smiles-container').style.display = 'block';
+
+                statusEl.textContent = 'Molecule generated successfully!';
+                statusEl.style.color = '#34d399';
+
+                // Save to history
+                try {
+                    await fetch('/api/history/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            section: 'chemistry',
+                            data: {
+                                name: generatedData.title || 'Untitled Molecule',
+                                type: 'chemical',
+                                renderCode: smilesKey,
+                                explanation: generatedData.explanation || '',
+                                timestamp: Date.now()
+                            }
+                        })
+                    });
+                } catch (e) { console.log('History save skipped:', e.message); }
+
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = 'Error: ' + error.message;
+                statusEl.style.color = '#f87171';
+                document.getElementById('empty-state').style.display = '';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const layout = document.getElementById('main-layout');
+            layout.classList.toggle('collapsed');
+            setTimeout(() => {
+                resizeCanvas();
+                initSmilesDrawer();
+            }, 400);
+        }
+    </script>
+</body>
+
+</html>

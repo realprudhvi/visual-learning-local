@@ -4,6 +4,7 @@ const Groq = require('groq-sdk');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 require('dotenv').config();
 
 const app = express();
@@ -211,6 +212,29 @@ app.post('/api/models', async (req, res) => {
 
 
 /* ============================================================
+   SAVE HISTORY (for sections that call AI directly)
+============================================================ */
+app.post('/api/history/save', (req, res) => {
+    try {
+        const { section, data } = req.body;
+        if (!section || !data) return res.status(400).json({ error: 'Section and data required.' });
+
+        const historyDir = path.join(__dirname, 'history', section);
+        if (!fs.existsSync(historyDir)) fs.mkdirSync(historyDir, { recursive: true });
+
+        const chatId = (data.timestamp || Date.now()).toString();
+        const historyPath = path.join(historyDir, `${chatId}.json`);
+
+        fs.writeFileSync(historyPath, JSON.stringify(data, null, 2));
+        res.json({ success: true, path: `history/${section}/${chatId}.json` });
+    } catch (error) {
+        console.error('Error saving history:', error);
+        res.status(500).json({ error: error.message || 'Failed to save history.' });
+    }
+});
+
+
+/* ============================================================
    HISTORY LIST
 ============================================================ */
 app.get('/api/history', async (req, res) => {
@@ -271,6 +295,39 @@ app.delete('/api/history', (req, res) => {
     } catch (error) {
         console.error('Delete error:', error);
         res.status(500).json({ error: error.message || 'Delete failed.' });
+    }
+});
+
+
+/* ============================================================
+   RENDER ENDPOINT
+============================================================ */
+app.post('/api/render', (req, res) => {
+    let texCode = req.body.code;
+
+    const tempDir = path.join(__dirname, 'temp');
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+
+    const texFile = path.join(tempDir, 'circuit.tex');
+    const pdfFile = path.join(tempDir, 'circuit.pdf');
+    const svgFile = path.join(tempDir, 'circuit.svg');
+
+    fs.writeFileSync(texFile, texCode);
+
+    try {
+        // Compile directly to PDF to support all document classes and packages
+        execSync(`pdflatex -interaction=nonstopmode -halt-on-error circuit.tex`, { cwd: tempDir, stdio: 'ignore' });
+
+        // Convert the resulting PDF to SVG
+        execSync(`dvisvgm --pdf --no-fonts -o circuit.svg circuit.pdf`, { cwd: tempDir, stdio: 'ignore' });
+
+        if (fs.existsSync(svgFile)) {
+            res.type('svg').send(fs.readFileSync(svgFile, 'utf8'));
+        } else {
+            res.status(500).send('SVG generation failed.');
+        }
+    } catch (error) {
+        res.status(500).send('Compilation failed. Check LaTeX syntax.');
     }
 });
 

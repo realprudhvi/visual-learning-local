@@ -1,0 +1,6 @@
+{
+    "type": "chemical",
+    "title": "Awaiting Molecule Generation...",
+    "explanation": "Describe a molecule or compound you'd like to visualize in the prompt below. For example:\n- *Caffeine molecule*\n- *Aspirin (Acetylsalicylic acid)*\n- *Structure of DNA nucleotide Adenine*\n- *Serotonin neurotransmitter*\n- *Polyethylene monomer unit*",
+    "renderCode": "C"
+}

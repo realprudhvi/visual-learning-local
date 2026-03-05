@@ -1,0 +1,7 @@
+{
+    "name": "Voltage Divider Circuit",
+    "type": "electrical",
+    "renderCode": "\\begin{circuitikz}[american]\n\\draw (0,0) to[V,v=$V_s{=}12V$] (0,4) -- (2,4) to[R, l=$R_1{=}2k\\Omega$] (2,2) to[R, l=$R_2{=}1k\\Omega$] (2,0) -- (0,0);\n\\draw (2,2) -- (3.5,2);\n\\draw (2,0) -- (3.5,0);\n\\node at (4.2,1) {$V_{out}$};\n\\draw (3.5,1.8) -- (3.5,2.2);\n\\draw (3.5,-0.2) -- (3.5,0.2);\n\\end{circuitikz}",
+    "explanation": "## Voltage Divider\n\nA **voltage divider** is one of the most fundamental circuits in electronics. It produces an output voltage that is a fraction of the input voltage.\n\n### Formula:\n$$V_{out} = V_s \\times \\frac{R_2}{R_1 + R_2}$$\n\n### Calculation:\n- $V_{out} = 12V \\times \\frac{1k\\Omega}{2k\\Omega + 1k\\Omega} = 4V$\n\n### Applications:\n- Biasing transistors\n- Level shifting signals\n- Creating reference voltages\n- Sensor reading circuits (potentiometers)",
+    "timestamp": 1709712000000
+}

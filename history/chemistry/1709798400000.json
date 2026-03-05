@@ -1,0 +1,7 @@
+{
+    "name": "Benzene (C₆H₆)",
+    "type": "chemical",
+    "renderCode": "c1ccccc1",
+    "explanation": "## Benzene\n\nBenzene is a **fundamental aromatic hydrocarbon** and one of the most important building blocks in organic chemistry.\n\n### Properties:\n- **Molecular Formula**: C₆H₆\n- **Molar Mass**: 78.11 g/mol\n- **Boiling Point**: 80.1°C\n- **Structure**: Planar hexagonal ring with alternating double bonds (delocalized π electrons)\n\n### Aromaticity:\nBenzene follows **Hückel's Rule** (4n+2 π electrons, where n=1, giving 6 π electrons). The delocalized electrons make benzene:\n- Unusually **stable** compared to hypothetical cyclohexatriene\n- Resistant to addition reactions\n- Prone to **electrophilic aromatic substitution**\n\n### Industrial Uses:\n- Precursor for styrene (polystyrene), phenol, cyclohexane\n- Solvent (historically, now limited due to toxicity)\n- Raw material for synthetic fibers and plastics",
+    "timestamp": 1709798400000
+}

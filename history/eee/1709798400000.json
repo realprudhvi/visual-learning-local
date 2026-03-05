@@ -1,0 +1,7 @@
+{
+    "name": "Wheatstone Bridge",
+    "type": "electrical",
+    "renderCode": "\\begin{circuitikz}[american]\n\\draw (0,0) to[V,v=$V_s$] (0,4) -- (2,4);\n\\draw (2,4) to[R,l=$R_1$] (4,2);\n\\draw (2,4) to[R,l=$R_2$] (0,2);\n\\draw (0,2) to[R,l=$R_3$] (2,0);\n\\draw (4,2) to[R,l=$R_4$] (2,0);\n\\draw (2,0) -- (0,0);\n\\draw (0,2) to[short] (-0.5,2) node[left]{A};\n\\draw (4,2) to[short] (4.5,2) node[right]{B};\n\\end{circuitikz}",
+    "explanation": "## Wheatstone Bridge\n\nThe **Wheatstone Bridge** is a circuit used to precisely measure unknown resistances by balancing two legs of a bridge circuit.\n\n### Balance Condition:\nThe bridge is balanced when:\n$$\\frac{R_1}{R_2} = \\frac{R_4}{R_3}$$\n\nWhen balanced, the voltage difference between points A and B is zero ($V_{AB} = 0$).\n\n### Applications:\n- **Strain gauges** for measuring mechanical deformation\n- **Temperature sensors** (RTDs, thermistors)\n- **Precision resistance measurement**\n- **Load cells** in weighing systems",
+    "timestamp": 1709798400000
+}

@@ -1,0 +1,11 @@
+\documentclass[tikz, border=2mm]{standalone}
+\usepackage{circuitikz}
+\begin{document}
+\begin{circuitikz}[american]
+\draw (0,0) to[V,v=$V_{in}$] (0,3) to[R, l=$R$, a=10$k\Omega$] (3,3) to[short] (4,3);
+\draw (3,3) to[C, l=$C$, a=1$\mu F$] (3,0) -- (0,0);
+\draw (4,3) to[open, v^=$V_{out}$] (4,0);
+\draw (4,0) to[short] (3,0);
+\draw (3,0) node[ground]{};
+\end{circuitikz}
+\end{document}

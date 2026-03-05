@@ -1,0 +1,35 @@
+{
+  "id": "binary-search",
+  "name": "Binary Search",
+  "difficulty": "Easy",
+  "description": "<p>Given an array of integers <code>nums</code> which is sorted in ascending order, and an integer <code>target</code>, write a function to search <code>target</code> in <code>nums</code>. If <code>target</code> exists, then return its index. Otherwise, return <code>-1</code>.</p><p>You must write an algorithm with <code>O(log n)</code> runtime complexity.</p><ul><li>The search space is halved in each step.</li><li>We use two pointers, <code>left</code> and <code>right</code>, to track the current range.</li></ul>",
+  "tags": [
+    "Array",
+    "Binary Search"
+  ],
+  "slots": [
+    {
+      "id": "nums",
+      "type": "array",
+      "label": "Sorted Array"
+    },
+    {
+      "id": "vars",
+      "type": "hashmap",
+      "label": "Variables"
+    }
+  ],
+  "inputs": [
+    {
+      "label": "Sorted Array",
+      "default": "[1, 3, 5, 8, 12, 15, 18, 21, 25, 30]",
+      "placeholder": "[1, 2, 3...]"
+    },
+    {
+      "label": "Target",
+      "default": "12",
+      "placeholder": "Enter target value"
+    }
+  ],
+  "code": "class Playground {\n    async run(inputs) {\n        const arr = JSON.parse(inputs[0]);\n        const target = parseInt(inputs[1]);\n\n        // 1. Initialize data structures\n        await this.nums.init(arr);\n        await this.vars.init([\n            [\"left\", 0],\n            [\"right\", arr.length - 1],\n            [\"target\", target]\n        ]);\n\n        let left = 0;\n        let right = arr.length - 1;\n\n        this.log(`Starting Binary Search for target: ${target}`);\n        await this.await();\n\n        while (left <= right) {\n            // Calculate mid\n            const mid = Math.floor((left + right) / 2);\n            const midVal = this.nums.get(mid);\n\n            // Update Visualizer State\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            this.vars.put(\"mid\", mid);\n            \n            // Highlight the current search range and the mid point\n            // Clear previous highlights first (using null or reset logic)\n            for(let i=0; i<arr.length; i++) this.nums.highlight(i, null);\n            \n            this.nums.highlightRange(left, right, \"#e0f7fa\"); // Light blue search area\n            this.nums.highlight(mid, \"#ffb703\"); // Amber for the pivot/mid\n\n            this.log(`Checking mid index ${mid} (Value: ${midVal})`);\n            await this.await();\n\n            if (midVal === target) {\n                this.nums.highlight(mid, \"#00f5a0\"); // Success green\n                this.log(`Found target ${target} at index ${mid}!`);\n                await this.await();\n                return mid;\n            }\n\n            if (midVal < target) {\n                this.log(`${midVal} < ${target}, discarding the left half.`);\n                left = mid + 1;\n            } else {\n                this.log(`${midVal} > ${target}, discarding the right half.`);\n                right = mid - 1;\n            }\n\n            this.vars.put(\"left\", left);\n            this.vars.put(\"right\", right);\n            await this.await();\n        }\n\n        this.log(\"Target not found in the array.\");\n        await this.await();\n        return -1;\n    }\n}"
+}

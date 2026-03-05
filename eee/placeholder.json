@@ -1,0 +1,6 @@
+{
+    "type": "electrical",
+    "title": "Awaiting Circuit Generation...",
+    "explanation": "Describe a circuit you'd like to visualize in the prompt below. For example:\n- *Simple RC Low-Pass Filter*\n- *Full-wave bridge rectifier with smoothing capacitor*\n- *Common emitter NPN transistor amplifier*\n- *555 timer in astable mode*",
+    "renderCode": "\\begin{circuitikz}[american]\n\\draw (0,0) to[short] (2,0);\n\\node at (1, 0.5) {Awaiting Generation...};\n\\end{circuitikz}"
+}

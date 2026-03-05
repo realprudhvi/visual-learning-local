@@ -1,0 +1,39 @@
+/* eee/css/style.css */
+
+#visual-area {
+    /* Academic/LaTeX look - pure stark white background works best for black/white crisp vector graphics */
+    background-color: #ffffff !important;
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px) !important;
+    background-size: 20px 20px;
+}
+
+#tikz-container {
+    transition: opacity 0.3s ease;
+}
+
+#tikz-container svg {
+    /* SVG output from TikZ is usually very crisp. Scale it up slightly so it is very readable */
+    transform: scale(1.5);
+    transform-origin: center center;
+    max-width: 90%;
+    max-height: 90%;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1));
+}
+
+/* Custom scrollbars for the sidebar */
+#sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+#sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
