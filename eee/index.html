@@ -605,6 +605,18 @@
     <div class="main-layout" id="main-layout">
         <!-- Left Panel -->
         <div class="left-column">
+            <!-- Explanation Panel -->
+            <div class="panel explanation-panel" id="explanation-panel">
+                <h3>📖 Circuit Explanation</h3>
+                <h2 id="circuit-title" style="margin-bottom: 8px;"></h2>
+                <div class="explanation-content" id="circuit-explanation"></div>
+                <div class="raw-code-block" id="raw-code-container" style="display: none;">
+                    <label>LaTeX (Circuitikz) Code:</label>
+                    <pre id="raw-code"></pre>
+                </div>
+            </div>
+
+            <!-- Generate Panel -->
             <div class="panel">
                 <h3>⚡ Generate Circuit Diagram</h3>
                 <div class="input-group">
@@ -637,17 +649,6 @@
                     Generating circuit...
                 </div>
             </div>
-
-            <!-- Explanation Panel -->
-            <div class="panel explanation-panel" id="explanation-panel">
-                <h3>📖 Circuit Explanation</h3>
-                <h2 id="circuit-title" style="margin-bottom: 8px;"></h2>
-                <div class="explanation-content" id="circuit-explanation"></div>
-                <div class="raw-code-block" id="raw-code-container" style="display: none;">
-                    <label>LaTeX (Circuitikz) Code:</label>
-                    <pre id="raw-code"></pre>
-                </div>
-            </div>
         </div>
 
         <!-- Right Visualizer Area -->
@@ -667,6 +668,16 @@
                         <span class="indicator"></span>
                         <h3>Circuit Visualization</h3>
                     </div>
+                    <button class="dropbtn" id="export-btn" onclick="exportToImage()" title="Download as PNG"
+                        style="display: flex; align-items: center; gap: 8px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; color: var(--text-main); font-size: 0.9rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.2s;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export Image
+                    </button>
                 </div>
 
                 <div id="render-container">
@@ -1010,6 +1021,89 @@
                 } catch (e) {
                     alert("Error deleting file: " + e.message);
                 }
+            }
+        }
+        // --- Export to Image ---
+        async function exportToImage() {
+            const svgNode = document.querySelector('#render-container svg');
+            if (!svgNode) {
+                alert("No visualization generated yet to export.");
+                return;
+            }
+
+            try {
+                // We need the true intrinsic dimensions of the SVG, not the scaled CSS screen dimension.
+                let intrinsicWidth = svgNode.viewBox.baseVal.width;
+                let intrinsicHeight = svgNode.viewBox.baseVal.height;
+
+                // Fallback for SVGs that don't declare a viewBox but have explicit width/height
+                if (!intrinsicWidth || !intrinsicHeight) {
+                    intrinsicWidth = parseFloat(svgNode.getAttribute('width')) || svgNode.getBoundingClientRect().width;
+                    intrinsicHeight = parseFloat(svgNode.getAttribute('height')) || svgNode.getBoundingClientRect().height;
+                }
+
+                const clone = svgNode.cloneNode(true);
+
+                // SVGs loaded into an <image> tag have no DOM parent.
+                // Relative percentages (like width="100%") resolve to 0px and break the canvas rendering.
+                // We must permanently burn the intrinsic exact pixel boundaries into the exported Blob!
+                clone.style.width = intrinsicWidth + 'px';
+                clone.style.height = intrinsicHeight + 'px';
+                clone.style.maxWidth = 'none';
+                clone.style.maxHeight = 'none';
+                clone.setAttribute('width', intrinsicWidth);
+                clone.setAttribute('height', intrinsicHeight);
+                clone.style.backgroundColor = '#f7f7f7'; // Prevent transparent black-on-black in darkmode viewers
+
+                // Serialize explicitly scoped SVG to raw XML
+                const xmlSerializer = new XMLSerializer();
+                let svgSource = xmlSerializer.serializeToString(clone);
+
+                // Add namespace if missing
+                if (!svgSource.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                    svgSource = svgSource.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+                }
+
+                // Data URI bypasses strict cross-origin Blob blocking on Canvas
+                const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgSource);
+
+                // Trigger Canvas Draw
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement("canvas");
+
+                    // Add padding to the final canvas so the bounds aren't strictly hugging the lines
+                    const padding = 40;
+                    canvas.width = (intrinsicWidth * 2) + (padding * 2);
+                    canvas.height = (intrinsicHeight * 2) + (padding * 2);
+
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#f7f7f7";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height); // Flood fill white bg
+
+                    // Draw image centered with padding
+                    ctx.drawImage(img, padding, padding, intrinsicWidth * 2, intrinsicHeight * 2);
+
+                    // Download PNG
+                    const imgURI = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                    const a = document.createElement('a');
+                    a.href = imgURI;
+                    a.download = `Circuit_Export_${Date.now()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+
+                img.onerror = function (err) {
+                    console.error("Image load failed for Canvas:", err);
+                    alert("Export Engine Failed: The browser blocked the canvas image rendering.");
+                };
+
+                img.src = url;
+
+            } catch (error) {
+                console.error('Export Failed:', error);
+                alert("Could not export the visual: " + error.message);
             }
         }
     </script>

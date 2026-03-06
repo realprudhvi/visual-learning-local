@@ -1,5 +1,7 @@
-\documentclass[preview,border=2mm]{standalone}
-\usepackage{chemfig}
+\documentclass[tikz,border=2mm]{standalone}
+\usepackage{circuitikz}
 \begin{document}
-\chemfig{**6(-(-C(=O)OH)-(-O-C(=O)CH_3)----)}
+\begin{circuitikz}[american]
+\draw (0,0) node[ground]{} to[V, v=$V_s{=}5V$] (0,3) to[R, l=$R_1{=}10k\Omega$] (3,3) to[C, l=$C_1{=}1\mu F$] (3,0) node[ground]{};
+\end{circuitikz}
 \end{document}
