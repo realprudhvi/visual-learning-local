@@ -1,4 +1,14 @@
-\begin{circuitikz}[american]
-\draw (0,0) to[short] (2,0);
-\node at (1, 0.5) {Awaiting Generation...};
-\end{circuitikz}
+\documentclass[preview,border=2mm]{standalone}
+\usepackage{chemfig}
+\begin{document}
+\setchemfig{atom sep=2em}
+\schemestart
+  \chemfig{CH_3-C(=[1]O)-[7]OH}
+  \+
+  \chemfig{HO-CH_2-CH_3}
+  \arrow{<=>[$H^+$]}
+  \chemfig{CH_3-C(=[1]O)-[7]O-CH_2-CH_3}
+  \+
+  \chemfig{H_2O}
+\schemestop
+\end{document}

@@ -8,8 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
-    <!-- TikzJax stylesheet -->
-    <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+
     <style>
         /* Shared variables */
         :root {
@@ -672,8 +671,7 @@
         </div>
     </div>
 
-    <!-- TikzJax Core Library -->
-    <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+    <!-- Removed TikzJax: Now using backend LaTeX rendering via /api/render -->
     <!-- Marked for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -850,19 +848,19 @@
 
                     const svgData = await renderResponse.text();
                     renderContainer.innerHTML = svgData;
-                    
+
                     const svg = renderContainer.querySelector('svg');
                     if (svg) {
                         svg.style.maxWidth = '100%';
                         svg.style.height = 'auto';
-                        
+
                     }
                     renderContainer.style.opacity = '1';
-                } catch(e) {
-                     renderContainer.innerHTML = `<div style="color:#ef4444; padding:20px;">Failed to render: ${Math.random()} ${e.message}</div>`;
+                } catch (e) {
+                    renderContainer.innerHTML = `<div style="color:#ef4444; padding:20px;">Failed to render: ${Math.random()} ${e.message}</div>`;
                 }
             }
-            
+
             // Update title and explanation
             if (data.name || data.title) {
                 document.getElementById('circuit-title').textContent = data.name || data.title;
@@ -900,7 +898,9 @@
             btn.disabled = true;
 
             // Reset UI
-            document.getElementById('empty-state').style.display = 'none';
+            if (document.getElementById('empty-state')) {
+                document.getElementById('empty-state').style.display = 'none';
+            }
             document.getElementById('explanation-panel').classList.remove('visible');
             document.getElementById('raw-code-container').style.display = 'none';
 
@@ -919,70 +919,32 @@
                     })
                 });
 
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error || 'Server error: ' + response.statusText);
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response. Is the backend running?');
                 }
 
-                const result = await response.json();
-                
-                // Server directly returns the parsed JSON in result.generatedResponse
-                const generatedData = result.generatedResponse;
-
-                if (!generatedData) {
-                    throw new Error("AI returned invalid JSON syntax or server failed to parse.");
+                if (response.ok) {
+                    statusEl.textContent = 'Success! Reloading...';
+                    statusEl.style.color = '#34d399';
+                    const redirectPath = data.historyPath ? `../${data.historyPath}` : 'placeholder.json';
+                    setTimeout(() => window.location.search = `?config=${redirectPath}`, 1000);
+                } else {
+                    throw new Error(data.error || 'Failed to generate circuit');
                 }
-
-                const latexCode = generatedData.renderCode;
-                if (!latexCode || !latexCode.includes("circuitikz")) {
-                    throw new Error("AI failed to provide valid circuitikz LaTeX format.");
-                }
-
-                // --- Backend LaTeX Rendering ---
-                const renderResponse = await fetch('/api/render', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: latexCode })
-                });
-
-                if (!renderResponse.ok) {
-                    const errText = await renderResponse.text();
-                    throw new Error('LaTeX Compilation failed: ' + errText);
-                }
-
-                const svgData = await renderResponse.text();
-
-                // Insert the new SVG directly
-                renderContainer.innerHTML = svgData;
-                
-                // Adjust SVG styles
-                const svg = renderContainer.querySelector('svg');
-                if (svg) {
-                    svg.style.maxWidth = '100%';
-                    svg.style.height = 'auto';
-                }
-                
-                // Clear obsolete TikzJax opacity styles if they exist
-                renderContainer.style.opacity = '1';
-
-                // Update UI
-                document.getElementById('circuit-title').textContent = generatedData.title;
-                document.getElementById('circuit-explanation').innerHTML = marked.parse(generatedData.explanation || "");
-                document.getElementById('raw-code').textContent = latexCode;
-
-                document.getElementById('explanation-panel').classList.add('visible');
-                document.getElementById('raw-code-container').style.display = 'block';
-
-                statusEl.textContent = 'Circuit generated successfully!';
-                statusEl.style.color = '#34d399';
-
-                // History is saved by the server directly in /api/generate
 
             } catch (error) {
                 console.error(error);
                 statusEl.textContent = 'Error: ' + error.message;
                 statusEl.style.color = '#f87171';
-                document.getElementById('empty-state').style.display = '';
+                if (document.getElementById('empty-state')) {
+                    document.getElementById('empty-state').style.display = '';
+                }
+                if (error.message.includes('Failed to fetch')) {
+                    alert('Error: Could not connect to the local server. Ensure "node server.js" is running.');
+                }
             } finally {
                 btn.disabled = false;
             }

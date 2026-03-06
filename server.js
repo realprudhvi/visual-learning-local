@@ -84,12 +84,25 @@ app.post('/api/generate', async (req, res) => {
 
             const ai = new GoogleGenAI({ apiKey });
 
-            // New SDK structure using ai.models.generateContent
-            const response = await ai.models.generateContent({
+            const aiCall = ai.models.generateContent({
                 model: selectedModel,
-                contents: combinedPrompt // The new SDK accepts strings directly here
+                contents: combinedPrompt, // The new SDK accepts strings directly here
+                config: {
+                    temperature: 0.1,
+                    responseMimeType: "application/json"
+                }
             });
 
+            // 90s hard timeout for AI generation
+            let timeoutId;
+            const timeoutPromise = new Promise((_, reject) => {
+                timeoutId = setTimeout(() => reject(new Error("AI generation timed out after 90 seconds. Try a simpler prompt or a different model.")), 90000);
+            });
+
+            const response = await Promise.race([aiCall, timeoutPromise]).finally(() => {
+                clearTimeout(timeoutId);
+                aiCall.catch(() => { }); // prevent unhandled rejection 
+            });
             textResponse = response.text || '{}';
         }
 
@@ -303,10 +316,23 @@ app.delete('/api/history', (req, res) => {
    RENDER ENDPOINT
 ============================================================ */
 app.post('/api/render', (req, res) => {
-    let texCode = req.body.code;
+    let texCode = req.body.code || '';
 
-    // Force standalone document class with tight borders for perfect SVG cropping
-    texCode = texCode.replace(/\\documentclass(\s*\[.*?\]\s*)?\{.*?\}/, '\\documentclass[preview,border=2mm]{standalone}');
+    // Auto-wrap if documentclass is missing
+    if (!texCode.includes('\\documentclass')) {
+        let isTikz = texCode.includes('circuitikz') || texCode.includes('tikzpicture');
+        let isChem = texCode.includes('chemfig');
+        let wrappedCode = `\\documentclass[preview,border=2mm]{standalone}\n`;
+        if (isTikz) wrappedCode += `\\usepackage{circuitikz}\n`;
+        if (isChem) wrappedCode += `\\usepackage{chemfig}\n`;
+        wrappedCode += `\\begin{document}\n`;
+        wrappedCode += texCode + `\n`;
+        wrappedCode += `\\end{document}`;
+        texCode = wrappedCode;
+    } else {
+        // Force standalone document class with tight borders for perfect SVG cropping
+        texCode = texCode.replace(/\\documentclass(\s*\[.*?\]\s*)?\{.*?\}/, '\\documentclass[preview,border=2mm]{standalone}');
+    }
 
     const tempDir = path.join(__dirname, 'temp');
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -319,10 +345,10 @@ app.post('/api/render', (req, res) => {
 
     try {
         // Compile directly to DVI to support automatic exact bounding-box cropping with dvisvgm
-        execSync(`latex -interaction=nonstopmode -halt-on-error circuit.tex`, { cwd: tempDir, stdio: 'ignore' });
+        execSync(`latex -interaction=nonstopmode -halt-on-error circuit.tex`, { cwd: tempDir, stdio: 'ignore', timeout: 10000 });
 
         // Convert the resulting DVI to SVG
-        execSync(`dvisvgm --no-fonts -o circuit.svg circuit.dvi`, { cwd: tempDir, stdio: 'ignore' });
+        execSync(`dvisvgm --no-fonts -o circuit.svg circuit.dvi`, { cwd: tempDir, stdio: 'ignore', timeout: 10000 });
 
         if (fs.existsSync(svgFile)) {
             res.type('svg').send(fs.readFileSync(svgFile, 'utf8'));

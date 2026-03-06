@@ -646,7 +646,7 @@
                 </div>
 
                 <div id="render-container">
-                    
+
 
                     <div class="empty-state" id="empty-state">
                         <div class="icon">
@@ -671,11 +671,11 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
-        
+
 
         // --- Init & Restore Preferences ---
         document.addEventListener('DOMContentLoaded', async () => {
-            
+
 
             const savedGeminiKey = localStorage.getItem('geminiApiKey');
             const savedGroqKey = localStorage.getItem('groqApiKey');
@@ -847,19 +847,19 @@
 
                     const svgData = await renderResponse.text();
                     renderContainer.innerHTML = svgData;
-                    
+
                     const svg = renderContainer.querySelector('svg');
                     if (svg) {
                         svg.style.maxWidth = '100%';
                         svg.style.height = 'auto';
-                        
+
                     }
                     renderContainer.style.opacity = '1';
-                } catch(e) {
-                     renderContainer.innerHTML = `<div style="color:#ef4444; padding:20px;">Failed to render: ${Math.random()} ${e.message}</div>`;
+                } catch (e) {
+                    renderContainer.innerHTML = `<div style="color:#ef4444; padding:20px;">Failed to render: ${Math.random()} ${e.message}</div>`;
                 }
             }
-            
+
             // Update title and explanation
             if (data.name || data.title) {
                 document.getElementById('molecule-title').textContent = data.name || data.title;
@@ -897,7 +897,9 @@
             btn.disabled = true;
 
             // Reset UI
-            document.getElementById('empty-state').style.display = 'none';
+            if (document.getElementById('empty-state')) {
+                document.getElementById('empty-state').style.display = 'none';
+            }
             document.getElementById('explanation-panel').classList.remove('visible');
             document.getElementById('raw-smiles-container').style.display = 'none';
 
@@ -916,80 +918,42 @@
                     })
                 });
 
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error || 'Server error: ' + response.statusText);
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response. Is the backend running?');
                 }
 
-                const result = await response.json();
-                
-                // Server directly returns the parsed JSON in result.generatedResponse
-                const generatedData = result.generatedResponse;
-
-                if (!generatedData) {
-                    throw new Error("AI returned invalid JSON syntax or server failed to parse.");
+                if (response.ok) {
+                    statusEl.textContent = 'Success! Reloading...';
+                    statusEl.style.color = '#34d399';
+                    const redirectPath = data.historyPath ? `../${data.historyPath}` : 'placeholder.json';
+                    setTimeout(() => window.location.search = `?config=${redirectPath}`, 1000);
+                } else {
+                    throw new Error(data.error || 'Failed to generate molecule');
                 }
-
-                const latexCode = generatedData.renderCode;
-                if (!latexCode || !latexCode.includes("chemfig")) {
-                    throw new Error("AI failed to provide valid chemfig LaTeX format.");
-                }
-
-                // --- Backend LaTeX Rendering ---
-                const renderResponse = await fetch('/api/render', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: latexCode })
-                });
-
-                if (!renderResponse.ok) {
-                    const errText = await renderResponse.text();
-                    throw new Error('LaTeX Compilation failed: ' + errText);
-                }
-
-                const svgData = await renderResponse.text();
-
-                // Insert the new SVG directly
-                renderContainer.innerHTML = svgData;
-                
-                // Adjust SVG styles
-                const svg = renderContainer.querySelector('svg');
-                if (svg) {
-                    svg.style.maxWidth = '100%';
-                    svg.style.height = 'auto';
-                }
-                
-                renderContainer.style.opacity = '1';
-
-                // Update UI
-                document.getElementById('molecule-title').textContent = generatedData.title;
-                document.getElementById('molecule-explanation').innerHTML = marked.parse(generatedData.explanation || "");
-                document.getElementById('raw-smiles').textContent = latexCode;
-
-                document.getElementById('explanation-panel').classList.add('visible');
-                document.getElementById('raw-smiles-container').style.display = 'block';
-
-                statusEl.textContent = 'Molecule generated successfully!';
-                statusEl.style.color = '#34d399';
-
-                // History is saved by the server directly in /api/generate
 
             } catch (error) {
                 console.error(error);
                 statusEl.textContent = 'Error: ' + error.message;
                 statusEl.style.color = '#f87171';
-                document.getElementById('empty-state').style.display = '';
+                if (document.getElementById('empty-state')) {
+                    document.getElementById('empty-state').style.display = '';
+                }
+                if (error.message.includes('Failed to fetch')) {
+                    alert('Error: Could not connect to the local server. Ensure "node server.js" is running.');
+                }
             } finally {
                 btn.disabled = false;
             }
         }
-
         // Toggle Sidebar
         function toggleSidebar() {
             const layout = document.getElementById('main-layout');
             layout.classList.toggle('collapsed');
             setTimeout(() => {
-                
+
             }, 400);
         }
     </script>

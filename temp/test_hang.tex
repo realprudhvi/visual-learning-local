@@ -1,0 +1,8 @@
+\documentclass[preview,border=2mm]{standalone}
+\usepackage{circuitikz}
+\begin{document}
+\begin{circuitikz}[american]
+\draw (0,0) to[V,v=$V_s{=}12V$] (0,3) to[R, l=$R_1{=}1k\Omega$] (3,3) to[C, l=$C_1{=}10\mu F$] (3,0) -- (0,0);
+\draw (3,0) node[ground]{};
+\end{circuitikz}
+\end{document}
