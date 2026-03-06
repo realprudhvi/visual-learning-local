@@ -13,8 +13,6 @@
 
 #tikz-container svg {
     /* SVG output from TikZ is usually very crisp. Scale it up slightly so it is very readable */
-    transform: scale(1.5);
-    transform-origin: center center;
     max-width: 90%;
     max-height: 90%;
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1));

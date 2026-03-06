@@ -266,7 +266,7 @@ app.get('/api/history', async (req, res) => {
                     historyFiles.push({
                         filename: file,
                         path: `history/${section}/${file}`,
-                        name: content.name || 'Untitled',
+                        name: content.name || content.title || 'Untitled',
                         difficulty: content.difficulty || 'Unknown',
                         timestamp: parseInt(file.replace('.json', ''), 10) || Date.now()
                     });
@@ -319,10 +319,14 @@ app.post('/api/render', (req, res) => {
     let texCode = req.body.code || '';
 
     // Auto-wrap if documentclass is missing
+    let isTikz = texCode.includes('circuitikz') || texCode.includes('tikzpicture');
+    let isChem = texCode.includes('chemfig');
+
+    // Use TikZ standalone class for flawless bounding box tracing on PGF paths
+    let docClass = isTikz ? '\\documentclass[tikz,border=2mm]{standalone}' : '\\documentclass[preview,border=2mm]{standalone}';
+
     if (!texCode.includes('\\documentclass')) {
-        let isTikz = texCode.includes('circuitikz') || texCode.includes('tikzpicture');
-        let isChem = texCode.includes('chemfig');
-        let wrappedCode = `\\documentclass[preview,border=2mm]{standalone}\n`;
+        let wrappedCode = `${docClass}\n`;
         if (isTikz) wrappedCode += `\\usepackage{circuitikz}\n`;
         if (isChem) wrappedCode += `\\usepackage{chemfig}\n`;
         wrappedCode += `\\begin{document}\n`;
@@ -330,8 +334,8 @@ app.post('/api/render', (req, res) => {
         wrappedCode += `\\end{document}`;
         texCode = wrappedCode;
     } else {
-        // Force standalone document class with tight borders for perfect SVG cropping
-        texCode = texCode.replace(/\\documentclass(\s*\[.*?\]\s*)?\{.*?\}/, '\\documentclass[preview,border=2mm]{standalone}');
+        // Force standalone document class with tight borders, respecting tikz necessity
+        texCode = texCode.replace(/\\documentclass(\s*\[.*?\]\s*)?\{.*?\}/, docClass);
     }
 
     const tempDir = path.join(__dirname, 'temp');

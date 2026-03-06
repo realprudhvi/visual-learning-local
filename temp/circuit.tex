@@ -1,14 +1,5 @@
 \documentclass[preview,border=2mm]{standalone}
 \usepackage{chemfig}
 \begin{document}
-\setchemfig{atom sep=2em}
-\schemestart
-  \chemfig{CH_3-C(=[1]O)-[7]OH}
-  \+
-  \chemfig{HO-CH_2-CH_3}
-  \arrow{<=>[$H^+$]}
-  \chemfig{CH_3-C(=[1]O)-[7]O-CH_2-CH_3}
-  \+
-  \chemfig{H_2O}
-\schemestop
+\chemfig{**6(-(-C(=O)OH)-(-O-C(=O)CH_3)----)}
 \end{document}
