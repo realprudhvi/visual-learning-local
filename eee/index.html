@@ -8,6 +8,18 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         /* Shared variables */
@@ -877,9 +889,46 @@
             if (data.name || data.title) {
                 document.getElementById('circuit-title').textContent = data.name || data.title;
             }
+            // Configure marked to not escape math formulas
+            marked.setOptions({
+                mangle: false,
+                headerIds: false
+            });
+
             if (data.explanation) {
-                document.getElementById('circuit-explanation').innerHTML = marked.parse(data.explanation);
+                // Pre-process to protect math blocks from marked
+                let processedExp = data.explanation;
+                let mathBlocks = [];
+
+                // Extract block math $$...$$
+                processedExp = processedExp.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
+                    mathBlocks.push(match);
+                    return `%%%MATHBLOCK_${mathBlocks.length - 1}%%%`;
+                });
+
+                // Extract inline math $...$
+                // A better regex that handles $V_c(t)$ without breaking it
+                processedExp = processedExp.replace(/\$(.+?)\$/g, (match) => {
+                    // Don't match if it's just a dollar amount like $10 or ends with space like $ 10
+                    if (match === '$' || match.match(/^\$\s/) || match.match(/\s\$$/)) {
+                        return match;
+                    }
+                    mathBlocks.push(match);
+                    return `%%%MATHBLOCK_${mathBlocks.length - 1}%%%`;
+                });
+
+                let htmlOut = marked.parse(processedExp);
+
+                // Restore math blocks
+                htmlOut = htmlOut.replace(/%%%MATHBLOCK_(\d+)%%%/g, (match, index) => {
+                    return mathBlocks[Number(index)];
+                });
+
+                document.getElementById('circuit-explanation').innerHTML = htmlOut;
                 document.getElementById('explanation-panel').classList.add('visible');
+                if (window.MathJax) {
+                    MathJax.typesetPromise([document.getElementById('circuit-explanation')]).catch((err) => console.log('MathJax error:', err));
+                }
             }
             if (latexCode) {
                 document.getElementById('raw-code').textContent = latexCode;
