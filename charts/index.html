@@ -703,9 +703,7 @@
             if (platformSelect) platformSelect.value = savedPlatform;
             if (apiKeyInput) apiKeyInput.value = savedPlatform === 'groq' ? (savedGroqKey || '') : (savedGeminiKey || '');
 
-            if (apiKeyInput.value.trim()) {
-                fetchModels();
-            }
+            fetchModels();
 
             platformSelect.addEventListener('change', () => {
                 const p = platformSelect.value;

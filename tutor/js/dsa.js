@@ -3722,11 +3722,7 @@ function handlePlatformChange(shouldFetch = true) {
 
     if (shouldFetch) {
         // Re-fetch models if key exists
-        if (apiKeyInput.value.trim()) {
-            fetchModels();
-        } else {
-            modelSelect.innerHTML = '<option value="">Enter API Key to load models...</option>';
-        }
+        fetchModels();
     }
 }
 

@@ -1,0 +1,40 @@
+{
+  "id": "two-sum",
+  "name": "Two Sum",
+  "difficulty": "Easy",
+  "description": "<p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.</p><p>You may assume that each input would have exactly one solution, and you may not use the same element twice.</p><p>You can return the answer in any order.</p><h3>Example:</h3><p><b>Input:</b> <code>nums = [2,7,11,15]</code>, <code>target = 9</code></p><p><b>Output:</b> <code>[0,1]</code></p><p><b>Explanation:</b> Because <code>nums[0] + nums[1] == 9</code>, we return <code>[0, 1]</code>.</p>",
+  "tags": [
+    "Array",
+    "Hash Table"
+  ],
+  "slots": [
+    {
+      "id": "nums",
+      "type": "array",
+      "label": "Numbers"
+    },
+    {
+      "id": "seenNumbers",
+      "type": "hashmap",
+      "label": "Seen Numbers (num -> index)"
+    },
+    {
+      "id": "variables",
+      "type": "hashmap",
+      "label": "Variables"
+    }
+  ],
+  "inputs": [
+    {
+      "label": "Numbers (comma-separated)",
+      "default": "2,7,11,15",
+      "placeholder": "e.g., 2,7,11,15"
+    },
+    {
+      "label": "Target Sum",
+      "default": "9",
+      "placeholder": "e.g., 9"
+    }
+  ],
+  "code": "class Playground {\n    async run(inputs) {\n        const nums = inputs[0].split(',').map(Number);\n        const target = parseInt(inputs[1]);\n\n        this.nums.init(nums);\n        this.seenNumbers.init([]);\n        this.variables.init([['target', target]]);\n\n        this.log(\"Starting Two Sum algorithm.\");\n        await this.await();\n\n        for (let i = 0; i < nums.length; i++) {\n            const currentNum = nums[i];\n            this.variables.put('currentNum', currentNum);\n            this.log(`Processing number ${currentNum} at index ${i}.`);\n            this.nums.highlight(i, '#00e0ff'); // Highlight current number\n            await this.await();\n\n            const complement = target - currentNum;\n            this.variables.put('complement', complement);\n            this.log(`Calculating complement: ${target} - ${currentNum} = ${complement}.`);\n            await this.await();\n\n            if (this.seenNumbers.has(complement)) {\n                const complementIndex = this.seenNumbers.get(complement);\n                this.log(`Complement ${complement} found at index ${complementIndex}.`);\n                this.seenNumbers.highlight(complement, '#00f5a0'); // Highlight complement in hashmap\n                this.nums.highlight(complementIndex, '#00f5a0'); // Highlight complement in array\n                this.nums.highlight(i, '#00f5a0'); // Highlight current number in array\n                this.log(`Found pair: [${complementIndex}, ${i}]`);\n                await this.await();\n                return [complementIndex, i];\n            } else {\n                this.log(`Complement ${complement} not found. Adding ${currentNum} (index ${i}) to seen numbers.`);\n                this.seenNumbers.put(currentNum, i);\n                this.seenNumbers.highlight(currentNum, '#ffb703'); // Highlight added number in hashmap\n                await this.await();\n            }\n            this.nums.highlight(i, '#6c8cff'); // Mark current number as processed\n            await this.await();\n        }\n\n        this.log(\"No two sum solution found.\");\n        return [-1, -1]; // Should not happen based on problem constraints\n    }\n}"
+}

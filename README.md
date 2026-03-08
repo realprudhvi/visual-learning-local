@@ -42,6 +42,9 @@ While native image generation models are advanced for artistic endeavors, they p
 Visual Learning solves this by using AI to generate structured code (LaTeX, Mermaid, JSON, JS Classes) which is deterministically rendered into precise, interactive, and academically accurate visualizations.
 
 ## 3.0 System Architecture and Processing Workflow
+
+![Visual Learning Architecture](architecture-diagram.svg)
+
 This section details the intricate architecture of how the environment setup and model code processing effectively render visuals for various educational environments.
 
 ### 3.1 Core Processing Pipeline
