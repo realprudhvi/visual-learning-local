@@ -1,127 +1,165 @@
-# Visual Learning - The Next Generation AI Tutor
+# Visual Learning
 
-Welcome to **Visual Learning**, an open-source, universal AI-driven engine designed to revolutionize how we learn complex topics. By combining traditional text-based explanations with dynamic, AI-generated visual and interactive simulations, this project bridges the gap between reading about a concept and truly understanding it.
+## 1.0 Introduction
+Visual Learning is an open source, universal AI driven engine designed to revolutionize the comprehension of complex topics. By combining traditional text based explanations with dynamic, AI generated visual and interactive simulations, this project bridges the gap between theoretical reading and practical understanding.
 
-## The Problem Statement
+## 2.0 The Problem Statement
+Traditional learning, especially in the era of AI, heavily indexes on text. While Large Language Models excel at generating detailed textual explanations, complex fields like engineering, chemistry, architecture, and mathematics require interactive visualizations to build intuition.
 
-Traditional learning, especially in the era of AI, has become heavily indexed on text. While LLMs (Large Language Models) excel at generating detailed textual explanations, complex fields like engineering, chemistry, architecture, and mathematics require more than just words to build intuition. 
+### 2.1 The Evolution of Learning
+1. Text Only: Beneficial for theory, but limited for spatial or temporal understanding.
+2. Text and Visuals: Improved, but often static and generalized.
+3. Text, Visuals, and Interaction: The optimal standard. Users can modify parameters, step through algorithms, and explore system variables in real time.
 
-**The Evolution of Learning:**
-1. **Text-Only:** Excellent for theory, but poor for spatial or temporal understanding.
-2. **Text + Visuals:** Better, but often static and generalized.
-3. **Text + Visuals + Interaction:** The gold standard. Users can tweak parameters, step through algorithms, and explore the "what-ifs" of a system in real-time.
+Visual Learning seamlessly blends these three paradigms, introducing interactive learning natively into specific modules (Playground / DSA, Science and Math Simulations, and Charts).
 
-Visual Learning aims to seamlessly blend all three, introducing **interactive learning** natively into specific modules (Playground/DSA, Science & Math Simulations, and Charts).
+### 2.2 Limitations of Native Image Generation
+While native image generation models are advanced for artistic endeavors, they present fundamental flaws for rigorous academic or technical purposes.
 
-### Why Not Just Use GPT's Image Generation (DALL-E)?
+<table>
+  <tr>
+    <th>Limitation</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>Hallucinations and Mislabeling</td>
+    <td>Models frequently place incorrect labels on diagrams or invent non existent components.</td>
+  </tr>
+  <tr>
+    <td>Spelling Inaccuracies</td>
+    <td>Text rendering within generated images is notoriously unreliable, making labels and formulas illegible or factually incorrect.</td>
+  </tr>
+  <tr>
+    <td>Lack of Precision</td>
+    <td>Models operate on pixels, not underlying structured data. Static pixel grids cannot be interacted with or mathematically verified.</td>
+  </tr>
+  <tr>
+    <td>Non Interactive Nature</td>
+    <td>A generated image cannot be stepped through frame by frame or have its parameters tweaked dynamically.</td>
+  </tr>
+</table>
 
-While native image-generation models (like DALL-E or Midjourney) are incredible for artistic endeavors, they are fundamentally flawed for rigorous academic or technical purposes:
-* **Hallucinations & Mislabeling:** They frequently place incorrect labels on diagrams or invent non-existent components.
-* **Spelling Mistakes:** Text rendering within generated images is notoriously unreliable, making labels and formulas illegible or factually incorrect.
-* **Lack of Precision:** They operate on pixels, not underlying structured data. You cannot interact with a static pixel grid or verify its mathematical accuracy.
-* **Non-Interactive:** A generated image cannot be stepped through frame-by-frame or have its parameters tweaked dynamically.
+Visual Learning solves this by using AI to generate structured code (LaTeX, Mermaid, JSON, JS Classes) which is deterministically rendered into precise, interactive, and academically accurate visualizations.
 
-Visual Learning solves this by using AI to generate **structured code** (LaTeX, Mermaid, JSON, JS Classes) which is then deterministically rendered into precise, interactive, and academically accurate visualizations.
+## 3.0 System Architecture and Processing Workflow
+This section details the intricate architecture of how the environment setup and model code processing effectively render visuals for various educational environments.
 
-### Breaking the "Hard-Coded" Paradigm
+### 3.1 Core Processing Pipeline
+The system operates on a specialized pipeline designed to maintain academic rigor and rendering precision.
 
-Currently, if a student wants to visualize how a Convolutional Neural Network (CNN) works, or step through a complex DSA problem (like A* Search), they have to hope someone has built a specific, hard-coded website for that one exact scenario. 
+1. Prompt Ingestion: The user inputs a natural language request for a specific concept or simulation.
+2. Contextual System Prompting: The backend wraps the user query in a strict system prompt tailored to the active module. This enforces syntax rules, coordinate grids, and library constraints.
+3. Model Generation: The AI processes the prompt and outputs a strictly formatted JSON object. This object contains the explanatory text and the raw rendering code.
+4. Code Extraction and Sanitization: The backend extracts the target code string from the JSON response and performs server side sanitization.
+5. Deterministic Rendering: The sanitized code is passed to the respective rendering engine to generate the final visual output.
 
-Our approach fundamentally breaks this paradigm. By acting as a universal, AI-driven interpreter, **users can directly request any simulation they want.** The AI generates the precise configuration or rendering code on the fly, transforming static prompts into dynamic, previously un-built simulations. 
+### 3.2 Module Specific Architecture
 
-## Detailed Architecture by Section
+<table>
+  <tr>
+    <th>Module</th>
+    <th>Objective</th>
+    <th>AI Output Format</th>
+    <th>Rendering Engine</th>
+    <th>Key Features</th>
+  </tr>
+  <tr>
+    <td>Electrical and Electronics</td>
+    <td>Visualize circuit diagrams</td>
+    <td>Circuitikz (LaTeX)</td>
+    <td>Backend LaTeX Pipeline</td>
+    <td>Step by step math explanations (MathJax)</td>
+  </tr>
+  <tr>
+    <td>Chemistry</td>
+    <td>Represent molecular bonds</td>
+    <td>Chemfig (LaTeX)</td>
+    <td>Backend LaTeX Pipeline</td>
+    <td>Prevents overlapping text or impossible bonds</td>
+  </tr>
+  <tr>
+    <td>Data Structures</td>
+    <td>Step by step execution</td>
+    <td>Structured State JSON</td>
+    <td>Custom HTML Canvas reader</td>
+    <td>Deep interactivity with forward backward stepping</td>
+  </tr>
+  <tr>
+    <td>Science and Math</td>
+    <td>Dynamic modeling of physics</td>
+    <td>JavaScript Classes</td>
+    <td>Browser JavaScript Engine</td>
+    <td>Sliders for interactive mass, angle, friction tweaks</td>
+  </tr>
+  <tr>
+    <td>Architecture Flow</td>
+    <td>System design mapping</td>
+    <td>Mermaid syntax</td>
+    <td>Browser Mermaid Renderer</td>
+    <td>Cleanly laid out SVG flowcharts and sequence diagrams</td>
+  </tr>
+  <tr>
+    <td>Interactive Charts</td>
+    <td>Visualizing raw data</td>
+    <td>JSON Configurations</td>
+    <td>ChartJS or Plotly</td>
+    <td>Interactive tooltips, zooming, and dynamic legends</td>
+  </tr>
+</table>
 
-The project is categorized into specialized domains, each utilizing a specific technological backend to render AI-generated content accurately:
+### 3.3 The Structured Output Requirement
+At the heart of Visual Learning is the ability to reliably marshal Large Language Models into outputting dense, structural code without breaking application logic.
 
-### 1. EEE (Electrical & Electronics Engineering)
-* **Objective:** Visualize circuit diagrams and electronic schematics.
-* **Architecture:** The AI translates natural language electronics prompts into precise `Circuitikz` (LaTeX) code. The backend compiles this using a specialized LaTeX rendering pipeline and returns a sharp, scalable SVG.
-* **Features:** Step-by-step mathematical explanations (rendered via MathJax) alongside the generated circuit diagram.
+By leveraging strict JSON schema enforcement and system prompting, the architecture guarantees the following.
+1. Predictable formats containing distinct keys for explanations, equations, and code.
+2. Elimination of conversational filler that corrupts rendering pipelines.
+3. Flawless deserialization of complex algorithmic step states for frame by frame playback.
 
-### 2. Chemistry
-* **Objective:** Accurately represent molecular structures and chemical bonds.
-* **Architecture:** The AI generates `Chemfig` (LaTeX) code, strictly adhering to formatting standards. This is processed on the backend and presented as a crisp SVG.
-* **Features:** Allows users to visualize complex organic and inorganic molecules without the risk of overlapping text or physically impossible bonds.
+## 4.0 Prerequisites and Installation
+To execute Visual Learning locally, standard developer tools are required.
 
-### 3. DSA / Playground
-* **Objective:** Step-by-step visual execution of Data Structures and Algorithms.
-* **Architecture:** The AI acts as a state generator, converting algorithmic prompts into structured JSON histories. The front-end reads this JSON and maps it to a custom-built, interactive HTML Canvas engine.
-* **Features:** Deep interactivity. Users can step forward and backward manually through algorithmic frames, view variable states, arrays, pointers, and trees natively on the screen.
+### 4.1 System Requirements
+1. Node.js v18.0.0 or higher: Serves the backend API routes and handles file operations.
+2. npm or yarn: Manages project dependencies.
 
-### 4. Science and Math Simulations
-* **Objective:** Dynamic modeling of physics, kinematics, and mathematical phenomena.
-* **Architecture:** The AI generates raw, sandboxed JavaScript classes that implement an update loop (`requestAnimationFrame`) or physics engine logic, alongside UI slider configurations.
-* **Features:** Fully interactive. Users can adjust sliders (e.g., mass, angle, friction, time) and watch the custom-rendered Canvas update the simulation in real-time.
-
-### 5. Architecture Flow Charts
-* **Objective:** System design, cloud infrastructure, and software mapping.
-* **Architecture:** The AI generates structured `Mermaid.js` syntax from architectural descriptions. 
-* **Features:** The browser dynamically renders this into cleanly laid out SVG flowcharts and sequence diagrams, perfect for understanding complex system backends and API flows.
-
-### 6. Interactive Charts
-* **Objective:** Visualizing raw data, distributions, and trends.
-* **Architecture:** The AI receives data or mathematical functions and formats them into JSON configurations compatible with robust charting libraries (e.g., `Chart.js` or `Plotly`).
-* **Features:** Interactive tooltips, zooming, panning, and legend-toggling driven by industry-standard data visualization engines.
-
-## The Secret Sauce: Gemini API Structured Output
-
-At the heart of Visual Learning is the ability to reliably marshal Large Language Models into outputting dense, structural code without breaking the application logic. 
-
-**Gemini API's Structured Output System** is essential to make this project possible. By leveraging strict JSON schema enforcement and system prompting, we guarantee that:
-* The AI responds in a predictable JSON format containing distinct keys for `explanation`, `latex_code`, `javascript_class`, or `mermaid_syntax`.
-* We avoid the AI injecting conversational filler (e.g., "Here is your code:...") that would otherwise break rendering pipelines.
-* For complex interactions like the **DSA / Playground**, the AI can generate sprawling arrays of algorithmic step-states formatted flawlessly in JSON, allowing the custom frontend canvas reader to deserialize and play them back frame-by-frame. 
-
-Without guaranteed structured formatting, building a deterministic, dynamic visualizer on top of a non-deterministic LLM would be impossible.
-
-## Prerequisites & Installation
-
-To run Visual Learning locally, you will need a few standard developer tools:
-
-* **Node.js** (v18.0.0 or higher) - Serves the backend API routes and handles file writing/rendering.
-* **npm** or **yarn** - To manage dependencies.
-
-**Local Environment Setup:**
-
-1. Clone the repository:
+### 4.2 Local Environment Setup
+1. Clone the repository.
 ```bash
-git clone https://github.com/your-username/visual-learning.git
+git clone https://github.com/realprudhvi/visual-learning.git
 cd visual-learning
 ```
 
-2. Install dependencies:
+2. Install dependencies.
 ```bash
 npm install
 ```
 
-3. Configure your API Keys:
-While API keys can be inserted directly in the browser UI, you can also securely add them to a `.env` file in the root directory for local backend testing. If you configure them in the `.env` file, you can leave the API key input fields in the UI completely empty, and the application will automatically fall back to using your `.env` keys.
+3. Configure API Keys.
+API keys can be inserted directly in the browser UI, or securely added to a `.env` file in the root directory for local backend testing. When configured in the `.env` file, UI input fields can be left blank for automatic fallback.
 ```env
-GEMINI_API_KEY=your_google_gemini_key_here
-GROQ_API_KEY=your_groq_llama3_key_here
+GEMINI_API_KEY=insert_google_gemini_key_here
+GROQ_API_KEY=insert_groq_llama3_key_here
 ```
 
-## Running the Application
+## 5.0 Running the Application
+Once dependencies are installed, initialize the application backend.
 
-Once dependencies are installed, you can start the application backend:
-
+1. Start the server.
 ```bash
 npm start
 ```
-*(Alternatively, you can run `node server.js`)*
 
-The terminal will confirm that the server is running on `http://localhost:3000`. 
-Open your browser and navigate to `http://localhost:3000` to access the main landing page. From there, select any module (e.g., Electrical, Playground, Chemistry) and begin generating visual learning materials!
+2. The terminal will confirm that the server is active on `http://localhost:3000`.
+3. Open a web browser and navigate to `http://localhost:3000` to access the main landing page.
+4. Select any educational module to begin generating visual materials.
 
-## The Vision: The Unified AI Tutor
+## 6.0 The Vision for the Unified AI Tutor
+The overarching goal of Visual Learning is to combine these disparate rendering engines into a single, cohesive AI Tutor.
 
-The overarching goal of **Visual Learning** is to combine these disparate rendering engines into a single, cohesive **AI Tutor**. 
+1. The user asks the Tutor to explain a Low Pass RC Filter.
+2. The Tutor explains the theory dynamically in text using MathJax formulas.
+3. The interface spawns an Electrical engineering window showing the schematic visually mapped to the text.
+4. The interface spawns an Interactive Charts window showing the frequency response plot.
+5. The interface spawns a Science Simulation allowing the user to adjust the resistor value and observe the cutoff frequency shift in real time.
 
-Imagine a unified chat workspace:
-1. You ask the Tutor to explain a **Low-Pass RC Filter**.
-2. The Tutor explains the theory dynamically in text (with MathJax formulas).
-3. The interface spawns an **EEE window** showing the schematic visually mapped to the text.
-4. It spawns an **Interactive Charts window** showing the Bode plot (Frequency Response).
-5. It spawns a **Science Simulation** where you can drag a slider to tweak the Resistor value and watch the cutoff frequency shift in real-time.
-
-By merging traditional text-based learning with precise, academically rigorous, and highly interactive visual rendering across disciplines, we create an omni-capable learning engine that adapts to any concept—scaling infinitely beyond traditional textbooks and hard-coded educational tools.
+By merging traditional text based learning with precise, academically rigorous, and highly interactive visual rendering across disciplines, this project creates an omni capable learning engine that scales infinitely beyond traditional textbooks.
