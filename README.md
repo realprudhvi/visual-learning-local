@@ -118,6 +118,24 @@ By leveraging strict JSON schema enforcement and system prompting, the architect
 2. Elimination of conversational filler that corrupts rendering pipelines.
 3. Flawless deserialization of complex algorithmic step states for frame by frame playback.
 
+### 3.4 Directory Structure
+The project is strictly organized to separate client-facing assets, server logic, and persistent storage:
+
+```text
+visual-learning/
+├── frontend/                    # All client-facing files and interactive modules
+│   ├── index.html               # Main landing page
+│   ├── css/, js/                # Global styles and shared client logic
+│   └── [module]/                # Module directories (architecture, chemistry, science, etc.)
+├── backend/                     # Node.js server environment
+│   ├── server.js                # Express API backend, static serving, and render pipelines
+│   └── prompts/                 # Model system prompts for each specific module
+├── database/                    # Persistent storage mapping
+│   └── history/                 # Saved user visualizations (JSON configuration states)
+├── temp/                        # Ephemeral working directory for LaTeX compilation
+└── tests/                       # Jest test suites for API, rendering, and history validation
+```
+
 ## 4.0 Prerequisites and Installation
 To execute Visual Learning locally, standard developer tools are required.
 
