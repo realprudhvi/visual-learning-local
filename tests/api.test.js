@@ -7,7 +7,7 @@ const path = require('path');
 // For now, let's assume `app` is exported in server.js or we duplicate the minimal setup
 // The user already has server.js, we will just require it and test against the running instance or mocked one.
 
-const app = require('../server'); // Assuming we can export app from server.js
+const app = require('../backend/server'); // Assuming we can export app from server.js
 
 describe('API Tests: Listing Models', () => {
 

@@ -34,11 +34,11 @@ COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY . .
 
 # Prepare writable directories
-RUN mkdir -p temp history \
+RUN mkdir -p temp database/history \
     && chown -R appuser:appgroup /usr/src/app
 
 USER appuser
 
 EXPOSE 3000
 
-CMD ["node","server.js"]
+CMD ["node","backend/server.js"]

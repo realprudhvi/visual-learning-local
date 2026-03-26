@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../server');
+const app = require('../backend/server');
 const fs = require('fs');
 const path = require('path');
 
@@ -45,7 +45,7 @@ describe('API Tests: History Loading', () => {
 
         expect(res.statusCode).toEqual(200);
         expect(res.body.success).toBe(true);
-        expect(res.body.path).toContain('history/playground/');
+        expect(res.body.path).toContain('database/history/playground/');
 
         const savedFilePath = res.body.path;
 

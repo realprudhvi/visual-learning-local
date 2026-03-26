@@ -1,5 +1,8 @@
 \documentclass[tikz,border=5mm]{standalone}
-\usepackage{chemfig}
+\usepackage{circuitikz}
 \begin{document}
-\chemfig{A=B}
+\begin{circuitikz}[american]
+\draw (0,0) to[short] (2,0);
+\node at (1, 0.5) {Awaiting Generation...};
+\end{circuitikz}
 \end{document}

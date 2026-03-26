@@ -2,12 +2,12 @@
   "name": "project_new",
   "version": "1.0.0",
   "description": "**Visually Learning** is a universal engine designed to visualize data structures and algorithms in an interactive and educational manner. It provides a rich set of tools to explore linear, hierarchical, graph, and hash-based data structures, allowing users to understand their inner workings through dynamic animations and step-by-step execution.",
-  "main": "server.js",
+  "main": "backend/server.js",
   "directories": {
     "example": "examples"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
