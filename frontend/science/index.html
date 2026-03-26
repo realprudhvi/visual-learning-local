@@ -662,13 +662,26 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Retrieve stored keys
-            const savedGemini = localStorage.getItem('gemini_api_key');
-            if (savedGemini) {
-                document.getElementById('ai-api-key').value = savedGemini;
-                document.getElementById('ai-platform').value = 'gemini';
-            }
+            // Retrieve stored keys from standard localStorage keys
+            const savedGeminiKey = localStorage.getItem('geminiApiKey') || localStorage.getItem('gemini_api_key');
+            const savedGroqKey = localStorage.getItem('groqApiKey') || localStorage.getItem('groq_api_key');
+            const savedPlatform = localStorage.getItem('aiPlatform') || 'gemini';
+
+            const platformSelect = document.getElementById('ai-platform');
+            const apiKeyInput = document.getElementById('ai-api-key');
+
+            if (platformSelect) platformSelect.value = savedPlatform;
+            if (apiKeyInput) apiKeyInput.value = savedPlatform === 'groq' ? (savedGroqKey || '') : (savedGeminiKey || '');
+
             updateModelOptions();
+
+            if (platformSelect && apiKeyInput) {
+                platformSelect.addEventListener('change', () => {
+                    const p = platformSelect.value;
+                    apiKeyInput.value = p === 'groq' ? (localStorage.getItem('groqApiKey') || localStorage.getItem('groq_api_key') || '') : (localStorage.getItem('geminiApiKey') || localStorage.getItem('gemini_api_key') || '');
+                    updateModelOptions();
+                });
+            }
 
             // Initial Data Load
             const urlParams = new URLSearchParams(window.location.search);
@@ -688,10 +701,25 @@
             const platform = document.getElementById('ai-platform').value;
             const modelSelect = document.getElementById('ai-model');
 
+            // Save key to standard locations first
+            if (apiKey) {
+                if (platform === 'groq') {
+                    localStorage.setItem('groqApiKey', apiKey);
+                    localStorage.setItem('groq_api_key', apiKey); // alias
+                } else {
+                    localStorage.setItem('geminiApiKey', apiKey);
+                    localStorage.setItem('gemini_api_key', apiKey); // alias
+                }
+            }
+
             modelSelect.innerHTML = '<option value="">Loading models...</option>';
             modelSelect.disabled = true;
 
-            fetch('/api/models', {
+            const apiUrl = window.location.protocol === 'http:' && window.location.hostname === 'localhost' && window.location.port === '3000'
+                ? '/api/models'
+                : 'http://localhost:3000/api/models';
+
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ apiKey: apiKey, platform: platform })
@@ -738,21 +766,6 @@
                     modelSelect.innerHTML = '<option value="">Enter API Key (or configure .env) to load models...</option>';
                     modelSelect.disabled = false;
                 });
-
-            // Save API key
-            if (apiKey) {
-                if (platform === 'gemini') {
-                    localStorage.setItem('gemini_api_key', apiKey);
-                } else {
-                    localStorage.setItem('groq_api_key', apiKey);
-                }
-            } else {
-                if (platform === 'gemini') {
-                    document.getElementById('ai-api-key').value = localStorage.getItem('gemini_api_key') || '';
-                } else {
-                    document.getElementById('ai-api-key').value = localStorage.getItem('groq_api_key') || '';
-                }
-            }
         }
 
         function toggleSidebar() {
@@ -1023,12 +1036,10 @@
                 return;
             }
 
-            // Save key
-            if (platform === 'gemini') {
-                localStorage.setItem('gemini_api_key', apiKey);
-            } else {
-                localStorage.setItem('groq_api_key', apiKey);
-            }
+            // Save key & preferences
+            if (platform === 'groq') localStorage.setItem('groq_api_key', apiKey);
+            else localStorage.setItem('gemini_api_key', apiKey);
+            localStorage.setItem('aiPlatform', platform);
             localStorage.setItem('aiModelScience', selectedModel);
 
             statusEl.textContent = 'Generating scientific configuration... This may take up to 20 seconds.';
@@ -1037,7 +1048,7 @@
             btn.textContent = 'Synthesizing...';
 
             try {
-                const res = await fetch('/api/generate', {
+                const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1045,39 +1056,33 @@
                         problemDescription: promptDesc,
                         platform: platform,
                         model: selectedModel,
-                        section: 'science' // Key component mapping to /history/science and science/prompt.txt
+                        section: 'science'
                     })
                 });
 
-                if (!res.ok) {
-                    const errText = await res.text();
-                    throw new Error(`Server returned ${res.status}: ${errText}`);
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error('Server returned invalid response. Is the backend running?');
                 }
 
-                const jsonResp = await res.json();
-
-                if (jsonResp.error) {
-                    throw new Error(jsonResp.error);
-                }
-
-                // If the backend saved via the new history persistence route, redirect to it
-                if (jsonResp.historyPath) {
-                    window.location.href = `?config=../${jsonResp.historyPath}`;
-                    return;
-                }
-
-                statusEl.textContent = 'Success! Simulation generated.';
-                statusEl.style.color = '#10b981';
-
-                // fallback direct hydration
-                if (jsonResp.data) {
-                    hydrateUI(jsonResp.data);
+                if (response.ok) {
+                    statusEl.textContent = 'Success! Reloading...';
+                    statusEl.style.color = '#10b981';
+                    const redirectPath = data.historyPath ? `../${data.historyPath}` : 'placeholder.json';
+                    setTimeout(() => window.location.search = `?config=${redirectPath}`, 1000);
+                } else {
+                    throw new Error(data.error || 'Failed to generate simulation.');
                 }
 
             } catch (err) {
                 console.error(err);
                 statusEl.textContent = `Generation Failed: ${err.message}`;
                 statusEl.style.color = '#ef4444';
+                if (err.message.includes('Failed to fetch')) {
+                    alert('Error: Could not connect to the local server. Ensure "node backend/server.js" is running.');
+                }
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Generate Simulation';

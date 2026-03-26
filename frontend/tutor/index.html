@@ -1268,11 +1268,24 @@
         // INITIALIZATION
         // ═══════════════════════════════════════════════
         document.addEventListener('DOMContentLoaded', () => {
-            const savedGemini = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
-            if (savedGemini) {
-                document.getElementById('tutor-api-key').value = savedGemini;
-                document.getElementById('tutor-provider').value = 'gemini';
-                updateModelOptions();
+            const savedGeminiKey = localStorage.getItem('geminiApiKey') || localStorage.getItem('gemini_api_key');
+            const savedGroqKey = localStorage.getItem('groqApiKey') || localStorage.getItem('groq_api_key');
+            const savedPlatform = localStorage.getItem('aiPlatform') || 'gemini';
+
+            const providerSelect = document.getElementById('tutor-provider');
+            const apiKeyInput = document.getElementById('tutor-api-key');
+
+            if (providerSelect) providerSelect.value = savedPlatform;
+            if (apiKeyInput) apiKeyInput.value = savedPlatform === 'groq' ? (savedGroqKey || '') : (savedGeminiKey || '');
+
+            updateModelOptions();
+
+            if (providerSelect && apiKeyInput) {
+                providerSelect.addEventListener('change', () => {
+                    const p = providerSelect.value;
+                    apiKeyInput.value = p === 'groq' ? (localStorage.getItem('groqApiKey') || localStorage.getItem('groq_api_key') || '') : (localStorage.getItem('geminiApiKey') || localStorage.getItem('gemini_api_key') || '');
+                    updateModelOptions();
+                });
             }
 
             // Auto-resize textarea
@@ -1397,10 +1410,25 @@
             const platform = document.getElementById('tutor-provider').value;
             const modelSelect = document.getElementById('tutor-model');
 
+            // Save key to standard locations first
+            if (apiKey) {
+                if (platform === 'groq') {
+                    localStorage.setItem('groqApiKey', apiKey);
+                    localStorage.setItem('groq_api_key', apiKey); // alias
+                } else {
+                    localStorage.setItem('geminiApiKey', apiKey);
+                    localStorage.setItem('gemini_api_key', apiKey); // alias
+                }
+            }
+
             modelSelect.innerHTML = '<option value="">Loading...</option>';
             modelSelect.disabled = true;
 
-            fetch('/api/models', {
+            const apiUrl = window.location.protocol === 'http:' && window.location.hostname === 'localhost' && window.location.port === '3000'
+                ? '/api/models'
+                : 'http://localhost:3000/api/models';
+
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ apiKey, platform })
@@ -1447,21 +1475,6 @@
                     modelSelect.innerHTML = '<option value="">Error loading models</option>';
                     modelSelect.disabled = false;
                 });
-
-            // Save API key
-            if (apiKey) {
-                if (platform === 'gemini') {
-                    localStorage.setItem('gemini_api_key', apiKey);
-                } else {
-                    localStorage.setItem('groq_api_key', apiKey);
-                }
-            } else {
-                if (platform === 'gemini') {
-                    document.getElementById('tutor-api-key').value = localStorage.getItem('gemini_api_key') || '';
-                } else {
-                    document.getElementById('tutor-api-key').value = localStorage.getItem('groq_api_key') || '';
-                }
-            }
         }
 
         // ═══════════════════════════════════════════════
