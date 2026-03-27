@@ -16,28 +16,12 @@ Visual Learning seamlessly blends these three paradigms, introducing interactive
 ### 2.2 Limitations of Native Image Generation
 While native image generation models are advanced for artistic endeavors, they present fundamental flaws for rigorous academic or technical purposes.
 
-<table>
-  <tr>
-    <th>Limitation</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td>Hallucinations and Mislabeling</td>
-    <td>Models frequently place incorrect labels on diagrams or invent non existent components.</td>
-  </tr>
-  <tr>
-    <td>Spelling Inaccuracies</td>
-    <td>Text rendering within generated images is notoriously unreliable, making labels and formulas illegible or factually incorrect.</td>
-  </tr>
-  <tr>
-    <td>Lack of Precision</td>
-    <td>Models operate on pixels, not underlying structured data. Static pixel grids cannot be interacted with or mathematically verified.</td>
-  </tr>
-  <tr>
-    <td>Non Interactive Nature</td>
-    <td>A generated image cannot be stepped through frame by frame or have its parameters tweaked dynamically.</td>
-  </tr>
-</table>
+| Limitation | Description |
+| :--- | :--- |
+| Hallucinations and Mislabeling | Models frequently place incorrect labels on diagrams or invent non existent components. |
+| Spelling Inaccuracies | Text rendering within generated images is notoriously unreliable, making labels and formulas illegible or factually incorrect. |
+| Lack of Precision | Models operate on pixels, not underlying structured data. Static pixel grids cannot be interacted with or mathematically verified. |
+| Non Interactive Nature | A generated image cannot be stepped through frame by frame or have its parameters tweaked dynamically. |
 
 Visual Learning solves this by using AI to generate structured code (LaTeX, Mermaid, JSON, JS Classes) which is deterministically rendered into precise, interactive, and academically accurate visualizations.
 
@@ -58,57 +42,14 @@ The system operates on a specialized pipeline designed to maintain academic rigo
 
 ### 3.2 Module Specific Architecture
 
-<table>
-  <tr>
-    <th>Module</th>
-    <th>Objective</th>
-    <th>AI Output Format</th>
-    <th>Rendering Engine</th>
-    <th>Key Features</th>
-  </tr>
-  <tr>
-    <td>Electrical and Electronics</td>
-    <td>Visualize circuit diagrams</td>
-    <td>Circuitikz (LaTeX)</td>
-    <td>Backend LaTeX Pipeline</td>
-    <td>Deterministic circuit schematic rendering with correct electrical symbols and node topology</td>
-  </tr>
-  <tr>
-    <td>Chemistry</td>
-    <td>Represent molecular bonds</td>
-    <td>Chemfig (LaTeX)</td>
-    <td>Backend LaTeX Pipeline</td>
-    <td>Structurally accurate molecular diagrams generated from chemical notation</td>
-  </tr>
-  <tr>
-    <td>Data Structures</td>
-    <td>Step by step execution</td>
-    <td>Structured State JSON</td>
-    <td>Custom HTML Canvas reader</td>
-    <td>Deep interactivity with forward backward stepping along with trying various inputs</td>
-  </tr>
-  <tr>
-    <td>Science and Math</td>
-    <td>Dynamic modeling of physics</td>
-    <td>JavaScript Classes</td>
-    <td>Browser JavaScript Engine</td>
-    <td>Sliders for interactive variables tweaks</td>
-  </tr>
-  <tr>
-    <td>Architecture Flow</td>
-    <td>System design mapping</td>
-    <td>Mermaid syntax</td>
-    <td>Browser Mermaid Renderer</td>
-    <td>Cleanly laid out SVG flowcharts and sequence diagrams</td>
-  </tr>
-  <tr>
-    <td>Interactive Charts</td>
-    <td>Visualizing raw data</td>
-    <td>JSON Configurations</td>
-    <td>ChartJS or Plotly</td>
-    <td>Interactive tooltips, zooming, and dynamic legends</td>
-  </tr>
-</table>
+| Module | Objective | AI Output Format | Rendering Engine | Key Features |
+| :--- | :--- | :--- | :--- | :--- |
+| Electrical and Electronics | Visualize circuit diagrams | Circuitikz (LaTeX) | Backend LaTeX Pipeline | Deterministic circuit schematic rendering with correct electrical symbols and node topology |
+| Chemistry | Represent molecular bonds | Chemfig (LaTeX) | Backend LaTeX Pipeline | Structurally accurate molecular diagrams generated from chemical notation |
+| Data Structures | Step by step execution | Structured State JSON | Custom HTML Canvas reader | Deep interactivity with forward backward stepping along with trying various inputs |
+| Science and Math | Dynamic modeling of physics | JavaScript Classes | Browser JavaScript Engine | Sliders for interactive variables tweaks |
+| Architecture Flow | System design mapping | Mermaid syntax | Browser Mermaid Renderer | Cleanly laid out SVG flowcharts and sequence diagrams |
+| Interactive Charts | Visualizing raw data | JSON Configurations | ChartJS or Plotly | Interactive tooltips, zooming, and dynamic legends |
 
 ### 3.3 The Structured Output Requirement
 At the heart of Visual Learning is the ability to reliably marshal Large Language Models into outputting dense, structural code without breaking application logic.
@@ -174,6 +115,18 @@ npm start
 3. Open a web browser and navigate to `http://localhost:3000` to access the main landing page.
 4. Select any educational module to begin generating visual materials.
 
+## 5.1 Local Version and History Support
+
+This is a **local version** of Visual Learning, designed to run entirely on the user's system without relying on external hosting.
+
+The application also supports **history persistence**, where previously generated visualizations are stored in:
+
+```text
+/database/history/
+```
+
+Each session is saved as structured data, allowing users to revisit, reload, and re-render past outputs.
+
 ## 6.0 The Vision for the Unified AI Tutor
 The overarching goal of Visual Learning is to combine these disparate rendering engines into a single, cohesive AI Tutor.
 
@@ -218,10 +171,10 @@ These domains are suitable because their structures can be represented using pro
 
 The central design principle of Visual Learning is that any concept that can be expressed as structured code can be deterministically rendered as a visual representation.
 
-Circuit diagrams are rendered from Circuitikz syntax.
-Chemical structures are rendered from Chemfig notation.
-Algorithms are visualized from structured state objects.
-System architectures are rendered from Mermaid diagrams.
-Charts are produced from JSON configuration objects.
+- **Circuit diagrams** are rendered from Circuitikz syntax.
+- **Chemical structures** are rendered from Chemfig notation.
+- **Algorithms** are visualized from structured state objects.
+- **System architectures** are rendered from Mermaid diagrams.
+- **Charts** are produced from JSON configuration objects.
 
 By separating the AI generation layer from the renderer layer, the platform remains extensible and capable of supporting future scientific visualization domains without requiring changes to the underlying pipeline.
