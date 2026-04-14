@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visually Data Structures - Universal Engine</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- PREMIUM LANDING STYLE -->
+    <style>
+        #landing-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #030712;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 1000;
+        }
+
+        .landing-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .landing-bg::before,
+        .landing-bg::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.3;
+            animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .landing-bg::before {
+            background: #8b5cf6;
+            top: -200px;
+            left: -100px;
+        }
+
+        .landing-bg::after {
+            background: #3b82f6;
+            bottom: -200px;
+            right: -100px;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(100px, 50px) scale(1.2);
+            }
+
+            100% {
+                transform: translate(-50px, 150px) scale(0.8);
+            }
+        }
+
+        .landing-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1100px;
+            padding: 60px 40px;
+            margin: auto;
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .landing-title {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ffffff, #93c5fd, #c4b5fd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+            text-shadow: 0 4px 30px rgba(139, 92, 246, 0.3);
+            display: inline-block;
+        }
+
+        .landing-subtitle {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            margin-bottom: 60px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .landing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .premium-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px 24px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            text-decoration: none;
+        }
+
+        .premium-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.3);
+        }
+
+        .premium-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-thumbnail {
+            width: 100%;
+            height: 140px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #93c5fd;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .card-thumbnail svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #93c5fd;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .special-card .card-icon {
+            width: 80px;
+            height: 80px;
+            color: #c4b5fd;
+            margin: 0;
+            animation: pulse-glow 3s infinite;
+        }
+
+        .card-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .premium-card h3 {
+            font-size: 1.4rem;
+            color: #f8fafc;
+            margin: 0 0 12px 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .premium-card p {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Unified Visual Tutor Special Card */
+        .premium-card.special-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            flex-direction: row;
+            align-items: center;
+            padding: 30px 40px;
+            gap: 30px;
+        }
+
+        .premium-card.special-card:hover {
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+            border-color: rgba(139, 92, 246, 0.6);
+            transform: translateY(-5px) scale(1.01);
+        }
+
+        .special-card .card-icon {
+            font-size: 4rem;
+            margin: 0;
+            animation: pulse-glow 3s infinite;
+        }
+
+        .special-content {
+            flex: 1;
+        }
+
+        .special-card h3 {
+            font-size: 1.8rem;
+            color: #c4b5fd;
+            margin-bottom: 8px;
+        }
+
+        .special-card p {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            max-width: 800px;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+                transform: scale(1);
+            }
+
+            50% {
+                filter: drop-shadow(0 0 25px rgba(139, 92, 246, 0.8));
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .landing-title {
+                font-size: 3rem;
+            }
+
+            .premium-card.special-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .special-card .card-icon {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+
+    <!-- LANDING VIEW (Premium) -->
+    <div id="landing-view">
+        <div class="landing-bg"></div>
+        <div class="landing-content">
+            <button onclick="openSettingsModal()"
+                style="position: absolute; top: 20px; right: 40px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #c4b5fd; padding: 10px 16px; border-radius: 8px; cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; gap: 8px; font-weight: 500; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100;"
+                onmouseover="this.style.background='rgba(30, 41, 59, 0.9)'; this.style.transform='scale(1.05)';"
+                onmouseout="this.style.background='rgba(15, 23, 42, 0.8)'; this.style.transform='scale(1)';">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+                API Settings
+            </button>
+            <h1 class="landing-title">Visual Learning</h1>
+            <p class="landing-subtitle">Select a module to explore interactively and effortlessly.</p>
+
+            <div class="landing-grid">
+                <!-- EEE Card -->
+                <div class="premium-card" onclick="window.location.href='eee/index.html'">
+                    <h3>Electrical & Electronics</h3>
+                    <p>Build and analyze complex circuit diagrams using real-time AI generation and TikZ rendering.</p>
+                </div>
+
+                <!-- Chemistry Card -->
+                <div class="premium-card" onclick="window.location.href='chemistry/index.html'">
+                    <h3>Chemistry & Molecules</h3>
+                    <p>Visualize 2D molecular structures and reactions from text using the SMILES chemical format.</p>
+                </div>
+
+                <div class="premium-card" onclick="showDSAHome()">
+                    <h3>Data Structures & Algorithms</h3>
+                    <p>Interactive step-by-step visualizations for complex structures like Trees, Graphs, and HashMaps.
+                    </p>
+                </div>
+                <div class="premium-card" onclick="window.location.href='science/index.html'">
+                    <h3>Science & Math</h3>
+                    <p>Dynamic physics engines, math simulations, and intuitive free body diagrams.</p>
+                </div>
+                <div class="premium-card" onclick="window.location.href='architecture/index.html'">
+                    <h3>Architecture Flow Charts</h3>
+                    <p>Generate, view, and analyze complex system architectures and data flow diagrams easily.</p>
+                </div>
+                <div class="premium-card" onclick="window.location.href='charts/index.html'">
+                    <h3>Interactive Charts</h3>
+                    <p>Beautiful, AI-generated dynamic charts and datasets tailored to your data analysis prompts.</p>
+                </div>
+            </div>
+
+            <!-- Unified Special Card -->
+            <div class="premium-card special-card" onclick="window.location.href='tutor/index.html'">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+                        </path>
+                        <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="special-content">
+                    <h3>Unified Visual Tutor</h3>
+                    <p>A next-gen chat-based experience combining rich textual explanations with dynamic, right-pane
+                        visual diagrams for absolutely any subject.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOME VIEW -->
+    <div id="home-view" class="hidden">
+        <button class="back-btn" onclick="showLanding()" style="margin-bottom: 20px; font-size: 1rem;">← Back to
+            Modules</button>
+        <div class="main-title" style="margin-bottom: 40px; font-size: 2.5rem;">Data Structures & Algorithms</div>
+
+        <!-- Linear Structures -->
+        <div class="category-section">
+            <div class="section-title">Linear Structures</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('array')">
+                    <h3>Arrays</h3>
+                    <div class="card-visual">
+                        <div class="vis-array">
+                            <div class="vis-array-box"></div>
+                            <div class="vis-array-box"></div>
+                            <div class="vis-array-box"></div>
+                            <div class="vis-array-box"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('stack')">
+                    <h3>Stacks</h3>
+                    <div class="card-visual">
+                        <div class="vis-stack">
+                            <div class="vis-stack-item"></div>
+                            <div class="vis-stack-item"></div>
+                            <div class="vis-stack-item"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('queue')">
+                    <h3>Queue</h3>
+                    <div class="card-visual">
+                        <div class="vis-queue">
+                            <div class="vis-queue-item"></div>
+                            <div class="vis-queue-item"></div>
+                            <div class="vis-queue-item"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('deque')">
+                    <h3>Deque</h3>
+                    <div class="card-visual">
+                        <div class="vis-deque">
+                            <div class="vis-queue-item"></div>
+                            <div class="vis-queue-item"></div>
+                            <div class="vis-queue-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Structures -->
+        <div class="category-section">
+            <div class="section-title">Memory & Pointers</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('sll')">
+                    <h3>Singly Linked List</h3>
+                    <div class="card-visual">
+                        <div class="vis-sll">
+                            <div class="vis-node-box"></div>
+                            <div class="vis-arrow-ptr"></div>
+                            <div class="vis-node-box"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('dll')">
+                    <h3>Doubly Linked List</h3>
+                    <div class="card-visual">
+                        <div class="vis-sll">
+                            <div class="vis-node-box"></div>
+                            <div class="vis-arrow-ptr-bi"></div>
+                            <div class="vis-node-box"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('cll')">
+                    <h3>Circular Linked List</h3>
+                    <div class="card-visual">
+                        <div class="vis-sll" style="position:relative;">
+                            <div class="vis-node-box"></div>
+                            <div class="vis-arrow-ptr"></div>
+                            <div class="vis-node-box"></div>
+                            <div class="vis-arrow-ptr-curve"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hierarchical Structures -->
+        <div class="category-section">
+            <div class="section-title">Hierarchical</div>
+            <div class="section-grid tree-grid">
+                <div class="card" onclick="selectStructure('bt')">
+                    <h3>Binary Tree</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:19px; width:16px; height:16px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:12px; left:25px; width:15px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge"
+                                style="top:12px; left:27px; width:15px; transform:rotate(45deg);"></div>
+                            <div class="vis-tree-circle" style="top:20px; left:2px; width:10px; height:10px;"></div>
+                            <div class="vis-tree-circle" style="top:20px; left:36px; width:14px; height:14px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('bst')">
+                    <h3>Binary Search Tree</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:19px; width:14px; height:14px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:11px; left:25px; width:15px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge"
+                                style="top:11px; left:26px; width:15px; transform:rotate(45deg);"></div>
+                            <div class="vis-tree-circle" style="top:18px; left:4px; width:10px; height:10px;"></div>
+                            <div class="vis-tree-circle" style="top:18px; left:35px; width:18px; height:18px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('minheap')">
+                    <h3>Min Heap</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:21px; width:10px; height:10px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:9px; left:25px; width:15px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge" style="top:9px; left:26px; width:15px; transform:rotate(45deg);">
+                            </div>
+                            <div class="vis-tree-circle" style="top:18px; left:4px; width:16px; height:16px;"></div>
+                            <div class="vis-tree-circle" style="top:18px; left:33px; width:18px; height:18px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('maxheap')">
+                    <h3>Max Heap</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:16px; width:20px; height:20px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:15px; left:25px; width:15px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge"
+                                style="top:15px; left:26px; width:15px; transform:rotate(45deg);"></div>
+                            <div class="vis-tree-circle" style="top:22px; left:6px; width:12px; height:12px;"></div>
+                            <div class="vis-tree-circle" style="top:22px; left:35px; width:10px; height:10px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Structures -->
+        <div class="category-section">
+            <div class="section-title">Graphs</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('graph')">
+                    <h3>Graph</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:19px;"></div>
+                            <div class="vis-tree-circle" style="top:20px; left:2px;"></div>
+                            <div class="vis-tree-circle" style="top:20px; left:36px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:10px; left:25px; width:22px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge"
+                                style="top:10px; left:25px; width:22px; transform:rotate(45deg);"></div>
+                            <div class="vis-tree-edge" style="top:26px; left:12px; width:26px; transform:rotate(0deg);">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Structures -->
+        <div class="category-section">
+            <div class="section-title">Grid / Matrix</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('grid')">
+                    <h3>Grid</h3>
+                    <div class="card-visual">
+                        <div class="vis-grid">
+                            <div class="vis-grid-cell active"></div>
+                            <div class="vis-grid-cell"></div>
+                            <div class="vis-grid-cell active"></div>
+                            <div class="vis-grid-cell"></div>
+                            <div class="vis-grid-cell active"></div>
+                            <div class="vis-grid-cell"></div>
+                            <div class="vis-grid-cell"></div>
+                            <div class="vis-grid-cell"></div>
+                            <div class="vis-grid-cell active"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hash Structures -->
+        <div class="category-section">
+            <div class="section-title">Hash Data Structures</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('hashmap')">
+                    <h3>HashMap</h3>
+                    <div class="card-visual">
+                        <div class="vis-hash">
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('hashmap-simple')">
+                    <h3>HashMap (Simple)</h3>
+                    <div class="card-visual">
+                        <div class="vis-hash">
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('hashset')">
+                    <h3>HashSet</h3>
+                    <div class="card-visual">
+                        <div class="vis-hash">
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key" style="width:100%"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key" style="width:100%"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key" style="width:100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('hashset-simple')">
+                    <h3>HashSet (Simple)</h3>
+                    <div class="card-visual">
+                        <div class="vis-hash">
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key" style="width:100%"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key" style="width:100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('treemap')">
+                    <h3>TreeMap</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:19px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:10px; left:25px; width:15px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge"
+                                style="top:10px; left:25px; width:15px; transform:rotate(45deg);"></div>
+                            <div class="vis-tree-circle" style="top:16px; left:4px;"></div>
+                            <div class="vis-tree-circle" style="top:16px; left:34px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('linkedhashmap')">
+                    <h3>LinkedHashMap</h3>
+                    <div class="card-visual">
+                        <div class="vis-hash">
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                                <div class="vis-arrow" style="width:6px"></div>
+                            </div>
+                            <div class="vis-hash-row">
+                                <div class="vis-hash-key"></div>
+                                <div class="vis-hash-val"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Advanced Structures -->
+        <div class="category-section">
+            <div class="section-title">Advanced Data Structures</div>
+            <div class="section-grid">
+                <div class="card" onclick="selectStructure('trie')">
+                    <h3>Trie (Prefix Tree)</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:19px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:10px; left:25px; width:15px; transform:rotate(135deg);"></div>
+                            <div class="vis-tree-edge"
+                                style="top:10px; left:25px; width:15px; transform:rotate(45deg);"></div>
+                            <div class="vis-tree-circle" style="top:16px; left:4px;"></div>
+                            <div class="vis-tree-circle" style="top:16px; left:34px;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:26px; left:10px; width:10px; transform:rotate(90deg);"></div>
+                            <div class="vis-tree-circle" style="top:32px; left:4px; border-color:#10b981;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" onclick="selectStructure('union_find')">
+                    <h3>Union Find (DSU)</h3>
+                    <div class="card-visual">
+                        <div class="vis-tree">
+                            <div class="vis-tree-circle" style="top:0; left:4px; border-color:#3b82f6;"></div>
+                            <div class="vis-tree-circle" style="top:16px; left:4px; border-color:#3b82f6;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:16px; left:10px; width:10px; transform:rotate(-90deg); background:#3b82f6;">
+                            </div>
+                            <div class="vis-tree-circle" style="top:0; left:30px; border-color:#10b981;"></div>
+                            <div class="vis-tree-circle" style="top:16px; left:30px; border-color:#10b981;"></div>
+                            <div class="vis-tree-edge"
+                                style="top:16px; left:36px; width:10px; transform:rotate(-90deg); background:#10b981;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Understand Deeper Section -->
+        <div class="category-section">
+            <div class="section-title" style="color: #e9d5ff; border-bottom-color: rgba(138, 88, 216, 0.4);">Understand
+                Deeper</div>
+            <div class="section-grid" style="grid-template-columns: 1fr;">
+                <div class="card" id="playground-card" onclick="window.location.href='playground/test.html'"
+                    style="height: 100px;">
+                    <h3>🧪 Visualize any DSA Problem</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="category-section">
+            <div class="section-title">Settings</div>
+            <div
+                style="padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label for="zoomSensitivity"
+                        style="color: var(--text-sub); font-size: 0.9rem; min-width: 120px;">Zoom
+                        Sensitivity:</label>
+                    <input type="range" id="zoomSensitivity" min="0.02" max="0.2" step="0.01" value="0.05"
+                        style="flex: 1; accent-color: #3b82f6;">
+                    <span id="zoomSensitivityValue"
+                        style="color: var(--text); font-family: 'Fira Code', monospace; min-width: 50px;">0.05</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inline script to prevent blinking on landing->dsa navigation -->
+    <script>
+        if (window.location.search.includes('section=dsa')) {
+            document.getElementById('landing-view').classList.add('hidden');
+            document.getElementById('home-view').classList.remove('hidden');
+        }
+    </script>
+
+    <!-- APP VIEW (Hidden by default) -->
+    <div id="app-container" class="hidden">
+        <div id="sidebar">
+            <button class="back-btn" onclick="showHome()">← Back (Alt+Left)</button>
+            <h3 style="margin-top:0" id="structure-title">Structure</h3>
+
+            <div class="msg-log" id="chat" style="display:none;"></div>
+
+            <div id="main-input-container">
+                <div style="margin-bottom: 10px; color: var(--text-sub); font-size: 0.9rem;">
+                    Enter values:
+                </div>
+                <input type="text" id="userInput" placeholder="e.g. 1 2 3" autofocus>
+            </div>
+
+            <!-- Array Controls -->
+            <div id="array-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="number" id="arrIdx" placeholder="Idx" style="width: 50px;">
+                    <input type="text" id="arrVal" placeholder="Val" style="width: 60px;">
+                </div>
+                <div class="ops-grid">
+                    <button id="btnArrInsert" class="control-btn">Insert</button>
+                    <button id="btnArrUpdate" class="control-btn">Update</button>
+                    <button id="btnArrDelete" class="control-btn">Delete</button>
+                    <button id="btnArrSearch" class="control-btn">Search</button>
+                </div>
+                <div class="ops-divider">
+                    <h4 class="ops-title">Sorting</h4>
+                    <div class="ops-row">
+                        <select id="sortAlgo"
+                            style="flex: 1; padding: 8px 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.8rem; cursor: pointer;">
+                            <option value="bubble">Bubble Sort</option>
+                            <option value="selection">Selection Sort</option>
+                            <option value="insertion">Insertion Sort</option>
+                            <option value="merge">Merge Sort</option>
+                            <option value="quick">Quick Sort</option>
+                        </select>
+                        <button id="btnSort" class="control-btn traversal-btn">Sort</button>
+                    </div>
+                    <div id="sortLog" class="sort-log-panel"></div>
+                </div>
+            </div>
+
+            <!-- List Controls -->
+            <div id="list-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="text" id="listVal" placeholder="Value" style="width: 100px;">
+                </div>
+                <div class="ops-grid">
+                    <button id="btnListAppend" class="control-btn">Append</button>
+                    <button id="btnListPrepend" class="control-btn">Prepend</button>
+                    <button id="btnListRemove" class="control-btn">Remove Val</button>
+                    <button id="btnListSearch" class="control-btn">Search</button>
+                    <button id="btnListPopHead" class="control-btn">Pop Head</button>
+                    <button id="btnListPopTail" class="control-btn">Pop Tail</button>
+                </div>
+            </div>
+
+            <!-- Stack Controls -->
+            <div id="stack-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="text" id="stackPushInput" placeholder="Value" style="width: 60px;">
+                    <button id="btnPush" class="control-btn">Push</button>
+                </div>
+                <div class="ops-row">
+                    <button id="btnPop" class="control-btn" style="flex:1;">Pop</button>
+                    <button id="btnPeek" class="control-btn" style="flex:1;">Peek</button>
+                </div>
+                <div class="ops-row">
+                    <span class="ops-label">Monotonic:</span>
+                    <button id="btnStackMonotonic" class="control-btn" style="flex: 1;">Off</button>
+                </div>
+            </div>
+
+            <!-- Queue Controls -->
+            <div id="queue-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="text" id="queueEnqueueInput" placeholder="Value" style="width: 60px;">
+                    <button id="btnEnqueue" class="control-btn">Enqueue</button>
+                </div>
+                <div class="ops-row">
+                    <button id="btnDequeue" class="control-btn" style="flex:1;">Dequeue</button>
+                    <button id="btnPeekQueue" class="control-btn" style="flex:1;">Peek</button>
+                </div>
+                <div class="ops-row">
+                    <span class="ops-label">Monotonic:</span>
+                    <button id="btnQueueMonotonic" class="control-btn" style="flex: 1;">Off</button>
+                    <input type="number" id="queueWindowK" placeholder="k" class="hidden"
+                        style="width: 40px; font-size: 0.8rem;" min="1" title="Window Size">
+                </div>
+                <div id="queueLog"
+                    style="margin-top: 10px; height: 80px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px; font-family: monospace; font-size: 0.75rem; color: #cbd5e1;">
+                </div>
+            </div>
+
+            <!-- Deque Controls -->
+            <div id="deque-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="text" id="dequeInput" placeholder="Value" style="width: 60px;">
+                </div>
+                <div class="ops-grid">
+                    <button id="btnDequeAddFirst" class="control-btn">Add First</button>
+                    <button id="btnDequeAddLast" class="control-btn">Add Last</button>
+                    <button id="btnDequePollFirst" class="control-btn">Poll First</button>
+                    <button id="btnDequePollLast" class="control-btn">Poll Last</button>
+                    <button id="btnDequePeekFirst" class="control-btn" style="flex:1;">Peek First</button>
+                    <button id="btnDequePeekLast" class="control-btn" style="flex:1;">Peek Last</button>
+                </div>
+            </div>
+
+            <!-- Trie Controls -->
+            <div id="trie-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="text" id="trieInput" placeholder="Word" style="width: 100px;">
+                    <button id="btnTrieInsert" class="control-btn">Insert</button>
+                </div>
+                <div class="ops-row">
+                    <button id="btnTrieSearch" class="control-btn" style="flex:1;">Search</button>
+                    <button id="btnTrieStartsWith" class="control-btn" style="flex:1;">Starts With</button>
+                </div>
+            </div>
+
+            <!-- Union Find Controls -->
+            <div id="union-find-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="number" id="ufSize" placeholder="Size (1-15)" value="10" style="width: 80px;">
+                    <button id="btnUfInit" class="control-btn">Init</button>
+                </div>
+                <div class="ops-row">
+                    <input type="number" id="ufP" placeholder="P" style="width: 40px;">
+                    <input type="number" id="ufQ" placeholder="Q" style="width: 40px;">
+                    <button id="btnUfUnion" class="control-btn">Union</button>
+                    <button id="btnUfFind" class="control-btn">Find</button>
+                </div>
+            </div>
+
+            <!-- Heap Controls -->
+            <div id="heap-controls" class="ops-section hidden">
+                <h4 class="ops-title">Operations</h4>
+                <div class="ops-row">
+                    <input type="text" id="heapInput" placeholder="Value" style="width: 60px;">
+                    <button id="btnHeapInsert" class="control-btn">Insert</button>
+                </div>
+                <div class="ops-row">
+                    <button id="btnHeapExtract" class="control-btn" style="flex:1;">Poll</button>
+                    <button id="btnHeapPeek" class="control-btn" style="flex:1;">Peek</button>
+                </div>
+            </div>
+
+            <!-- Tree Controls -->
+            <div id="tree-controls" class="ops-section hidden">
+                <h4 class="ops-title">Traversals</h4>
+                <div class="ops-grid">
+                    <button id="btnBFS" class="control-btn">BFS</button>
+                    <button id="btnPreorder" class="control-btn">Preorder</button>
+                    <button id="btnInorder" class="control-btn">Inorder</button>
+                    <button id="btnPostorder" class="control-btn">Postorder</button>
+                </div>
+                <div id="bst-search-controls" class="ops-divider hidden">
+                    <h4 class="ops-title">Search</h4>
+                    <div class="ops-row">
+                        <input type="number" id="bstSearchVal" placeholder="Value" style="width: 80px;">
+                        <button id="btnBSTSearch" class="control-btn" style="flex:1;">Search</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Controls -->
+            <div id="graph-controls" class="ops-section hidden">
+                <h4 class="ops-title">Builder Tools</h4>
+                <div class="ops-grid">
+                    <button id="btnAddNode" class="control-btn" title="Click stage to add node">Add Node</button>
+                    <button id="btnResetGraph" class="control-btn cancel-btn">Reset</button>
+                </div>
+                <div class="ops-grid" style="margin-top: 6px;">
+                    <button id="btnAddEdgeUndir" class="control-btn">Edge (Line)</button>
+                    <button id="btnAddEdgeDir" class="control-btn">Edge (Arrow)</button>
+                </div>
+                <div class="ops-grid ops-divider">
+                    <button id="btnDelNode" class="control-btn cancel-btn">Delete Node</button>
+                    <button id="btnDelEdge" class="control-btn cancel-btn">Delete Edge</button>
+                </div>
+                <div class="ops-grid ops-divider">
+                    <button id="btnGraphBFS" class="control-btn traversal-btn">Run BFS</button>
+                    <button id="btnGraphDFS" class="control-btn traversal-btn">Run DFS</button>
+                </div>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-sub); font-style: italic;"
+                    id="graph-instructions">
+                    Select a tool to begin.
+                </div>
+            </div>
+
+            <!-- Grid Controls -->
+            <div id="grid-controls" class="ops-section hidden">
+                <h4 class="ops-title">Grid Setup</h4>
+                <div class="ops-row">
+                    <input type="number" id="gridRows" placeholder="Rows" style="width: 70px;" min="1" max="20"
+                        value="3">
+                    <input type="number" id="gridCols" placeholder="Cols" style="width: 70px;" min="1" max="20"
+                        value="3">
+                    <button id="btnBuildGrid" class="control-btn" style="flex: 1;">Build</button>
+                </div>
+                <div class="ops-divider">
+                    <h4 class="ops-title">Replace Value</h4>
+                    <input type="text" id="gridReplaceVal" placeholder="Value" style="width: 100%; margin-bottom: 8px;">
+                    <div style="font-size: 0.8rem; color: var(--text-sub); font-style: italic;">
+                        Click a cell to set its value
+                    </div>
+                </div>
+                <div class="ops-divider">
+                    <h4 class="ops-title">Traversals</h4>
+                    <div class="ops-row">
+                        <input type="number" id="gridStartRow" placeholder="Row" style="width: 60px;" min="0" value="0">
+                        <input type="number" id="gridStartCol" placeholder="Col" style="width: 60px;" min="0" value="0">
+                    </div>
+                    <div class="ops-grid">
+                        <button id="btnGridBFS" class="control-btn traversal-btn">Run BFS</button>
+                        <button id="btnGridDFS" class="control-btn traversal-btn">Run DFS</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hash Controls -->
+            <div id="hash-controls" class="ops-section hidden">
+                <h4 class="ops-title">Hash Operations</h4>
+                <div class="ops-row">
+                    <input type="number" id="hashKey" placeholder="Key (Int)" style="width: 70px;">
+                    <input type="text" id="hashValue" placeholder="Value" style="width: 70px;">
+                </div>
+                <div class="ops-grid">
+                    <button id="btnHashPut" class="control-btn">Put</button>
+                    <button id="btnHashGet" class="control-btn">Get</button>
+                    <button id="btnHashRemove" class="control-btn">Remove</button>
+                    <button id="btnHashClear" class="control-btn cancel-btn">Clear</button>
+                </div>
+                <div id="hash-info" style="margin-top:10px; font-size: 0.8rem; color: var(--text-sub);">
+                </div>
+            </div>
+
+            <div
+                style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: center;">
+                <button class="back-btn" onclick="resetZoom()" style="margin:0; width: auto;">Reset View</button>
+            </div>
+        </div>
+
+        <div id="visual-area">
+            <div id="pan-zoom-container">
+                <svg id="svg-layer">
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"
+                            markerUnits="userSpaceOnUse">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
+                        </marker>
+                    </defs>
+                </svg>
+                <div id="stage"></div>
+            </div>
+            <!-- Step Controls -->
+            <div id="step-controls" class="hidden">
+                <button id="btnPrevStep" class="step-btn" title="Previous Step">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <span id="step-indicator">Step 0 / 0</span>
+                <button id="btnNextStep" class="step-btn" title="Next Step">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+                <div class="step-separator"></div>
+                <button id="btnPlay" class="step-btn" title="Play/Pause">▶</button>
+                <div class="speed-control">
+                    <input type="range" id="speedSlider" min="100" max="2000" value="800" step="100">
+                    <span class="speed-label">Speed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW AUX PANEL (Right Side) -->
+        <div id="aux-panel" class="hidden">
+            <h3 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Aux Structure</h3>
+
+            <h4 style="margin: 15px 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Traversal Output</h4>
+            <div id="traversal-output"
+                style="font-family: monospace; font-size: 0.9rem; margin-bottom: 20px; color: #ec4899; min-height: 20px; border: 1px solid var(--border); padding: 10px; border-radius: 6px;">
+            </div>
+
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Visited Array</h4>
+            <div id="visual-visited"
+                style="display: flex; gap: 5px; overflow-x: auto; padding: 10px; min-height: 50px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 20px; background: rgba(0,0,0,0.2);">
+            </div>
+
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Queue</h4>
+            <div id="visual-queue"
+                style="display: flex; gap: 5px; overflow-x: auto; padding: 10px; min-height: 60px; border: 1px dashed var(--border); margin-bottom: 20px; align-items: center; scrollbar-width: none; -ms-overflow-style: none;">
+            </div>
+
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9rem; color: var(--text-sub);">Call Stack</h4>
+            <div id="visual-stack"
+                style="display: flex; flex-direction: column; gap: 5px; height: 400px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; background: rgba(0,0,0,0.2);">
+            </div>
+        </div>
+    </div>
+    <!-- Global Settings Modal -->
+    <div id="settings-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div
+            style="background:#1e293b; border:1px solid #334155; padding:30px; border-radius:12px; width:400px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+            <h2 style="margin-top:0; color:#f8fafc; font-size:1.5rem; margin-bottom:20px;">API Settings</h2>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; color:#94a3b8; font-size:0.9rem; margin-bottom:5px;">Gemini API
+                    Key</label>
+                <input type="password" id="global-gemini-key" placeholder="Enter Gemini Key (e.g. AIzaSy... No quotes)"
+                    style="width:100%; padding:10px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:#f8fafc; outline:none; font-family:'Inter', sans-serif;">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; color:#94a3b8; font-size:0.9rem; margin-bottom:5px;">Groq API
+                    Key</label>
+                <input type="password" id="global-groq-key" placeholder="Enter Groq Key (e.g. gsk_aBc12... No quotes)"
+                    style="width:100%; padding:10px; border-radius:6px; border:1px solid #475569; background:#0f172a; color:#f8fafc; outline:none; font-family:'Inter', sans-serif;">
+            </div>
+            <div id="settings-status" style="margin-bottom:15px; font-size:0.85rem; color:#10b981; display:none;">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button onclick="closeSettingsModal()"
+                    style="padding:10px 15px; border-radius:6px; border:1px solid #475569; background:transparent; color:#f8fafc; cursor:pointer; transition:background 0.2s;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                    onmouseout="this.style.background='transparent'">Cancel</button>
+                <button onclick="saveGlobalKeys()"
+                    style="padding:10px 15px; border-radius:6px; border:none; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#ffffff; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(59,130,246,0.4); transition:opacity 0.2s;"
+                    onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Save
+                    Globally</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'flex';
+            document.getElementById('settings-status').style.display = 'none';
+
+            // Fetch status to see what's set
+            fetch('/api/keys/status')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('global-gemini-key').placeholder = data.geminiConfigured ? "Saved in .env! Type to replace (e.g. AIzaSy... No quotes)" : "Enter Gemini Key (e.g. AIzaSy... No quotes)";
+                    document.getElementById('global-groq-key').placeholder = data.groqConfigured ? "Saved in .env! Type to replace (e.g. gsk_aBc12... No quotes)" : "Enter Groq Key (e.g. gsk_aBc12... No quotes)";
+                }).catch(err => console.error(err));
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        async function saveGlobalKeys() {
+            const geminiApiKey = document.getElementById('global-gemini-key').value.trim();
+            const groqApiKey = document.getElementById('global-groq-key').value.trim();
+            const statusEl = document.getElementById('settings-status');
+
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#e2e8f0';
+            statusEl.textContent = 'Saving...';
+
+            try {
+                const res = await fetch('/api/keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ geminiApiKey, groqApiKey })
+                });
+
+                if (res.ok) {
+                    statusEl.style.color = '#10b981';
+                    statusEl.textContent = 'Settings saved globally! You can now generate without entering a key.';
+                    setTimeout(() => closeSettingsModal(), 2000);
+                    document.getElementById('global-gemini-key').value = '';
+                    document.getElementById('global-groq-key').value = '';
+                } else {
+                    statusEl.style.color = '#ef4444';
+                    statusEl.textContent = 'Failed to save.';
+                }
+            } catch (e) {
+                statusEl.style.color = '#ef4444';
+                statusEl.textContent = 'Error saving.';
+            }
+        }
+    </script>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
